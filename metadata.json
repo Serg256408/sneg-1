@@ -1,0 +1,8 @@
+{
+  "name": "Copy of SnowForce Moscow Dispatch",
+  "description": "A high-performance dispatch management system for snow removal services in Moscow, featuring real-time tracking, equipment management, and AI-powered reporting.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ]
+}
