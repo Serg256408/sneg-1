@@ -137,7 +137,7 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ orders, onAddOrder, onU
     setFormData(prev => {
       const contactInfo = { ...(prev.contactInfo || {}), [field]: value };
       const shouldUpdateCustomer = field === 'name' || field === 'companyName';
-      const customer = shouldUpdateCustomer ? (value || '') : prev.customer;
+      const customer = shouldUpdateCustomer ? resolveCustomerName({ ...prev, contactInfo }) : prev.customer;
       return {
         ...prev,
         contactInfo,
