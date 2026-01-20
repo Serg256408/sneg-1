@@ -15,6 +15,10 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ orders, onAddOrder, onU
   
   const [customerPhone, setCustomerPhone] = useState(() => localStorage.getItem('snow_customer_phone') || '');
 
+  const resolveCustomerName = (data: Partial<Order>) => {
+    return data.customer || data.contactInfo?.companyName || data.contactInfo?.name || '';
+  };
+
   const myOrders = useMemo(() => {
     if (!customerPhone) return [];
     return orders.filter(o => o.contactInfo?.phone === customerPhone);
@@ -89,8 +93,7 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ orders, onAddOrder, onU
       localStorage.setItem('snow_customer_phone', formData.contactInfo.phone);
       setCustomerPhone(formData.contactInfo.phone);
     }
-    const resolvedCustomer = formData.customer || formData.contactInfo?.companyName || formData.contactInfo?.name || '';
-    onAddOrder({ ...formData, customer: resolvedCustomer });
+    onAddOrder({ ...formData, customer: resolveCustomerName(formData) });
     setView('active');
   };
 
@@ -134,7 +137,7 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ orders, onAddOrder, onU
     setFormData(prev => {
       const contactInfo = { ...(prev.contactInfo || {}), [field]: value };
       const shouldUpdateCustomer = field === 'name' || field === 'companyName';
-      const customer = shouldUpdateCustomer && value ? value : prev.customer;
+      const customer = shouldUpdateCustomer ? (value || '') : prev.customer;
       return {
         ...prev,
         contactInfo,
