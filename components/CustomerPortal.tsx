@@ -89,7 +89,8 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ orders, onAddOrder, onU
       localStorage.setItem('snow_customer_phone', formData.contactInfo.phone);
       setCustomerPhone(formData.contactInfo.phone);
     }
-    onAddOrder(formData);
+    const resolvedCustomer = formData.customer || formData.contactInfo?.companyName || formData.contactInfo?.name || '';
+    onAddOrder({ ...formData, customer: resolvedCustomer });
     setView('active');
   };
 
@@ -130,10 +131,16 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ orders, onAddOrder, onU
   };
 
   const updateContact = (field: keyof CustomerContact, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      contactInfo: { ...prev.contactInfo!, [field]: value }
-    }));
+    setFormData(prev => {
+      const contactInfo = { ...(prev.contactInfo || {}), [field]: value };
+      const shouldUpdateCustomer = field === 'name' || field === 'companyName';
+      const customer = shouldUpdateCustomer && value ? value : prev.customer;
+      return {
+        ...prev,
+        contactInfo,
+        customer
+      };
+    });
   };
 
   const toggleAssetType = (type: AssetType) => {
@@ -410,7 +417,7 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ orders, onAddOrder, onU
                 <div className="space-y-3">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Адрес объекта</label>
                   <div className="relative">
-                    <input required type="text" className="w-full bg-[#0a0f1d] border border-white/10 rounded-2xl p-5 text-sm font-medium focus:border-blue-500 outline-none pr-14 transition-all" placeholder="Улица, дом, строение" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value, customer: e.target.value })} />
+                    <input required type="text" className="w-full bg-[#0a0f1d] border border-white/10 rounded-2xl p-5 text-sm font-medium focus:border-blue-500 outline-none pr-14 transition-all" placeholder="Улица, дом, строение" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />
                     <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xl opacity-30">📍</span>
                   </div>
                 </div>
