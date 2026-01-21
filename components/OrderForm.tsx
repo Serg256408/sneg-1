@@ -20,6 +20,8 @@ const OrderForm: React.FC<OrderFormProps> = ({
   customers,
   onSubmit, 
   onCancel, 
+  onAddContractor,
+  onAddCustomer,
   currentUser 
 }) => {
   const [formData, setFormData] = useState<Partial<Order>>(initialData || {
@@ -42,6 +44,19 @@ const OrderForm: React.FC<OrderFormProps> = ({
   const [customerSearch, setCustomerSearch] = useState(initialData?.customer || '');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const selectedCustomer = useMemo(() => {
+    return customers.find(c => c.id === formData.customerId) || customers.find(c => c.name === customerSearch);
+  }, [customers, formData.customerId, customerSearch]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowCustomerDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
 
   // Logic: Contextual actions
   const hasDirectOffers = useMemo(() => formData.assetRequirements?.some(r => r.contractorId), [formData.assetRequirements]);
@@ -276,6 +291,20 @@ const OrderForm: React.FC<OrderFormProps> = ({
                   ))}
                 </div>
               )}
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                {selectedCustomer ? (
+                  <>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-blue-400">📞 {selectedCustomer.phone || 'Телефон не указан'}</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">✉️ {selectedCustomer.email || 'Email не указан'}</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">ИНН: {selectedCustomer.inn || '—'}</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-green-400">{selectedCustomer.paymentType}</span>
+                  </>
+                ) : (
+                  <button type="button" onClick={onAddCustomer} className="text-[9px] font-black uppercase tracking-widest text-blue-400 hover:text-blue-300 transition-colors">
+                    + Новый заказчик
+                  </button>
+                )}
+              </div>
            </div>
            <div className="bg-[#12192c] p-8 rounded-[2.5rem] border border-white/5">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 block">Адрес объекта</label>
@@ -292,9 +321,10 @@ const OrderForm: React.FC<OrderFormProps> = ({
         <div className="bg-[#12192c] p-8 rounded-[2.5rem] border border-white/5">
            <div className="flex justify-between items-center mb-8">
               <h3 className="text-xs font-black uppercase tracking-widest">🚛 Техника и Экономика</h3>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                  <button type="button" onClick={() => setFormData({...formData, assetRequirements: [...(formData.assetRequirements || []), { type: AssetType.TRUCK, contractorId: '', contractorName: 'Биржа', plannedUnits: 1 }]})} className="text-[9px] font-black bg-white/5 px-4 py-2 rounded-xl border border-white/10 hover:bg-blue-600 transition-all">+ Самосвал</button>
                  <button type="button" onClick={() => setFormData({...formData, assetRequirements: [...(formData.assetRequirements || []), { type: AssetType.LOADER, contractorId: '', contractorName: 'Биржа', plannedUnits: 1 }]})} className="text-[9px] font-black bg-white/5 px-4 py-2 rounded-xl border border-white/10 hover:bg-orange-600 transition-all">+ Погрузчик</button>
+                 <button type="button" onClick={onAddContractor} className="text-[9px] font-black bg-blue-500/10 text-blue-300 px-4 py-2 rounded-xl border border-blue-500/20 hover:bg-blue-500/20 transition-all">+ Новый подрядчик</button>
               </div>
            </div>
            

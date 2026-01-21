@@ -89,7 +89,8 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ orders, onAddOrder, onU
       localStorage.setItem('snow_customer_phone', formData.contactInfo.phone);
       setCustomerPhone(formData.contactInfo.phone);
     }
-    onAddOrder(formData);
+    const customerName = formData.contactInfo?.companyName?.trim() || formData.contactInfo?.name?.trim() || formData.customer?.trim() || 'Новый заказчик';
+    onAddOrder({ ...formData, customer: customerName });
     setView('active');
   };
 
@@ -410,7 +411,7 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ orders, onAddOrder, onU
                 <div className="space-y-3">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Адрес объекта</label>
                   <div className="relative">
-                    <input required type="text" className="w-full bg-[#0a0f1d] border border-white/10 rounded-2xl p-5 text-sm font-medium focus:border-blue-500 outline-none pr-14 transition-all" placeholder="Улица, дом, строение" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value, customer: e.target.value })} />
+                    <input required type="text" className="w-full bg-[#0a0f1d] border border-white/10 rounded-2xl p-5 text-sm font-medium focus:border-blue-500 outline-none pr-14 transition-all" placeholder="Улица, дом, строение" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />
                     <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xl opacity-30">📍</span>
                   </div>
                 </div>
@@ -469,8 +470,10 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ orders, onAddOrder, onU
                   ))}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                   <input type="text" className="bg-[#0a0f1d] border border-white/10 rounded-2xl p-5 text-sm focus:border-blue-500 outline-none transition-all placeholder:text-slate-700" placeholder="Компания / организация" value={formData.contactInfo?.companyName} onChange={e => updateContact('companyName', e.target.value)} />
                    <input required type="text" className="bg-[#0a0f1d] border border-white/10 rounded-2xl p-5 text-sm focus:border-blue-500 outline-none transition-all placeholder:text-slate-700" placeholder="Ваше имя" value={formData.contactInfo?.name} onChange={e => updateContact('name', e.target.value)} />
                    <input required type="tel" className="bg-[#0a0f1d] border border-white/10 rounded-2xl p-5 text-sm focus:border-blue-500 outline-none transition-all placeholder:text-slate-700" placeholder="+7 (___) ___-__-__" value={formData.contactInfo?.phone} onChange={e => updateContact('phone', e.target.value)} />
+                   <input type="email" className="bg-[#0a0f1d] border border-white/10 rounded-2xl p-5 text-sm focus:border-blue-500 outline-none transition-all placeholder:text-slate-700" placeholder="Email (необязательно)" value={formData.contactInfo?.email} onChange={e => updateContact('email', e.target.value)} />
                 </div>
                 <textarea className="w-full flex-1 min-h-[120px] bg-[#0a0f1d] border border-white/10 rounded-2xl p-6 text-sm focus:border-blue-500 outline-none placeholder:text-slate-700 transition-all mb-8" placeholder="Комментарий" value={formData.restrictions?.comment} onChange={(e) => updateRestriction('comment', e.target.value)} />
                 <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white p-6 rounded-[2rem] text-sm font-black uppercase tracking-widest shadow-2xl border-b-4 border-blue-800 transition-all active:scale-95 shadow-blue-600/20">ОТПРАВИТЬ ЗАЯВКУ МЕНЕДЖЕРУ</button>

@@ -118,10 +118,86 @@ const App: React.FC = () => {
     localStorage.setItem('snow_managers', JSON.stringify(managers));
   }, [managers]);
 
+  const normalizeAssetRequirements = (requirements?: Order['assetRequirements']) => {
+    return (requirements || []).map(req => {
+      if (req.contractorId) {
+        const contractor = contractors.find(c => c.id === req.contractorId);
+        return {
+          ...req,
+          contractorName: contractor?.name || req.contractorName || 'Подрядчик'
+        };
+      }
+      return {
+        ...req,
+        contractorName: 'Биржа'
+      };
+    });
+  };
+
+  const resolveCustomerLink = (data: Partial<Order>) => {
+    const contact = data.contactInfo;
+    const normalizedName = data.customer?.trim() || contact?.companyName?.trim() || contact?.name?.trim() || '';
+    const matchingCustomer =
+      (data.customerId && customers.find(c => c.id === data.customerId)) ||
+      customers.find(c =>
+        (contact?.phone && c.phone === contact.phone) ||
+        (contact?.email && c.email === contact.email) ||
+        (contact?.inn && c.inn === contact.inn) ||
+        (normalizedName && c.name === normalizedName)
+      );
+
+    if (matchingCustomer) {
+      return {
+        customerId: matchingCustomer.id,
+        customer: matchingCustomer.name,
+        contactInfo: {
+          name: matchingCustomer.name,
+          phone: matchingCustomer.phone,
+          email: matchingCustomer.email,
+          inn: matchingCustomer.inn,
+          companyName: matchingCustomer.name
+        }
+      };
+    }
+
+    if (normalizedName || contact?.phone || contact?.email || contact?.inn) {
+      const newCustomer: Customer = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: normalizedName || 'Новый заказчик',
+        phone: contact?.phone?.trim() || '',
+        email: contact?.email?.trim() || '',
+        inn: contact?.inn?.trim() || '',
+        paymentType: PaymentType.CASH,
+        address: data.address?.trim(),
+        comment: 'Создано автоматически из заявки'
+      };
+      setCustomers(prev => [newCustomer, ...prev]);
+      return {
+        customerId: newCustomer.id,
+        customer: newCustomer.name,
+        contactInfo: {
+          name: newCustomer.name,
+          phone: newCustomer.phone,
+          email: newCustomer.email,
+          inn: newCustomer.inn,
+          companyName: newCustomer.name
+        }
+      };
+    }
+
+    return {
+      customerId: data.customerId,
+      customer: data.customer,
+      contactInfo: data.contactInfo
+    };
+  };
+
   const handleAddOrder = (data: Partial<Order>) => {
     const isFromCustomer = role === 'customer';
+    const customerLink = resolveCustomerLink(data);
     const newOrder: Order = {
       ...data as Order,
+      ...customerLink,
       id: Math.random().toString(36).substr(2, 9),
       createdAt: new Date().toISOString(),
       managerName: isFromCustomer ? 'Входящая' : currentUser,
@@ -133,7 +209,7 @@ const App: React.FC = () => {
       isBirzhaOpen: false, 
       coordinates: [55.75 + (Math.random() - 0.5) * 0.2, 37.6 + (Math.random() - 0.5) * 0.2],
       status: isFromCustomer ? OrderStatus.WAITING_APPROVAL : OrderStatus.SENT,
-      assetRequirements: data.assetRequirements || [{ type: AssetType.TRUCK, contractorId: '', contractorName: 'Биржа', plannedUnits: 1, customerPrice: 0, birzhaPrice: 0 }],
+      assetRequirements: normalizeAssetRequirements(data.assetRequirements || [{ type: AssetType.TRUCK, contractorId: '', contractorName: 'Биржа', plannedUnits: 1, customerPrice: 0, birzhaPrice: 0 }]),
       restrictions: data.restrictions || {
         hasHeightLimit: false,
         hasNarrowEntrance: false,
@@ -152,10 +228,18 @@ const App: React.FC = () => {
       handleAddOrder(data);
       return;
     }
+    const baseOrder = orders.find(o => o.id === orderId);
+    const customerLink = resolveCustomerLink({ ...(baseOrder || {}), ...data });
+    const nextAssetRequirements = normalizeAssetRequirements(data.assetRequirements || baseOrder?.assetRequirements);
 
     setOrders(prev => prev.map(o => {
       if (o.id === orderId) {
-        const updated = { ...o, ...data };
+        const updated = { 
+          ...o, 
+          ...data, 
+          ...customerLink,
+          assetRequirements: nextAssetRequirements || o.assetRequirements
+        };
         if (data.status === OrderStatus.IN_PROGRESS) {
            updated.isBirzhaOpen = false;
         }
@@ -175,16 +259,39 @@ const App: React.FC = () => {
       }
       return [data, ...prev];
     });
+    setOrders(prev => prev.map(order => ({
+      ...order,
+      assetRequirements: order.assetRequirements.map(req => (
+        req.contractorId === data.id ? { ...req, contractorName: data.name } : req
+      ))
+    })));
     setEditingContractor(null);
     setIsContractorFormOpen(false);
   };
 
   const handleUpsertCustomer = (data: Customer) => {
+    const previousName = editingCustomer?.name;
     setCustomers(prev => {
       const exists = prev.some(c => c.id === data.id);
       if (exists) return prev.map(c => c.id === data.id ? data : c);
       return [data, ...prev];
     });
+    setOrders(prev => prev.map(order => {
+      const shouldUpdate = order.customerId === data.id || (!order.customerId && previousName && order.customer === previousName);
+      if (!shouldUpdate) return order;
+      return {
+        ...order,
+        customerId: data.id,
+        customer: data.name,
+        contactInfo: {
+          name: data.name,
+          phone: data.phone,
+          email: data.email,
+          inn: data.inn,
+          companyName: data.name
+        }
+      };
+    }));
     setEditingCustomer(null);
     setIsCustomerFormOpen(false);
   };
