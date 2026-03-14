@@ -1,6 +1,10 @@
 {
   "permissions": {
     "allow": [
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)",
+      "Read(*)",
       "Bash(node investigate.js)",
       "Bash(node analytics.js \"Боровая\")",
       "Bash(node test_contact.js)",
@@ -11,7 +15,18 @@
       "Bash(explorer \"C:\\\\transcom\\\\report.html\")",
       "Bash(cmd.exe /c start \"\" \"C:\\\\transcom\\\\report.html\")",
       "Bash(node -e \"require\\(''http''\\).createServer\\(\\(q,r\\)=>{require\\(''fs''\\).readFile\\(''c:/transcom/report.html'',\\(e,d\\)=>{r.writeHead\\(200,{''Content-Type'':''text/html;charset=utf-8''}\\);r.end\\(d\\)}\\)}\\).listen\\(8787,\\(\\)=>console.log\\(''Server ready on http://localhost:8787''\\)\\)\")",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8787)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8787)",
+      "Bash(node -e \"const d=require\\(''./latest_data.json''\\); const t=d.tasks||d; const first=Array.isArray\\(t\\)?t[0]:Object.values\\(t\\)[0]; console.log\\(JSON.stringify\\(Object.keys\\(first||{}\\)\\)\\);\")",
+      "Bash(\"C:\\\\Program Files\\\\nodejs\\\\node.exe\" --check analytics.js)",
+      "Bash(where node:*)",
+      "Read(//c/Program Files/nodejs/**)",
+      "Read(//c/Users/speza/AppData/Roaming/nvm/current/**)",
+      "Read(//c/Users/speza/.nvm/versions/**)",
+      "Bash(cmd.exe /c \"where node\")",
+      "Bash(.tools/node-v24.14.0-win-x64/node.exe analytics.js borovaya 12-03-2026 --no-send)",
+      "Bash(.tools/node-v24.14.0-win-x64/node.exe .tools/node-v24.14.0-win-x64/lib/node_modules/npm/bin/npm-cli.js install)",
+      "Bash(.tools/node-v24.14.0-win-x64/npm install:*)",
+      "Bash(.tools/node-v24.14.0-win-x64/node.exe -e \":*)"
     ]
   }
 }

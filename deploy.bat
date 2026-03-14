@@ -1,15 +1,33 @@
 @echo off
+setlocal
 chcp 65001 >nul
-cd /d c:\transcom
 
-:: Копируем report.html в deploy/index.html
+set "ROOT=%~dp0"
+set "LOG=%ROOT%daily_log.txt"
+
+cd /d "%ROOT%"
 copy /Y report.html deploy\index.html >nul 2>&1
+if errorlevel 1 exit /b 1
 
-:: Пушим в GitHub
-cd deploy
+pushd deploy
 git config http.sslBackend openssl
 git add -A
-git commit -m "Report %date% %time%" >nul 2>&1
-git push >nul 2>&1
+git diff --cached --quiet
+if not errorlevel 1 (
+    echo [%date% %time%] Deploy skipped: no changes >> "%LOG%"
+    popd
+    exit /b 0
+)
 
-echo [%date% %time%] Deploy done >> c:\transcom\daily_log.txt
+git commit -m "Report %date% %time%" >nul 2>&1
+if errorlevel 1 (
+    popd
+    exit /b 1
+)
+
+git push >nul 2>&1
+set "PUSH_EXIT=%ERRORLEVEL%"
+popd
+
+if not "%PUSH_EXIT%"=="0" exit /b %PUSH_EXIT%
+echo [%date% %time%] Deploy done >> "%LOG%"

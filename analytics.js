@@ -4,6 +4,7 @@
 // Запуск: node analytics.js "Боровая"              (сегодня)
 //         node analytics.js "Боровая" 11-03-2026   (конкретный день)
 //         node analytics.js "Боровая" 7            (дней назад для dataTags)
+//         node analytics.js borovaya 11-03-2026    (ASCII alias for batch/scheduler)
 // ============================================================
 
 require('dotenv').config({ quiet: true });
@@ -19,6 +20,7 @@ const TRANSCRIPTION_CACHE_FILE = path.join(__dirname, 'transcriptions_cache.json
 const AI_CACHE_FILE = path.join(__dirname, 'ai_cache.json');
 const MANAGERS = {
   'Боровая': { userId: 41, name: 'Ия Боровая', pfName: 'Боровая' },
+  'borovaya': { userId: 41, name: 'Ия Боровая', pfName: 'Боровая' },
 };
 
 let useAxios = true, axios;
@@ -52,27 +54,6 @@ const pf = (ep, body) => httpPost(API_URL + ep, body, AUTH);
 const pfGet = (ep) => httpGet(API_URL + ep, AUTH);
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const pad2 = (n) => String(n).padStart(2, '0');
-
-// Planfix API отдаёт время комментариев в UTC, конвертируем в Москву (+3)
-function utcToMoscow(dateStr, timeStr) {
-  if (!timeStr) return { date: dateStr || '', time: '' };
-  const m = timeStr.match(/^(\d{1,2}):(\d{2})/);
-  if (!m) return { date: dateStr || '', time: timeStr };
-  let h = parseInt(m[1]) + 3;
-  let d = dateStr || '';
-  if (h >= 24) {
-    h -= 24;
-    // Переносим на следующий день
-    if (d) {
-      const parts = d.split('-');
-      if (parts.length === 3) {
-        const dt = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]) + 1);
-        d = pad2(dt.getDate()) + '-' + pad2(dt.getMonth() + 1) + '-' + dt.getFullYear();
-      }
-    }
-  }
-  return { date: d, time: pad2(h) + ':' + m[2] };
-}
 
 function timeToMinNode(t) {
   const m = (t || '').match(/(\d+):(\d+)/);
@@ -248,7 +229,8 @@ async function openaiChat(prompt, systemPrompt, maxTokens, model) {
 // Комплексная оценка сделки ИИ — вся история + расширенные критерии скрипта
 async function aiDealFullAssessment(dealActivity, reportDate, aiCache) {
   const deal = dealActivity.deal;
-  const cacheKey = `assess_${deal.id}_${reportDate}_v17`;
+  const isSnow = (deal.name || '').toLowerCase().startsWith('вывоз снега');
+  const cacheKey = `assess_${deal.id}_${reportDate}_${isSnow ? 'v18' : 'v18a'}`;
   if (aiCache[cacheKey]) return aiCache[cacheKey];
 
   // Собираем данные, ЧЁТКО разделяя ЗВОНКИ и ПЕРЕПИСКУ
@@ -335,26 +317,44 @@ async function aiDealFullAssessment(dealActivity, reportDate, aiCache) {
   // Ключевые слова устной презентации в комментариях
   const vpTextDetect = {};
   vpTextDetect.since2014 = allTextJoined.includes('2014') || allTextJoined.includes('с четырнадцатого');
-  vpTextDetect.manyObjects = allTextJoined.includes('много объектов') || allTextJoined.includes('множество объектов');
-  vpTextDetect.govClients = allTextJoined.includes('госдум') || allTextJoined.includes('госучрежд') || allTextJoined.includes('мосгордум');
-  vpTextDetect.reliableInSnow = allTextJoined.includes('снегопад') || allTextJoined.includes('надёжн') || allTextJoined.includes('надежн');
-  vpTextDetect.manyVehicles = allTextJoined.includes('парк техники') || allTextJoined.includes('много техники') || allTextJoined.includes('большой парк');
+  if (isSnow) {
+    vpTextDetect.manyObjects = allTextJoined.includes('много объектов') || allTextJoined.includes('множество объектов');
+    vpTextDetect.govClients = allTextJoined.includes('госдум') || allTextJoined.includes('госучрежд') || allTextJoined.includes('мосгордум');
+    vpTextDetect.reliableInSnow = allTextJoined.includes('снегопад') || allTextJoined.includes('надёжн') || allTextJoined.includes('надежн');
+    vpTextDetect.manyVehicles = allTextJoined.includes('парк техники') || allTextJoined.includes('много техники') || allTextJoined.includes('большой парк');
+  } else {
+    vpTextDetect.fiveBrigades = allTextJoined.includes('бригад') || allTextJoined.includes('геодезист') || allTextJoined.includes('проектировщик');
+    vpTextDetect.fullCycle = allTextJoined.includes('полный цикл') || allTextJoined.includes('от нуля') || allTextJoined.includes('от 0') || allTextJoined.includes('стоянок') || allTextJoined.includes('площадок');
+    vpTextDetect.bigProjects = allTextJoined.includes('микояновск') || allTextJoined.includes('рафинад') || allTextJoined.includes('западная долина') || allTextJoined.includes('тыс м') || allTextJoined.includes('тыс.м');
+    vpTextDetect.guarantee = allTextJoined.includes('гарантия') || allTextJoined.includes('гарантию') || allTextJoined.includes('бригадир') || allTextJoined.includes('фото-отчет') || allTextJoined.includes('фото отчет');
+  }
 
   // Те же слова в транскрибациях
   const vpCallDetect = {};
   vpCallDetect.since2014 = allTrJoined.includes('2014') || allTrJoined.includes('четырнадцатого');
-  vpCallDetect.manyObjects = allTrJoined.includes('много объектов') || allTrJoined.includes('множество объектов');
-  vpCallDetect.govClients = allTrJoined.includes('госдум') || allTrJoined.includes('госучрежд') || allTrJoined.includes('мосгордум');
-  vpCallDetect.reliableInSnow = allTrJoined.includes('снегопад') || allTrJoined.includes('надёжн') || allTrJoined.includes('надежн');
-  vpCallDetect.manyVehicles = allTrJoined.includes('парк техники') || allTrJoined.includes('много техники') || allTrJoined.includes('большой парк');
+  if (isSnow) {
+    vpCallDetect.manyObjects = allTrJoined.includes('много объектов') || allTrJoined.includes('множество объектов');
+    vpCallDetect.govClients = allTrJoined.includes('госдум') || allTrJoined.includes('госучрежд') || allTrJoined.includes('мосгордум');
+    vpCallDetect.reliableInSnow = allTrJoined.includes('снегопад') || allTrJoined.includes('надёжн') || allTrJoined.includes('надежн');
+    vpCallDetect.manyVehicles = allTrJoined.includes('парк техники') || allTrJoined.includes('много техники') || allTrJoined.includes('большой парк');
+  } else {
+    vpCallDetect.fiveBrigades = allTrJoined.includes('бригад') || allTrJoined.includes('геодезист') || allTrJoined.includes('проектировщик');
+    vpCallDetect.fullCycle = allTrJoined.includes('полный цикл') || allTrJoined.includes('от нуля') || allTrJoined.includes('от 0') || allTrJoined.includes('стоянок') || allTrJoined.includes('площадок');
+    vpCallDetect.bigProjects = allTrJoined.includes('микояновск') || allTrJoined.includes('рафинад') || allTrJoined.includes('западная долина') || allTrJoined.includes('тыс м') || allTrJoined.includes('тыс.м');
+    vpCallDetect.guarantee = allTrJoined.includes('гарантия') || allTrJoined.includes('гарантию') || allTrJoined.includes('бригадир') || allTrJoined.includes('фото-отчет') || allTrJoined.includes('фото отчет');
+  }
 
   // Формируем подсказку для ИИ
   const preDetectHints = [];
   if (preDetect.cpFile) preDetectHints.push(`📎 КП НАЙДЕНО: файл "${preDetect.cpFile.name}" (${preDetect.cpFile.date})`);
   if (preDetect.presentationFile) preDetectHints.push(`📎 ПРЕЗЕНТАЦИЯ НАЙДЕНА: файл "${preDetect.presentationFile.name}" (${preDetect.presentationFile.date})`);
   if (preDetect.invoiceFile) preDetectHints.push(`📎 СЧЁТ НАЙДЕН: файл "${preDetect.invoiceFile.name}" (${preDetect.invoiceFile.date})`);
-  const vpItems = ['since2014', 'manyObjects', 'govClients', 'reliableInSnow', 'manyVehicles'];
-  const vpLabels = { since2014: 'С 2014 года', manyObjects: 'Много объектов', govClients: 'Госучреждения', reliableInSnow: 'Надёжность в снегопады', manyVehicles: 'Много техники' };
+  const vpItems = isSnow
+    ? ['since2014', 'manyObjects', 'govClients', 'reliableInSnow', 'manyVehicles']
+    : ['since2014', 'fiveBrigades', 'fullCycle', 'bigProjects', 'guarantee'];
+  const vpLabels = isSnow
+    ? { since2014: 'С 2014 года', manyObjects: 'Много объектов', govClients: 'Госучреждения', reliableInSnow: 'Надёжность в снегопады', manyVehicles: 'Много техники' }
+    : { since2014: 'С 2014 года', fiveBrigades: '5 бригад + геодезист/проектировщик', fullCycle: 'Полный цикл работ', bigProjects: 'Крупные объекты', guarantee: 'Гарантия + бригадир + фото-отчёт' };
   for (const item of vpItems) {
     if (vpCallDetect[item]) preDetectHints.push(`🔊 ${vpLabels[item]}: НАЙДЕНО В ТРАНСКРИБАЦИИ (source=call)`);
     else if (vpTextDetect[item]) preDetectHints.push(`📝 ${vpLabels[item]}: НАЙДЕНО В КОММЕНТАРИЯХ (source=text)`);
@@ -421,13 +421,13 @@ ${todayActions || 'Нет'}
 2. Содержит ли этот текст КОНКРЕТНЫЕ слова, относящиеся к данному пункту?
 Если хотя бы один ответ "нет" → source НЕ МОЖЕТ быть "call". Поставь "text" или "none".
 
-ПРАВИЛА ОЦЕНКИ:
+${isSnow ? `ПРАВИЛА ОЦЕНКИ:
 1. УСТНАЯ ПРЕЗЕНТАЦИЯ — подпункты: с 2014 года, много объектов, госучреждения, надёжность в снегопады, много техники. Каждый подпункт done:true ТОЛЬКО если конкретно упомянут в транскрибации (source="call") или комментарии (source="text"). В note укажи ЦИТАТУ.
-2. КАК МЫ РАБОТАЕМ — done:true ТОЛЬКО если менеджер ДЕТАЛЬНО описал клиенту весь процесс работы на объекте: какая техника приедет, что будут делать рабочие, как будет выглядеть результат. Пример для вывоза снега: "приезжает самосвал 20м3 и трактор-погрузчик, чистит территорию, грузит снег, вывозим на свалку, талоны дадим". НЕ считается: общие фразы "работаем по договору", "у нас договор с Мосводоканалом", просто упоминание техники без описания процесса. source="call" только из транскрибации.
+2. КАК МЫ РАБОТАЕМ — done:true ТОЛЬКО если менеджер ДЕТАЛЬНО описал клиенту весь процесс работы на объекте: какая техника приедет, что будут делать рабочие, как будет выглядеть результат. Пример: "приезжает самосвал 20м3 и трактор-погрузчик, чистит территорию, грузит снег, вывозим на свалку, талоны дадим". НЕ считается: общие фразы "работаем по договору", просто упоминание техники без описания процесса. source="call" только из транскрибации.
 3. ПРЕЗЕНТАЦИЯ (ФАЙЛ) — ищи в [Файлы:...]: "презентация", "карточка компании", "presentation".
 4. КП — ищи в [Файлы:...] и тексте: "кп", "коммерческое предложение", "КП_", "К.П.".
 5. СЧЁТ — ищи в [Файлы:...] и тексте: "счёт", "счет", "invoice".
-6. ПРИЗЫВ К ДЕЙСТВИЮ — менеджер АКТИВНО подталкивает клиента к заказу конкретными словами. Примеры ПРАВИЛЬНОГО призыва: "давайте вывозить", "давайте я поставлю вас в график", "мы готовы работать, когда приезжать?", "давайте сделаем, у вас всё будет хорошо", "давайте запланируем вывоз на эту неделю". НЕ СЧИТАЕТСЯ призывом: "жду вашего решения", "будем рады сотрудничеству", "обращайтесь если что", "пишите если понадобится" — это ПАССИВНОЕ ожидание, а не призыв.
+6. ПРИЗЫВ К ДЕЙСТВИЮ — менеджер АКТИВНО подталкивает клиента к заказу конкретными словами. Примеры ПРАВИЛЬНОГО призыва: "давайте вывозить", "давайте я поставлю вас в график", "мы готовы работать, когда приезжать?", "давайте запланируем вывоз на эту неделю". НЕ СЧИТАЕТСЯ призывом: "жду вашего решения", "будем рады сотрудничеству", "обращайтесь если что" — это ПАССИВНОЕ ожидание.
 7. ОТРАБОТКА ВОЗРАЖЕНИЙ — клиент говорит "дорого"/"сами"/"не нужен" → менеджер предлагает альтернативы, убеждает, не сдаётся.
 
 СИСТЕМА БАЛЛОВ ДЛЯ ЗП:
@@ -459,10 +459,60 @@ ${todayActions || 'Нет'}
   "todaySummary": "2-3 предложения: что произошло за ${reportDate}, результат",
   "missing": ["что НЕ выполнено из скрипта"],
   "recommendations": ["конкретные рекомендации менеджеру"],
+  "nextStep": "ОДИН конкретный следующий шаг менеджеру — что именно сделать прямо сейчас, основываясь на всей истории сделки и текущем статусе",
   "overallVerdict": "краткий вердикт 1-2 предложения"
-}`;
+}` : `ПРАВИЛА ОЦЕНКИ (шаблон "Сделка" — асфальтирование):
+1. УСТНАЯ ПРЕЗЕНТАЦИЯ — 5 подпунктов компании ТрансКом для асфальта:
+   - since2014: работаем с 2014 года, большой опыт
+   - fiveBrigades: 5 бригад разной квалификации, геодезист и проектировщик в штате
+   - fullCycle: беремся от нуля до полного цикла — стоянки, площадки, коммерческая недвижимость
+   - bigProjects: крупные референсные объекты (Микояновский мясокомбинат, ЖК Рафинад 25 тыс м², Западная долина 20 тыс м²)
+   - guarantee: даём гарантию на работы, личный менеджер, бригадир на объекте, фото-отчёт
+   Каждый подпункт done:true ТОЛЬКО если конкретно упомянут в транскрибации (source="call") или комментарии (source="text"). В note укажи ЦИТАТУ.
+2. КАК МЫ РАБОТАЕМ — done:true ТОЛЬКО если менеджер ДЕТАЛЬНО описал клиенту весь процесс: геодезист делает замеры, готовим проект, бригада готовит основание, укладывает асфальт, каток утрамбовывает, бригадир контролирует на объекте, фото-отчёт по этапам. НЕ считается: "работаем по договору", просто "укладываем асфальт" без описания процесса. source="call" только из транскрибации.
+3. ПРЕЗЕНТАЦИЯ (ФАЙЛ) — ищи в [Файлы:...]: "презентация", "карточка компании", "presentation".
+4. КП — ищи в [Файлы:...] и тексте: "кп", "коммерческое предложение", "КП_", "К.П.".
+5. СЧЁТ — ищи в [Файлы:...] и тексте: "счёт", "счет", "invoice".
+6. ПРИЗЫВ К ДЕЙСТВИЮ — менеджер АКТИВНО подталкивает клиента к заказу. Примеры ПРАВИЛЬНОГО призыва для асфальта: "давайте сделаем замер", "давайте я пришлю геодезиста", "давайте обсудим ваш проект", "когда удобно приехать на объект?", "давайте составим смету". НЕ СЧИТАЕТСЯ призывом: "жду вашего решения", "будем рады сотрудничеству", "обращайтесь если что" — это ПАССИВНОЕ ожидание.
+7. ОТРАБОТКА ВОЗРАЖЕНИЙ — клиент говорит "дорого"/"есть подрядчик"/"не сейчас" → менеджер предлагает альтернативы, убеждает, не сдаётся.
 
-  const raw = await openaiChat(prompt, 'Ты аналитик отдела продаж компании ТрансКом (вывоз снега). Анализируй историю сделок и оценивай выполнение скрипта продаж. Отвечай строго в JSON.', 2000, 'deepseek-chat');
+СИСТЕМА БАЛЛОВ ДЛЯ ЗП:
+- КП: 1 балл
+- Счёт: 1 балл
+- Презентация (файл/документ): 1 балл
+- Устная презентация в ЗВОНКЕ (source=call): 3 балла, в ПЕРЕПИСКЕ (source=text): 1.5 балла
+- Как мы работаем в ЗВОНКЕ (source=call): 3 балла, в ПЕРЕПИСКЕ (source=text): 1.5 балла
+- Призыв к действию: 3 балла
+
+Ответь СТРОГО в формате JSON (без markdown, без \`\`\`):
+{
+  "verbalPresentation": {
+    "since2014": {"done": true/false, "note": "ЦИТАТА из транскрибации или комментария"},
+    "fiveBrigades": {"done": true/false, "note": "ЦИТАТА"},
+    "fullCycle": {"done": true/false, "note": "ЦИТАТА"},
+    "bigProjects": {"done": true/false, "note": "ЦИТАТА"},
+    "guarantee": {"done": true/false, "note": "ЦИТАТА"},
+    "overall": true/false,
+    "source": "call/text/none",
+    "quality": "хорошо/средне/плохо"
+  },
+  "howWeWork": {"done": true/false, "source": "call/text/none", "note": "ЦИТАТА описания процесса работы"},
+  "writtenPresentation": {"done": true/false, "note": "когда и как отправлена"},
+  "cp": {"done": true/false, "note": "когда отправлено, название документа"},
+  "invoice": {"done": true/false, "note": "когда отправлен, название документа"},
+  "callToAction": {"done": true/false, "note": "ЦИТАТА призыва к действию"},
+  "objectionHandling": {"done": true/false, "note": "какие возражения, как отработаны"},
+  "todaySummary": "2-3 предложения: что произошло за ${reportDate}, результат",
+  "missing": ["что НЕ выполнено из скрипта"],
+  "recommendations": ["конкретные рекомендации менеджеру"],
+  "nextStep": "ОДИН конкретный следующий шаг менеджеру — что именно сделать прямо сейчас, основываясь на всей истории сделки и текущем статусе",
+  "overallVerdict": "краткий вердикт 1-2 предложения"
+}`}`;
+
+  const systemMsg = isSnow
+    ? 'Ты аналитик отдела продаж компании ТрансКом (вывоз снега). Анализируй историю сделок и оценивай выполнение скрипта продаж. Отвечай строго в JSON.'
+    : 'Ты аналитик отдела продаж компании ТрансКом (асфальтирование). Анализируй историю сделок и оценивай выполнение скрипта продаж по шаблону "Сделка". Отвечай строго в JSON.';
+  const raw = await openaiChat(prompt, systemMsg, 2000, 'deepseek-chat');
   if (!raw) return null;
   try {
     const clean = raw.replace(/```json?\s*/g, '').replace(/```/g, '').trim();
@@ -500,7 +550,9 @@ ${todayActions || 'Нет'}
     // 3c. Устная презентация: если ИИ не нашёл, а программа нашла ключевые слова — исправляем
     if (result.verbalPresentation) {
       const vp = result.verbalPresentation;
-      const vpKeys = ['since2014', 'manyObjects', 'govClients', 'reliableInSnow', 'manyVehicles'];
+      const vpKeys = isSnow
+        ? ['since2014', 'manyObjects', 'govClients', 'reliableInSnow', 'manyVehicles']
+        : ['since2014', 'fiveBrigades', 'fullCycle', 'bigProjects', 'guarantee'];
       let anyFixed = false;
       for (const key of vpKeys) {
         if (vp[key] && !vp[key].done) {
@@ -526,13 +578,14 @@ ${todayActions || 'Нет'}
     }
 
     // Рассчитываем баллы для ЗП (ПОСЛЕ всех валидаций)
+    result.dealType = isSnow ? 'snow' : 'asphalt';
     result.salaryScore = calculateSalaryScore(result);
     aiCache[cacheKey] = result;
     saveAiCache(aiCache);
     return result;
   } catch {
     // Если не удалось разобрать JSON — сохраняем как текст
-    const fallback = { overallVerdict: raw.substring(0, 500), missing: [], recommendations: [], salaryScore: { total: 0, items: [] } };
+    const fallback = { overallVerdict: raw.substring(0, 500), missing: [], recommendations: [], nextStep: '', salaryScore: { total: 0, items: [] } };
     aiCache[cacheKey] = fallback;
     saveAiCache(aiCache);
     return fallback;
@@ -620,6 +673,116 @@ ${dealsText}
 Кратко (3-5 предложений): ключевые результаты дня, сильные стороны, что можно улучшить, рекомендации.`;
 
   const result = await openaiChat(prompt);
+  if (result) {
+    aiCache[cacheKey] = result;
+    saveAiCache(aiCache);
+  }
+  return result;
+}
+
+// Итог для руководителя за период (день/неделя/месяц)
+async function aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, periodDays, reportDate, aiCache) {
+  const cacheKey = `mgr_${periodDays}d_${reportDate}_v1`;
+  if (aiCache[cacheKey]) return aiCache[cacheKey];
+
+  // Собираем даты за период
+  const refDate = parsePfDate(reportDate);
+  if (!refDate) return null;
+  const allDates = Object.keys(multiDayActivity).filter(d => {
+    const pd = parsePfDate(d);
+    if (!pd) return false;
+    const diff = Math.floor((refDate - pd) / 86400000);
+    return diff >= 0 && diff < periodDays;
+  }).sort((a, b) => {
+    const pa = parsePfDate(a), pb = parsePfDate(b);
+    return pb - pa;
+  });
+
+  if (!allDates.length) return null;
+
+  // Агрегация по всем дням периода
+  const dealMap = {};
+  let totalCalls = 0, totalDeals = 0, newDeals = 0;
+  for (const dt of allDates) {
+    const dayDeals = multiDayActivity[dt] || [];
+    for (const da of dayDeals) {
+      totalDeals++;
+      if (da.isNew) newDeals++;
+      totalCalls += da.dayCalls || 0;
+      if (!dealMap[da.deal.id]) dealMap[da.deal.id] = { deal: da.deal, days: [], ai: null, bestScore: 0 };
+      dealMap[da.deal.id].days.push(dt);
+      if (da.aiAssessment) {
+        dealMap[da.deal.id].ai = da.aiAssessment;
+        const sc = (da.aiAssessment.salaryScore || {}).total || 0;
+        if (sc > dealMap[da.deal.id].bestScore) dealMap[da.deal.id].bestScore = sc;
+      }
+    }
+  }
+
+  // Топ сделки по сумме (активные)
+  const activeBig = dealCards.filter(d => d.isActive && d.dealSum > 0)
+    .sort((a, b) => (b.dealSum || 0) - (a.dealSum || 0)).slice(0, 10);
+
+  // Сделки ближе к оплате
+  const closing = dealCards.filter(d => ['Дожим', 'Договор и оплата'].includes(d.status));
+
+  // Движения воронки за период
+  const fwdMoves = (funnelChanges || []).filter(c => c.direction === 'forward');
+  const bwdMoves = (funnelChanges || []).filter(c => c.direction === 'backward');
+
+  // Дневные итоги
+  const daySummaries = allDates.map(d => `${d}: ${(multiDaySummary || {})[d] || 'нет итога'}`).join('\n');
+
+  // Детали по ключевым сделкам
+  const dealDetails = Object.values(dealMap)
+    .sort((a, b) => (b.deal.dealSum || 0) - (a.deal.dealSum || 0))
+    .slice(0, 20)
+    .map(d => {
+      let line = `- "${d.deal.name}" (${d.deal.status}, ${d.deal.dealSum ? d.deal.dealSum + '₽' : 'без суммы'})`;
+      line += ` — работали ${d.days.length} дн.`;
+      if (d.ai) {
+        if (d.ai.nextStep) line += ` | След.шаг: ${d.ai.nextStep}`;
+        if (d.ai.overallVerdict) line += ` | ${d.ai.overallVerdict}`;
+      }
+      return line;
+    }).join('\n');
+
+  const periodName = periodDays === 1 ? 'день' : periodDays <= 7 ? 'неделю' : 'месяц';
+
+  const prompt = `Ты составляешь отчёт для РУКОВОДИТЕЛЯ компании ТрансКом (вывоз снега, асфальтирование).
+Период: за ${periodName} (${allDates.length} рабочих дней, ${allDates[allDates.length - 1]} — ${allDates[0]}).
+
+СТАТИСТИКА ПЕРИОДА:
+- Обработано обращений: ${totalDeals} (новых: ${newDeals})
+- Уникальных сделок: ${Object.keys(dealMap).length}
+- Звонков: ${totalCalls}
+- Продвижений по воронке: ${fwdMoves.length}
+- Откатов назад: ${bwdMoves.length}
+- Сделок на стадии "Дожим"/"Договор и оплата": ${closing.length} (сумма: ${closing.reduce((s, d) => s + (d.dealSum || 0), 0)}₽)
+
+ИТОГИ ПО ДНЯМ:
+${daySummaries}
+
+КЛЮЧЕВЫЕ СДЕЛКИ (по сумме):
+${dealDetails}
+
+ТОП СДЕЛКИ ПО ДЕНЬГАМ (все активные):
+${activeBig.map(d => `- "${d.name}" ${d.status} — ${d.dealSum}₽`).join('\n')}
+
+БЛИЗКО К ОПЛАТЕ:
+${closing.length ? closing.map(d => `- "${d.name}" — ${d.dealSum || 0}₽ (${d.status})`).join('\n') : 'Нет'}
+
+Напиши отчёт для руководителя в формате:
+
+1. **КРАТКИЙ ИТОГ** (3-4 предложения): главные результаты за ${periodName}, тон деловой
+2. **УСПЕХИ И ПРОГРЕСС**: какие сделки продвинулись, кто может заплатить, конкретные достижения
+3. **ПРОБЛЕМЫ**: где застряли, что буксует, какие сделки требуют внимания руководителя
+4. **БЛИЖАЙШИЕ ОПЛАТЫ**: какие сделки ближе всего к оплате, суммы, что нужно дожать
+5. **РЕКОМЕНДАЦИИ РУКОВОДИТЕЛЮ**: конкретные действия — кому позвонить, куда подключиться, что проконтролировать
+
+Пиши конкретно с именами сделок и суммами. Не общие фразы, а факты и действия.`;
+
+  const result = await openaiChat(prompt, 'Ты бизнес-аналитик, составляешь отчёт для директора. Пиши по-русски, конкретно, с цифрами и именами.', 2000, 'deepseek-chat');
   if (result) {
     aiCache[cacheKey] = result;
     saveAiCache(aiCache);
@@ -897,9 +1060,8 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
 
       const files = (c.files || []).map(f => f.name || f.fileName || '').filter(Boolean);
 
-      const msk = utcToMoscow(dt.date, dt.time);
       parsed.push({
-        id: c.id, date: msk.date, time: msk.time,
+        id: c.id, date: dt.date || '', time: dt.time || '',
         type, text: desc.substring(0, 800),
         owner: c.owner?.name || '',
         transcription, files,
@@ -971,9 +1133,8 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
         transcription = await transcribeCallIfNeeded({ transcription, files: c.files || [] }, transcriptionCache);
         if (transcription) whisperCount++;
       }
-      const msk = utcToMoscow(dt.date, dt.time);
       const callData = {
-        id: c.id, date: msk.date, time: msk.time,
+        id: c.id, date: dt.date || '', time: dt.time || '',
         type, text: desc.substring(0, 800),
         owner: c.owner?.name || '',
         transcription,
@@ -1109,7 +1270,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
         customerKnowsCompany: card.analyses.some(a => a.howWeWork === 'Да'),
       };
       result.push({
-        deal: { id: card.id, name: card.name, status: card.status, counterparty: card.counterparty },
+        deal: { id: card.id, name: card.name, status: card.status, counterparty: card.counterparty, dealSum: card.dealSum || 0 },
         isNew: createdOnDate || card.isNew,
         actions,
         dayCalls: actions.filter(a => a.type === 'outCall' || a.type === 'inCall').length,
@@ -1159,7 +1320,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
 
     // ИИ-оценка каждой сделки за этот день
     if (OPENAI_KEY) {
-      const cached = dayDeals.filter(da => aiCache[`assess_${da.deal.id}_${dayDMY}_v17`]).length;
+      const cached = dayDeals.filter(da => aiCache[`assess_${da.deal.id}_${dayDMY}_v18`] || aiCache[`assess_${da.deal.id}_${dayDMY}_v18a`]).length;
       const needAi = dayDeals.length - cached;
       if (needAi > 0) {
         console.log(`  🤖 ИИ-оценка ${dayDeals.length} сделок за ${dayDMY} (${cached} из кэша)...`);
@@ -1225,11 +1386,25 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
   const allCalls = dealCards.flatMap(d => d.calls);
   const allAnalyses = dealCards.flatMap(d => d.analyses);
 
+  // === Итоги для руководителя (день / неделя / месяц) ===
+  const managerSummaries = { day: null, week: null, month: null };
+  if (OPENAI_KEY) {
+    console.log(`\n👔 Генерация отчёта для руководителя...`);
+    managerSummaries.day = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 1, reportDMY, aiCache);
+    if (managerSummaries.day) process.stdout.write('  ✅ День ');
+    managerSummaries.week = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 7, reportDMY, aiCache);
+    if (managerSummaries.week) process.stdout.write('✅ Неделя ');
+    managerSummaries.month = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 30, reportDMY, aiCache);
+    if (managerSummaries.month) console.log('✅ Месяц');
+    saveAiCache(aiCache);
+  }
+
   return {
     dealCards, dailyReports, allCalls, allAnalyses,
     dailyActivity, funnelChanges, scriptCompliance,
     dailyDealActivity, aiDaySummaryText,
     multiDayActivity, multiDaySummary,
+    managerSummaries,
     snapshotDate: prevSnapshot?.date || null,
   };
 }
@@ -1240,7 +1415,7 @@ function buildStatsFromCache() {
   const cache = loadAiCache();
   const stats = {}; // { "DD-MM-YYYY": { deals: N, totalScore: N, maxScore: N, calls: N, texts: N, vpDone: N, hwDone: N, ctaDone: N, cpDone: N, invDone: N, presDone: N } }
   for (const [key, val] of Object.entries(cache)) {
-    const m = key.match(/^assess_(\d+)_(\d{2}-\d{2}-\d{4})_v17$/);
+    const m = key.match(/^assess_(\d+)_(\d{2}-\d{2}-\d{4})_v18a?$/);
     if (!m) continue;
     const date = m[2];
     if (!stats[date]) stats[date] = { deals: 0, totalScore: 0, maxScore: 0, scores: [], callSources: 0, textSources: 0, vpDone: 0, hwDone: 0, ctaDone: 0, cpDone: 0, invDone: 0, presDone: 0, objDone: 0 };
@@ -1328,6 +1503,7 @@ function generateHtml(managerName, data) {
 <html lang="ru"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ТрансКом — ${managerName}</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f172a'/%3E%3Cpath d='M16 18h32v8H36v20h-8V26H16z' fill='%2360a5fa'/%3E%3C/svg%3E">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
@@ -1407,6 +1583,49 @@ tr:hover td{background:rgba(59,130,246,.03)}
 .result-block .res-verdict{font-size:12px;line-height:1.5;color:#fbbf24;margin-top:6px;font-weight:700;padding-top:6px;border-top:1px solid rgba(255,255,255,.05)}
 /* Score pill */
 .score-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:800}
+.deal-tools{position:sticky;top:8px;z-index:4;background:rgba(15,23,42,.92);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px 16px;margin-bottom:14px;backdrop-filter:blur(18px);box-shadow:0 10px 30px rgba(2,6,23,.24)}
+.deal-tools-grid{display:grid;grid-template-columns:minmax(220px,2fr) repeat(3,minmax(150px,1fr));gap:10px}
+.deal-field{display:flex;flex-direction:column;gap:6px}
+.deal-label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
+.deal-input,.deal-select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(2,6,23,.5);color:#e2e8f0;font-size:13px;font-family:inherit;outline:none}
+.deal-input:focus,.deal-select:focus{border-color:rgba(96,165,250,.45);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.deal-tools-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px}
+.deal-chips{display:flex;gap:8px;flex-wrap:wrap}
+.deal-chip{padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);font-size:12px;color:#cbd5e1}
+.deal-chip strong{color:#f8fafc}
+.deal-card{background:rgba(15,23,42,.78);border:1px solid rgba(255,255,255,.05);border-radius:18px;margin-bottom:12px;overflow:hidden;box-shadow:0 10px 30px rgba(2,6,23,.18)}
+.deal-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;user-select:none;transition:background .2s}
+.deal-card-top:hover{background:rgba(255,255,255,.03)}
+.deal-card-title{font-size:15px;font-weight:800;color:#f8fafc;line-height:1.4}
+.deal-card-top.open .card-arrow{transform:rotate(90deg)}
+.deal-card-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.deal-card-body{display:none;padding:16px 18px 18px}
+.deal-card-body.open{display:block}
+.deal-kpis{display:grid;grid-template-columns:repeat(4,minmax(88px,1fr));gap:8px;min-width:min(420px,100%)}
+.deal-kpi{padding:10px 12px;border-radius:14px;background:rgba(2,6,23,.36);border:1px solid rgba(255,255,255,.05);text-align:left}
+.deal-kpi-v{display:block;font-size:18px;font-weight:800;color:#f8fafc}
+.deal-kpi-l{display:block;margin-top:3px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.45px}
+.deal-summary{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:10px;margin-bottom:14px}
+.deal-summary-item{padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05)}
+.deal-summary-item b{display:block;font-size:11px;color:#64748b;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.deal-summary-item span{display:block;font-size:13px;font-weight:600;color:#e2e8f0;line-height:1.45}
+.deal-section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 8px}
+.deal-section-title h4{margin:0}
+.deal-empty{padding:18px;border-radius:14px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.08);color:#64748b;text-align:center;font-size:13px}
+.deal-table-wrap{overflow-x:auto;border:1px solid rgba(255,255,255,.04);border-radius:12px}
+.deal-caption{font-size:11px;color:#64748b}
+@media(max-width:900px){
+  .deal-tools-grid{grid-template-columns:repeat(2,minmax(160px,1fr))}
+  .deal-kpis{grid-template-columns:repeat(2,minmax(88px,1fr));min-width:0;width:100%}
+  .deal-summary{grid-template-columns:repeat(2,minmax(120px,1fr))}
+}
+@media(max-width:640px){
+  .deal-tools{padding:12px}
+  .deal-tools-grid{grid-template-columns:1fr}
+  .deal-card-top{padding:14px}
+  .deal-card-body{padding:14px}
+  .deal-summary{grid-template-columns:1fr}
+}
 </style>
 </head><body>
 <div class="hdr"><div class="hdr-in">
@@ -1453,6 +1672,7 @@ function buildRecommendationText(taskId){
   if(miss.length){t+='\\n❗ Не выполнено:\\n';miss.forEach(function(m){t+='  • '+m+'\\n'});}
   var recs=aa.recommendations||[];
   if(recs.length){t+='\\n💡 Рекомендации:\\n';recs.forEach(function(r){t+='  • '+r+'\\n'});}
+  if(aa.nextStep){t+='\\n▶ Следующий шаг: '+aa.nextStep+'\\n';}
   return t;
 }
 async function copyRecommendation(taskId){
@@ -1491,8 +1711,14 @@ async function sendToPlanfix(taskId){
 }
 let selectedDate=D.reportDate||'';
 function getTabName(){return 'День '+selectedDate}
-const TABS_BASE=['','Все сделки','Качество','Ежедневные','Воронка','📊 Статистика'];
+const TABS_BASE=['','Все сделки','Качество','Ежедневные','Воронка','📊 Статистика','👔 Руководитель'];
 let period=7,tab=0;
+let currentCards=[];
+let dealSearch='';
+let dealStatus='all';
+let dealFocus='all';
+let dealSort='activity';
+const cardOpenState={};
 
 // Все уникальные даты с активностью из dealCards
 function getAllDates(){
@@ -1509,6 +1735,102 @@ function getAllDates(){
 }
 
 function timeToMin(t){if(!t)return 0;const p=(t||'').split(':');return(parseInt(p[0])||0)*60+(parseInt(p[1])||0)}
+function dateStamp(dateStr,timeStr){
+  if(!dateStr)return 0;
+  let year=0,month=0,day=0;
+  const m1=dateStr.match(/(\\d{2})-(\\d{2})-(\\d{4})/);
+  const m2=dateStr.match(/(\\d{4})-(\\d{2})-(\\d{2})/);
+  if(m1){day=parseInt(m1[1],10);month=parseInt(m1[2],10)-1;year=parseInt(m1[3],10);}
+  else if(m2){year=parseInt(m2[1],10);month=parseInt(m2[2],10)-1;day=parseInt(m2[3],10);}
+  else{return 0;}
+  const rawTime=(timeStr||'').split('-')[0].trim();
+  const parts=rawTime.match(/(\\d{1,2}):(\\d{2})/);
+  const hours=parts?parseInt(parts[1],10):0;
+  const mins=parts?parseInt(parts[2],10):0;
+  return new Date(year,month,day,hours,mins,0,0).getTime()||0;
+}
+function formatTouch(dateStr,timeStr){
+  if(!dateStr)return 'Нет активности';
+  const stamp=dateStamp(dateStr,timeStr);
+  if(!stamp)return (dateStr||'')+(timeStr?' '+timeStr:'');
+  return new Date(stamp).toLocaleString('ru-RU',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+function getLastTouch(card){
+  const items=[];
+  (card.fCalls||[]).forEach(function(c){items.push({date:c.date,time:c.time,type:'call'});});
+  (card.fAnalyses||[]).forEach(function(a){items.push({date:a.date,time:a.time,type:'analysis'});});
+  (card.fComments||[]).forEach(function(c){items.push({date:c.date,time:c.time,type:c.type||'comment'});});
+  items.sort(function(a,b){return dateStamp(b.date,b.time)-dateStamp(a.date,a.time);});
+  return items[0]||null;
+}
+function getLastTouchAll(card){
+  var items=[];
+  (card.calls||[]).forEach(function(c){items.push({date:c.date,time:c.time});});
+  (card.comments||[]).forEach(function(c){items.push({date:c.date,time:c.time});});
+  items.sort(function(a,b){return dateStamp(b.date,b.time)-dateStamp(a.date,a.time);});
+  return items[0]||null;
+}
+function getDaysSince(dateStr){
+  if(!dateStr)return 999;
+  var p=dateStr.split('-');
+  if(p.length!==3)return 999;
+  var d=new Date(p[2]+'-'+p[1]+'-'+p[0]);
+  return Math.floor((Date.now()-d.getTime())/86400000);
+}
+function findLatestAiForDeal(id){
+  var t=(D.dailyDealActivity||[]).find(function(da){return da.deal.id===id;});
+  if(t&&t.aiAssessment)return t.aiAssessment;
+  if(D.multiDayActivity){
+    var dates=Object.keys(D.multiDayActivity).sort(function(a,b){
+      var pa=a.split('-'),pb=b.split('-');
+      return new Date(pb[2]+'-'+pb[1]+'-'+pb[0])-new Date(pa[2]+'-'+pa[1]+'-'+pa[0]);
+    });
+    for(var i=0;i<dates.length;i++){
+      var da=(D.multiDayActivity[dates[i]]||[]).find(function(x){return x.deal.id===id;});
+      if(da&&da.aiAssessment)return da.aiAssessment;
+    }
+  }
+  return null;
+}
+function getScoreColor(avgB){
+  if(avgB===null||avgB===undefined)return '#94a3b8';
+  return avgB>=15?'#34d399':avgB>=10?'#fbbf24':'#f87171';
+}
+function dealHasQuery(card,query){
+  if(!query)return true;
+  const hay=[card.id,card.name,card.counterparty,card.status].join(' ').toLowerCase();
+  return hay.includes(query);
+}
+function setDealSearch(value,cursorPos){
+  dealSearch=value||'';
+  renderDealsV2(currentCards);
+  requestAnimationFrame(function(){
+    const el=document.getElementById('dealSearch');
+    if(!el)return;
+    el.focus();
+    const pos=typeof cursorPos==='number'?cursorPos:dealSearch.length;
+    try{el.setSelectionRange(pos,pos);}catch(e){}
+  });
+}
+function setDealStatus(value){
+  dealStatus=value||'all';
+  renderDealsV2(currentCards);
+}
+function setDealFocus(value){
+  dealFocus=value||'all';
+  renderDealsV2(currentCards);
+}
+function setDealSort(value){
+  dealSort=value||'activity';
+  renderDealsV2(currentCards);
+}
+function resetDealFilters(){
+  dealSearch='';
+  dealStatus='all';
+  dealFocus='all';
+  dealSort='activity';
+  renderDealsV2(currentCards);
+}
 
 // Пересчитать dailyDealActivity на клиенте для любой даты
 function buildDayActivity(dateStr){
@@ -1555,7 +1877,7 @@ function buildDayActivity(dateStr){
       customerKnowsCompany:(card.analyses||[]).some(a=>a.howWeWork==='Да'),
     };
     result.push({
-      deal:{id:card.id,name:card.name,status:card.status,counterparty:card.counterparty},
+      deal:{id:card.id,name:card.name,status:card.status,counterparty:card.counterparty,dealSum:card.dealSum||0},
       isNew:isCreatedToday||card.isNew,
       actions,
       dayCalls:actions.filter(a=>a.type==='outCall'||a.type==='inCall').length,
@@ -1601,18 +1923,20 @@ function upd(){
     fCalls:filterCalls(d.calls),
     fAnalyses:filterAnalyses(d.analyses),
     fComments:d.comments.filter(c=>inPeriod(c.date)),
-  })).filter(d=>d.fCalls.length||d.fAnalyses.length||d.fComments.filter(c=>c.type!=='note').length);
+  })).filter(d=>d.fCalls.length||d.fAnalyses.length||d.fComments.length);
+  currentCards=cards;
 
   const allC=cards.flatMap(d=>d.fCalls);
   const allA=cards.flatMap(d=>d.fAnalyses);
   const reports=D.dailyReports.filter(r=>inPeriod(r.date));
   renderMets(allC,allA,reports,cards);
   if(tab===0)renderDay();
-  else if(tab===1)renderDeals(cards);
+  else if(tab===1)renderDealsV2(cards);
   else if(tab===2)renderQuality(allA,cards);
   else if(tab===3)renderDaily(reports);
   else if(tab===4)renderFunnel();
   else if(tab===5)renderStats();
+  else if(tab===6)renderManager();
 }
 
 function renderMets(calls,analyses,reports,cards){
@@ -1712,6 +2036,7 @@ function renderDay(){
     h+='<div class="card-tags">';
     h+='<span style="font-size:11px;color:#94a3b8">'+esc(d.counterparty)+'</span>';
     h+='<span class="bg bg-b">'+esc(d.status)+'</span>';
+    if(d.dealSum)h+='<span class="bg" style="background:rgba(251,191,36,.12);color:#fbbf24">'+fmt(d.dealSum)+' ₽</span>';
     if(da.isNew)h+='<span class="bg bg-p">Новая</span>';
     else h+='<span class="bg bg-y">Старая</span>';
     if(callCount)h+='<span class="bg" style="background:rgba(52,211,153,.12);color:#34d399">📞 '+callCount+'</span>';
@@ -1827,7 +2152,13 @@ function renderDay(){
         if(vp.overall)h+=' <span class="bg" style="font-size:9px;background:'+(isCall?'rgba(52,211,153,.15);color:#34d399':'rgba(251,191,36,.15);color:#fbbf24')+'">'+(isCall?'звонок 3б':'переписка 1.5б')+'</span>';
         if(qual)h+=' — <span style="color:'+qCol+'">'+esc(qual)+'</span>';
         h+='</div>';
-        const prItems=[
+        const prItems=aa.dealType==='asphalt'?[
+          {k:'since2014',l:'С 2014 года'},
+          {k:'fiveBrigades',l:'5 бригад + геодезист/проектировщик'},
+          {k:'fullCycle',l:'Полный цикл работ'},
+          {k:'bigProjects',l:'Крупные объекты'},
+          {k:'guarantee',l:'Гарантия + бригадир + фото-отчёт'},
+        ]:[
           {k:'since2014',l:'Работаем с 2014 года'},
           {k:'manyObjects',l:'Много объектов по Москве'},
           {k:'govClients',l:'Госдума и госучреждения'},
@@ -1960,6 +2291,13 @@ function renderDay(){
         h+='</div>';
       }
 
+      if(aa.nextStep){
+        h+='<div style="margin-top:8px;padding:8px 12px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:8px">';
+        h+='<div style="font-size:10px;font-weight:700;color:#60a5fa;margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">▶ Следующий шаг</div>';
+        h+='<div style="font-size:12px;color:#93c5fd;font-weight:600">'+esc(aa.nextStep)+'</div>';
+        h+='</div>';
+      }
+
       h+='<div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">';
       h+='<button id="pf_btn_'+d.id+'" onclick="copyRecommendation('+d.id+')" style="padding:6px 14px;font-size:11px;font-weight:600;color:#60a5fa;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.25);border-radius:6px;cursor:pointer;transition:.2s">📋 Копировать</button>';
       h+='<button id="pf_send_'+d.id+'" onclick="sendToPlanfix('+d.id+')" style="padding:6px 14px;font-size:11px;font-weight:600;color:#818cf8;background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.25);border-radius:6px;cursor:pointer;transition:.2s">📤 Planfix</button>';
@@ -2053,6 +2391,183 @@ function renderDeals(cards){
 }
 
 // === КАЧЕСТВО ===
+function renderDealsV2(cards){
+  if(!cards.length){document.getElementById('out').innerHTML='<div class="no-data">Нет данных за период</div>';return}
+  const query=(dealSearch||'').trim().toLowerCase();
+  const statusOptions=[...new Set(cards.map(d=>d.status).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
+  const prepared=cards.map(d=>{
+    const transcripts=d.fComments.filter(c=>(c.type==='outCall'||c.type==='inCall')&&c.transcription);
+    const notes=d.fComments.filter(c=>c.type==='note'&&c.text.length>5);
+    const durM=Math.round(d.fCalls.reduce((s,c)=>s+c.duration,0)/60);
+    const avgB=d.fAnalyses.length?Math.round(d.fAnalyses.reduce((s,a)=>s+a.totalBalls,0)/d.fAnalyses.length*10)/10:null;
+    const lastTouch=getLastTouch(d);
+    return {
+      ...d,
+      ui:{
+        transcripts,
+        notes,
+        durM,
+        avgB,
+        lastTouch,
+        lastStamp:lastTouch?dateStamp(lastTouch.date,lastTouch.time):0,
+      }
+    };
+  }).filter(d=>{
+    if(!dealHasQuery(d,query))return false;
+    if(dealStatus!=='all'&&d.status!==dealStatus)return false;
+    if(dealFocus==='new'&&!d.isNew)return false;
+    if(dealFocus==='calls'&&!d.fCalls.length)return false;
+    if(dealFocus==='analyses'&&!d.fAnalyses.length)return false;
+    if(dealFocus==='transcripts'&&!d.ui.transcripts.length)return false;
+    if(dealFocus==='notes'&&!d.ui.notes.length)return false;
+    return true;
+  });
+
+  prepared.sort((a,b)=>{
+    if(dealSort==='latest')return b.ui.lastStamp-a.ui.lastStamp||b.id-a.id;
+    if(dealSort==='score')return (b.ui.avgB??-1)-(a.ui.avgB??-1)||b.ui.lastStamp-a.ui.lastStamp;
+    if(dealSort==='sum')return (b.dealSum||0)-(a.dealSum||0)||b.ui.lastStamp-a.ui.lastStamp;
+    if(dealSort==='name')return (a.name||'').localeCompare(b.name||'','ru');
+    return b.fCalls.length-a.fCalls.length||b.fAnalyses.length-a.fAnalyses.length||b.ui.lastStamp-a.ui.lastStamp||b.id-a.id;
+  });
+
+  const visibleCalls=prepared.reduce((s,d)=>s+d.fCalls.length,0);
+  const visibleAnalyses=prepared.reduce((s,d)=>s+d.fAnalyses.length,0);
+  const visibleTranscripts=prepared.reduce((s,d)=>s+d.ui.transcripts.length,0);
+  const visibleNew=prepared.filter(d=>d.isNew).length;
+  const anyOpen=prepared.some(d=>cardOpenState['deal_'+d.id]);
+  const hasFilters=!!dealSearch||dealStatus!=='all'||dealFocus!=='all'||dealSort!=='activity';
+
+  let h='<div class="deal-tools">';
+  h+='<div class="deal-tools-grid">';
+  h+='<div class="deal-field"><span class="deal-label">Поиск</span><input id="dealSearch" class="deal-input" type="text" placeholder="ID, название, контрагент, статус" value="'+esc(dealSearch)+'" oninput="setDealSearch(this.value,this.selectionStart)"></div>';
+  h+='<div class="deal-field"><span class="deal-label">Статус</span><select class="deal-select" onchange="setDealStatus(this.value)">';
+  h+='<option value="all"'+(dealStatus==='all'?' selected':'')+'>Все статусы</option>';
+  for(const status of statusOptions){
+    h+='<option value="'+esc(status)+'"'+(dealStatus===status?' selected':'')+'>'+esc(status)+'</option>';
+  }
+  h+='</select></div>';
+  h+='<div class="deal-field"><span class="deal-label">Фокус</span><select class="deal-select" onchange="setDealFocus(this.value)">';
+  h+='<option value="all"'+(dealFocus==='all'?' selected':'')+'>Все сделки</option>';
+  h+='<option value="new"'+(dealFocus==='new'?' selected':'')+'>Только новые</option>';
+  h+='<option value="calls"'+(dealFocus==='calls'?' selected':'')+'>Есть звонки</option>';
+  h+='<option value="analyses"'+(dealFocus==='analyses'?' selected':'')+'>Есть анализы</option>';
+  h+='<option value="transcripts"'+(dealFocus==='transcripts'?' selected':'')+'>Есть транскрипции</option>';
+  h+='<option value="notes"'+(dealFocus==='notes'?' selected':'')+'>Есть заметки</option>';
+  h+='</select></div>';
+  h+='<div class="deal-field"><span class="deal-label">Сортировка</span><select class="deal-select" onchange="setDealSort(this.value)">';
+  h+='<option value="activity"'+(dealSort==='activity'?' selected':'')+'>По активности</option>';
+  h+='<option value="latest"'+(dealSort==='latest'?' selected':'')+'>Последнее касание</option>';
+  h+='<option value="score"'+(dealSort==='score'?' selected':'')+'>Средний балл</option>';
+  h+='<option value="sum"'+(dealSort==='sum'?' selected':'')+'>Сумма сделки</option>';
+  h+='<option value="name"'+(dealSort==='name'?' selected':'')+'>По названию</option>';
+  h+='</select></div></div>';
+  h+='<div class="deal-tools-row"><div class="deal-chips">';
+  h+='<div class="deal-chip">Показано <strong>'+prepared.length+'</strong> из '+cards.length+'</div>';
+  h+='<div class="deal-chip">Звонки <strong>'+visibleCalls+'</strong></div>';
+  h+='<div class="deal-chip">Анализы <strong>'+visibleAnalyses+'</strong></div>';
+  h+='<div class="deal-chip">Транскрипции <strong>'+visibleTranscripts+'</strong></div>';
+  h+='<div class="deal-chip">Новые <strong>'+visibleNew+'</strong></div>';
+  h+='</div><div style="display:flex;gap:8px;flex-wrap:wrap">';
+  h+='<button id="toggleAllBtn" class="toggle-btn" onclick="toggleAllCards()">'+(anyOpen?'📁 Свернуть всё':'📂 Развернуть всё')+'</button>';
+  if(hasFilters)h+='<button class="toggle-btn" onclick="resetDealFilters()">Сбросить фильтры</button>';
+  h+='</div></div></div>';
+
+  if(!prepared.length){
+    h+='<div class="deal-empty">Ничего не найдено. Попробуйте изменить поиск, статус или фокус.</div>';
+    document.getElementById('out').innerHTML=h;
+    return;
+  }
+
+  for(const d of prepared){
+    const avgB=d.ui.avgB;
+    const scoreColor=getScoreColor(avgB);
+    const transcripts=d.ui.transcripts;
+    const notes=d.ui.notes;
+    const topNote=notes[0]?notes[0].text.substring(0,160):'';
+    const cardId='deal_'+d.id;
+    const isOpen=!!cardOpenState[cardId];
+    const lastTouchLabel=d.ui.lastTouch?formatTouch(d.ui.lastTouch.date,d.ui.lastTouch.time):'Нет касаний';
+    const statusClass=(d.status||'').includes('Договор')||(d.status||'').includes('Выполнение')||(d.status||'').includes('Сделка')?'bg-g':(d.status||'').includes('Коммерческое')||(d.status||'').includes('Дожим')?'bg-b':(d.status||'').includes('Новая')||(d.status||'').includes('Обработка')?'bg-y':'bg-p';
+    const borderColor=d.isNew?'#a78bfa':avgB!==null?scoreColor:(d.fCalls.length?'#60a5fa':'#475569');
+    h+='<div class="deal-card" style="border-left:3px solid '+borderColor+'">';
+    h+='<div class="deal-card-top'+(isOpen?' open':'')+'" id="chdr_'+cardId+'" onclick="toggleCard(&#39;'+cardId+'&#39;)">';
+    h+='<div style="flex:1;min-width:220px">';
+    h+='<div class="deal-card-title"><span class="card-arrow">▸</span> #'+d.id+' '+esc((d.name||'').substring(0,80))+'</div>';
+    h+='<div class="deal-card-meta">';
+    h+='<span style="font-size:12px;color:#94a3b8">'+esc((d.counterparty||'Без контрагента').substring(0,60))+'</span>';
+    h+='<span class="bg '+statusClass+'">'+esc(d.status||'Без статуса')+'</span>';
+    if(d.isNew)h+='<span class="bg bg-p">Новая</span>';
+    if(transcripts.length)h+='<span class="bg bg-b">🎙 '+transcripts.length+'</span>';
+    if(notes.length)h+='<span class="bg bg-y">💬 '+notes.length+'</span>';
+    h+='</div></div>';
+    h+='<div class="deal-kpis">';
+    h+='<div class="deal-kpi"><span class="deal-kpi-v" style="color:#60a5fa">'+d.fCalls.length+'</span><span class="deal-kpi-l">Звонков</span></div>';
+    h+='<div class="deal-kpi"><span class="deal-kpi-v" style="color:#818cf8">'+d.ui.durM+'м</span><span class="deal-kpi-l">Время</span></div>';
+    h+='<div class="deal-kpi"><span class="deal-kpi-v" style="color:'+scoreColor+'">'+(avgB===null?'—':avgB+'б')+'</span><span class="deal-kpi-l">Средний балл</span></div>';
+    h+='<div class="deal-kpi"><span class="deal-kpi-v" style="color:#f8fafc">'+(d.dealSum?fmt(d.dealSum):'—')+'</span><span class="deal-kpi-l">Сумма</span></div>';
+    h+='</div></div>';
+
+    h+='<div class="deal-card-body'+(isOpen?' open':'')+'" id="cbody_'+cardId+'">';
+    h+='<div class="deal-summary">';
+    h+='<div class="deal-summary-item"><b>Последнее касание</b><span>'+esc(lastTouchLabel)+'</span></div>';
+    h+='<div class="deal-summary-item"><b>Контрагент</b><span>'+esc(d.counterparty||'Не указан')+'</span></div>';
+    h+='<div class="deal-summary-item"><b>Сигналы по сделке</b><span>Звонки: '+d.fCalls.length+' · Анализы: '+d.fAnalyses.length+' · Заметки: '+notes.length+'</span></div>';
+    h+='<div class="deal-summary-item"><b>Последняя заметка</b><span>'+(topNote?esc(topNote):'Нет заметок в периоде')+'</span></div>';
+    h+='</div>';
+
+    if(d.fCalls.length){
+      h+='<div class="deal-section-title"><h4>📞 Звонки</h4><span class="deal-caption">'+d.fCalls.length+' за выбранный период</span></div>';
+      h+='<div class="deal-table-wrap"><table><tr><th>Дата</th><th>Время</th><th>Тип</th><th>Длит.</th><th>Контакт</th><th>Как работаем</th><th>Призыв</th><th>Счёт</th><th>Баллы</th><th>Вердикт</th></tr>';
+      const sortedCalls=[...d.fCalls].sort((a,b)=>dateStamp(b.date,b.time)-dateStamp(a.date,a.time));
+      for(const c of sortedCalls){
+        const dur=c.duration>=60?Math.round(c.duration/60)+'м':c.duration+'с';
+        const cMin=timeToMin(c.time);
+        const matchA=d.fAnalyses.find(a=>{
+          if(a.date!==c.date)return false;
+          return Math.abs(timeToMin(a.time)-cMin)<10;
+        });
+        h+='<tr><td style="white-space:nowrap;font-size:11px">'+esc(c.date)+'</td>';
+        h+='<td>'+esc((c.time||'').split('-')[0].trim())+'</td>';
+        h+='<td>'+(c.type==='Р’С…РѕРґСЏС‰РёР№'?'📥':'📤')+'</td>';
+        h+='<td>'+dur+'</td>';
+        h+='<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc((c.contact||'').substring(0,26))+'</td>';
+        if(matchA){
+          h+='<td>'+yn(matchA.howWeWork)+'</td><td>'+yn(matchA.callToAction)+'</td><td>'+yn(matchA.sentInvoice)+'</td>';
+          const vc=matchA.verdict.includes('Р­РєСЃРїРµСЂС‚')?'bg-b':matchA.verdict.includes('РҐРѕСЂРѕС€Рѕ')?'bg-g':matchA.verdict.includes('РЎСЂРµРґРЅРµ')?'bg-y':'bg-r';
+          h+='<td><strong>'+matchA.totalBalls+'</strong></td>';
+          h+='<td><span class="bg '+vc+'">'+esc(matchA.verdict.split('(')[0].trim())+'</span></td>';
+        } else {
+          h+='<td colspan="5" style="color:#475569;font-size:11px">'+(c.duration<30?'Короткий звонок':'Нет анализа')+'</td>';
+        }
+        h+='</tr>';
+      }
+      h+='</table></div>';
+    } else {
+      h+='<div class="deal-empty">По этой сделке нет звонков в выбранном периоде.</div>';
+    }
+
+    if(transcripts.length){
+      h+='<div class="deal-section-title"><h4>🎙 Транскрипции</h4><span class="deal-caption">'+transcripts.length+' записей</span></div>';
+      for(const c of transcripts.slice(0,6)){
+        const tid='tr_'+d.id+'_'+c.id;
+        const src=c.source==='contact'?' <span class="bg bg-p">контакт</span>':'';
+        h+='<div style="margin-bottom:8px"><button class="toggle-btn" onclick="toggleTr(&#39;'+tid+'&#39;)">'+(c.type==='outCall'?'📤':'📥')+' '+esc(c.date)+' '+esc(c.time)+'</button>'+src+' <span class="deal-caption">показать / скрыть</span>';
+        h+='<div id="'+tid+'" class="transcript" style="display:none">'+esc(c.transcription)+'</div></div>';
+      }
+    }
+
+    if(notes.length){
+      h+='<div class="deal-section-title"><h4>💬 Заметки</h4><span class="deal-caption">'+notes.length+' записей</span></div>';
+      for(const n of notes.slice(0,8)){
+        h+='<div class="cmt"><span style="color:#64748b;font-size:10px">'+esc(n.date)+' '+esc(n.time)+'</span> '+esc(n.text.substring(0,220))+'</div>';
+      }
+    }
+    h+='</div></div>';
+  }
+  document.getElementById('out').innerHTML=h;
+}
+
 function renderQuality(analyses,cards){
   let h='';
 
@@ -2378,17 +2893,33 @@ function toggleCard(id){
   const body=document.getElementById('cbody_'+id);
   if(!body)return;
   const isOpen=body.classList.contains('open');
-  if(isOpen){body.classList.remove('open');hdr.classList.remove('open')}
-  else{body.classList.add('open');hdr.classList.add('open')}
+  if(isOpen){
+    body.classList.remove('open');
+    if(hdr)hdr.classList.remove('open');
+    cardOpenState[id]=false;
+  }
+  else{
+    body.classList.add('open');
+    if(hdr)hdr.classList.add('open');
+    cardOpenState[id]=true;
+  }
 }
 function toggleAllCards(){
-  const bodies=document.querySelectorAll('.card-body');
+  const bodies=document.querySelectorAll('.card-body, .deal-card-body');
   const anyOpen=[...bodies].some(b=>b.classList.contains('open'));
   bodies.forEach(b=>{
     const id=b.id.replace('cbody_','');
     const hdr=document.getElementById('chdr_'+id);
-    if(anyOpen){b.classList.remove('open');if(hdr)hdr.classList.remove('open')}
-    else{b.classList.add('open');if(hdr)hdr.classList.add('open')}
+    if(anyOpen){
+      b.classList.remove('open');
+      if(hdr)hdr.classList.remove('open');
+      cardOpenState[id]=false;
+    }
+    else{
+      b.classList.add('open');
+      if(hdr)hdr.classList.add('open');
+      cardOpenState[id]=true;
+    }
   });
   const btn=document.getElementById('toggleAllBtn');
   if(btn)btn.textContent=anyOpen?'📂 Развернуть всё':'📁 Свернуть всё';
@@ -2401,6 +2932,120 @@ function toggleColl(id){
   const isOpen=body.classList.contains('open');
   if(isOpen){body.classList.remove('open');hdr.classList.remove('open')}
   else{body.classList.add('open');hdr.classList.add('open')}
+}
+// ============ ВКЛАДКА РУКОВОДИТЕЛЯ ============
+var mgrPeriod='day';
+function setMgrPeriod(p){mgrPeriod=p;renderManager();}
+function renderManager(){
+  var h='';
+  var ms=D.managerSummaries||{};
+
+  // === Переключатель периода ===
+  h+='<div style="display:flex;gap:5px;margin-bottom:14px">';
+  var periods=[{k:'day',l:'📅 День'},{k:'week',l:'📆 Неделя'},{k:'month',l:'🗓 Месяц'}];
+  for(var i=0;i<periods.length;i++){
+    var p=periods[i];
+    var isOn=mgrPeriod===p.k;
+    h+='<button onclick="setMgrPeriod(&#39;'+p.k+'&#39;)" class="pbtn'+(isOn?' on':'')+'" style="font-size:13px;padding:8px 16px">'+p.l+'</button>';
+  }
+  h+='</div>';
+
+  // === AI ВЫЖИМКА ===
+  var text=ms[mgrPeriod]||null;
+  var periodLabel=mgrPeriod==='day'?'день':mgrPeriod==='week'?'неделю':'месяц';
+  h+='<div class="sec" style="border-left:3px solid #a78bfa;min-height:100px">';
+  h+='<h3>👔 Отчёт для руководителя за '+periodLabel+'</h3>';
+  if(text){
+    // Форматируем markdown-подобный текст
+    var lines=text.split('\\n').length>1?text.split('\\n'):text.split('\n');
+    h+='<div style="font-size:13px;line-height:1.7;color:#cbd5e1">';
+    for(var i=0;i<lines.length;i++){
+      var line=lines[i];
+      // Заголовки **ТЕКСТ**
+      line=line.replace(/\*\*([^*]+)\*\*/g,'<strong style="color:#f1f5f9">$1</strong>');
+      // Пункты списка
+      if(line.match(/^[\s]*[-•]\s/))line='<div style="padding-left:12px;margin:2px 0">'+line+'</div>';
+      else if(line.match(/^[\s]*\d+\.\s/))line='<div style="padding-left:8px;margin:4px 0;font-weight:600;color:#a78bfa">'+line+'</div>';
+      else line='<div style="margin:3px 0">'+line+'</div>';
+      h+=line;
+    }
+    h+='</div>';
+  }else{
+    h+='<div class="no-data">Нет данных за '+periodLabel+'. Запустите полный отчёт (node analytics.js) чтобы сгенерировать.</div>';
+  }
+  h+='</div>';
+
+  // === КЛЮЧЕВЫЕ ЦИФРЫ ===
+  var active=D.dealCards.filter(function(d){return d.isActive;});
+  var totalSum=active.reduce(function(s,d){return s+(d.dealSum||0);},0);
+  var closingStatuses=['Дожим','Договор и оплата'];
+  var closingDeals=active.filter(function(d){return closingStatuses.indexOf(d.status)>=0;});
+  var closingSum=closingDeals.reduce(function(s,d){return s+(d.dealSum||0);},0);
+  var activeWithTouch=active.map(function(d){
+    var lt=getLastTouchAll(d);
+    var days=lt?getDaysSince(lt.date):999;
+    return {card:d,daysSince:days};
+  });
+  var stalling=activeWithTouch.filter(function(x){return x.daysSince>=3;}).length;
+
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:14px">';
+  var mets=[
+    {v:active.length,l:'Активных сделок',c:'#60a5fa'},
+    {v:fmt(totalSum)+' ₽',l:'Сумма пайплайна',c:'#fbbf24'},
+    {v:closingDeals.length,l:'Дожим / Договор',c:'#34d399'},
+    {v:fmt(closingSum)+' ₽',l:'Сумма к оплате',c:'#34d399'},
+    {v:stalling,l:'Без контакта >3д',c:stalling>0?'#f87171':'#34d399'},
+  ];
+  for(var i=0;i<mets.length;i++){
+    h+='<div class="met"><div class="met-v" style="color:'+mets[i].c+'">'+mets[i].v+'</div><div class="met-l">'+mets[i].l+'</div></div>';
+  }
+  h+='</div>';
+
+  // === БЛИЖЕ К ОПЛАТЕ (компакт) ===
+  var nearPayment=active.filter(function(d){
+    return closingStatuses.indexOf(d.status)>=0;
+  }).sort(function(a,b){return(b.dealSum||0)-(a.dealSum||0);});
+  if(nearPayment.length){
+    h+='<div class="sec" style="border-left:3px solid #34d399"><h3>🎯 Ближе к оплате ('+nearPayment.length+')</h3>';
+    h+='<table><tr><th>Сделка</th><th>Статус</th><th style="text-align:right">Сумма</th><th>След. шаг</th></tr>';
+    for(var i=0;i<nearPayment.length;i++){
+      var d=nearPayment[i];
+      var ai=findLatestAiForDeal(d.id);
+      h+='<tr>';
+      h+='<td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc((d.name||'').substring(0,50))+'<br><span style="font-size:10px;color:#64748b">'+esc(d.counterparty||'')+'</span></td>';
+      h+='<td><span class="bg bg-g">'+esc(d.status)+'</span></td>';
+      h+='<td style="text-align:right;font-weight:700;color:#fbbf24">'+(d.dealSum?fmt(d.dealSum)+' ₽':'—')+'</td>';
+      h+='<td style="font-size:11px;color:#93c5fd">'+(ai&&ai.nextStep?esc(ai.nextStep).substring(0,80):'—')+'</td>';
+      h+='</tr>';
+    }
+    h+='</table></div>';
+  }
+
+  // === ВОРОНКА ПО ДЕНЬГАМ ===
+  var funnelMoney={};
+  active.forEach(function(d){
+    if(!funnelMoney[d.status])funnelMoney[d.status]={count:0,sum:0};
+    funnelMoney[d.status].count++;
+    funnelMoney[d.status].sum+=(d.dealSum||0);
+  });
+  var fOrder=['Новая','Обработка','В работе','Коммерческое предложение','Вывезли/Нашли поставщика','Дожим','Договор и оплата'];
+  var maxFSum=Math.max.apply(null,fOrder.map(function(s){return(funnelMoney[s]||{}).sum||0;}))||1;
+  h+='<div class="sec"><h3>📊 Воронка по деньгам</h3>';
+  h+='<table><tr><th>Статус</th><th style="text-align:center">Сделок</th><th style="text-align:right">Сумма</th><th style="width:40%"></th></tr>';
+  for(var i=0;i<fOrder.length;i++){
+    var s=fOrder[i];
+    var f=funnelMoney[s]||{count:0,sum:0};
+    var pct=Math.round(f.sum/maxFSum*100);
+    var barCol=i>=5?'#34d399':i>=3?'#60a5fa':'#94a3b8';
+    h+='<tr><td style="font-weight:600;white-space:nowrap">'+esc(s)+'</td>';
+    h+='<td style="text-align:center">'+f.count+'</td>';
+    h+='<td style="text-align:right;font-weight:700;color:#fbbf24">'+(f.sum?fmt(f.sum)+' ₽':'—')+'</td>';
+    h+='<td><div class="bar-bg"><div class="bar-f" style="width:'+pct+'%;background:'+barCol+'"></div></div></td>';
+    h+='</tr>';
+  }
+  h+='</table></div>';
+
+  document.getElementById('out').innerHTML=h;
 }
 function fmt(n){return n?n.toLocaleString('ru-RU'):'0'}
 function fmtD(iso){if(!iso)return'?';const d=new Date(iso);return isNaN(d)?iso:d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short'})}
@@ -2426,8 +3071,8 @@ async function main() {
     return;
   }
 
-  const filterName = process.argv[2] || 'Боровая';
-  const mgr = MANAGERS[filterName];
+  const rawFilterName = (process.argv[2] || 'Боровая').trim();
+  const mgr = MANAGERS[rawFilterName] || MANAGERS[rawFilterName.toLowerCase()];
   if (!mgr) { console.error('❌ Менеджер не найден'); process.exit(1); }
   if (!TOKEN) { console.error('❌ PLANFIX_TOKEN не задан'); process.exit(1); }
 
@@ -2466,6 +3111,7 @@ async function main() {
     dealCards, dailyReports, dailyActivity, funnelChanges, scriptCompliance,
     dailyDealActivity, aiDaySummaryText,
     multiDayActivity, multiDaySummary,
+    managerSummaries: result.managerSummaries || {},
     snapshotDate: result.snapshotDate,
   };
 
@@ -2506,6 +3152,7 @@ async function main() {
         if (miss.length) { h += '<br><b>❗ Не выполнено:</b><br>'; for (const m of miss) h += `&nbsp;&nbsp;• ${m}<br>`; }
         const recs = aa.recommendations || [];
         if (recs.length) { h += '<br><b>💡 Рекомендации:</b><br>'; for (const r of recs) h += `&nbsp;&nbsp;• ${r}<br>`; }
+        if (aa.nextStep) { h += `<br><b>▶ Следующий шаг:</b> ${aa.nextStep}<br>`; }
         try {
           await pf(`/task/${da.deal.id}/comments/`, { description: h });
           sent++;
@@ -2560,6 +3207,7 @@ async function sendRecommendations(taskIdFilter) {
     if (miss.length) { h += '<br><b>❗ Не выполнено:</b><br>'; for (const m of miss) h += `&nbsp;&nbsp;• ${m}<br>`; }
     const recs = aa.recommendations || [];
     if (recs.length) { h += '<br><b>💡 Рекомендации:</b><br>'; for (const r of recs) h += `&nbsp;&nbsp;• ${r}<br>`; }
+    if (aa.nextStep) { h += `<br><b>▶ Следующий шаг:</b> ${aa.nextStep}<br>`; }
 
     try {
       const result = await pf(`/task/${da.deal.id}/comments/`, { description: h });
