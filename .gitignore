@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Environment and secrets
+.env
+.env.local
+*.env
+
+# Caches and generated data
+*_cache.json
+ai_cache.json
+transcriptions_cache.json
+latest_data.json
+funnel_snapshot.json
+
+# Logs
+*.log
+daily_log.txt
+
+# Reports (optional: remove if you want to track them)
+# report*.html
+# report*.txt
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Nested git (deploy has its own repo)
+deploy/.git/
+
+# Temp
+_tmp_*
+*.tmp
