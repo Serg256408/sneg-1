@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node investigate.js)",
+      "Bash(node analytics.js \"Боровая\")",
+      "Bash(node test_contact.js)",
+      "Bash(node test_contact2.js)",
+      "Bash(start \"\" \"C:\\\\transcom\\\\report.html\")",
+      "Bash(node -e \"const d=require\\(''./latest_data.json''\\); let tc=0; for\\(const c of d.dealCards\\) for\\(const m of c.comments\\) if\\(m.transcription\\) tc++; console.log\\(''Транскрибаций:'', tc\\)\")",
+      "Bash(node -e \"const d=JSON.parse\\(require\\(''fs''\\).readFileSync\\(''latest_data.json'',''utf8''\\)\\); for\\(const c of d.dealCards\\) for\\(const m of c.comments\\) if\\(m.transcription && m.transcription.includes\\(''\\\\n''\\)\\) { console.log\\(''Has newline in transcription, id:'', m.id\\); break; }\")",
+      "Bash(explorer \"C:\\\\transcom\\\\report.html\")",
+      "Bash(cmd.exe /c start \"\" \"C:\\\\transcom\\\\report.html\")",
+      "Bash(node -e \"require\\(''http''\\).createServer\\(\\(q,r\\)=>{require\\(''fs''\\).readFile\\(''c:/transcom/report.html'',\\(e,d\\)=>{r.writeHead\\(200,{''Content-Type'':''text/html;charset=utf-8''}\\);r.end\\(d\\)}\\)}\\).listen\\(8787,\\(\\)=>console.log\\(''Server ready on http://localhost:8787''\\)\\)\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8787)"
+    ]
+  }
+}
