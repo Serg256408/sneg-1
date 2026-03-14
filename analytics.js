@@ -53,6 +53,27 @@ const pfGet = (ep) => httpGet(API_URL + ep, AUTH);
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const pad2 = (n) => String(n).padStart(2, '0');
 
+// Planfix API отдаёт время комментариев в UTC, конвертируем в Москву (+3)
+function utcToMoscow(dateStr, timeStr) {
+  if (!timeStr) return { date: dateStr || '', time: '' };
+  const m = timeStr.match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return { date: dateStr || '', time: timeStr };
+  let h = parseInt(m[1]) + 3;
+  let d = dateStr || '';
+  if (h >= 24) {
+    h -= 24;
+    // Переносим на следующий день
+    if (d) {
+      const parts = d.split('-');
+      if (parts.length === 3) {
+        const dt = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]) + 1);
+        d = pad2(dt.getDate()) + '-' + pad2(dt.getMonth() + 1) + '-' + dt.getFullYear();
+      }
+    }
+  }
+  return { date: d, time: pad2(h) + ':' + m[2] };
+}
+
 function timeToMinNode(t) {
   const m = (t || '').match(/(\d+):(\d+)/);
   return m ? parseInt(m[1]) * 60 + parseInt(m[2]) : 0;
@@ -876,8 +897,9 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
 
       const files = (c.files || []).map(f => f.name || f.fileName || '').filter(Boolean);
 
+      const msk = utcToMoscow(dt.date, dt.time);
       parsed.push({
-        id: c.id, date: dt.date || '', time: dt.time || '',
+        id: c.id, date: msk.date, time: msk.time,
         type, text: desc.substring(0, 800),
         owner: c.owner?.name || '',
         transcription, files,
@@ -949,8 +971,9 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
         transcription = await transcribeCallIfNeeded({ transcription, files: c.files || [] }, transcriptionCache);
         if (transcription) whisperCount++;
       }
+      const msk = utcToMoscow(dt.date, dt.time);
       const callData = {
-        id: c.id, date: dt.date || '', time: dt.time || '',
+        id: c.id, date: msk.date, time: msk.time,
         type, text: desc.substring(0, 800),
         owner: c.owner?.name || '',
         transcription,
