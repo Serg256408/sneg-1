@@ -1,0 +1,4 @@
+interface:
+  display_name: "Transcom Workflow"
+  short_description: "Work safely in the Transcom analytics repo"
+  default_prompt: "Use $transcom-project-workflow to work in this repo and regenerate the report correctly."

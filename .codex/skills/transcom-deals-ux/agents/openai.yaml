@@ -1,0 +1,4 @@
+interface:
+  display_name: "Transcom Deals UX"
+  short_description: "Improve scanning and usability of deal views"
+  default_prompt: "Use $transcom-deals-ux to improve the deals view and keep the generated report easy to use."

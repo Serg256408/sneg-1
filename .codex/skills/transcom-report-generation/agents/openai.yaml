@@ -1,0 +1,4 @@
+interface:
+  display_name: "Transcom Report Build"
+  short_description: "Refresh and rebuild the Transcom report safely"
+  default_prompt: "Use $transcom-report-generation to rebuild the report and verify the generated artifacts."

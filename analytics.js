@@ -53,6 +53,19 @@ const AUTH = { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/
 const pf = (ep, body) => httpPost(API_URL + ep, body, AUTH);
 const pfGet = (ep) => httpGet(API_URL + ep, AUTH);
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const CONCURRENCY = 10; // параллельных запросов к API
+async function parallelMap(items, fn, concurrency = CONCURRENCY) {
+  const results = new Array(items.length);
+  let idx = 0;
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (idx < items.length) {
+      const i = idx++;
+      results[i] = await fn(items[i], i);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
 const pad2 = (n) => String(n).padStart(2, '0');
 
 function timeToMinNode(t) {
@@ -1078,28 +1091,29 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
   const totalToLoad = recentActive.length + subtaskIdsForComments.size;
   console.log(`  💬 Комментарии ${recentActive.length} сделок + ${subtaskIdsForComments.size} подзадач...`);
 
-  let loadIdx = 0;
+  // Собираем все задачи для загрузки: сделки + их подзадачи
+  const commentJobs = [];
   for (const t of recentActive) {
-    if (loadIdx % 10 === 0) process.stdout.write(`\r    [${loadIdx + 1}/${totalToLoad}]`);
-    const comments = await getTaskComments(t.id);
-    commentsByTask[t.id] = await parseComments(comments);
-    loadIdx++;
-    await sleep(30);
-
-    // Загружаем комментарии подзадач → мёржим в родителя
+    commentJobs.push({ taskId: t.id, parentId: t.id });
     for (const stId of (parentToSubtasks[t.id] || [])) {
-      if (loadIdx % 10 === 0) process.stdout.write(`\r    [${loadIdx + 1}/${totalToLoad}]`);
-      const stComments = await getTaskComments(stId);
-      const stParsed = await parseComments(stComments);
-      if (stParsed.length) {
-        if (!commentsByTask[t.id]) commentsByTask[t.id] = [];
-        commentsByTask[t.id].push(...stParsed);
-      }
-      loadIdx++;
-      await sleep(30);
+      commentJobs.push({ taskId: stId, parentId: t.id });
     }
   }
-  console.log('');
+  let loadIdx = 0;
+  await parallelMap(commentJobs, async (job) => {
+    const comments = await getTaskComments(job.taskId);
+    const parsed = await parseComments(comments);
+    // Мёржим: подзадачи → в родителя, основные → напрямую
+    if (job.taskId === job.parentId) {
+      commentsByTask[job.parentId] = parsed;
+    } else if (parsed.length) {
+      if (!commentsByTask[job.parentId]) commentsByTask[job.parentId] = [];
+      commentsByTask[job.parentId].push(...parsed);
+    }
+    loadIdx++;
+    if (loadIdx % 10 === 0) process.stdout.write(`\r    [${loadIdx}/${totalToLoad}]`);
+  }, CONCURRENCY);
+  console.log(`\r    [${totalToLoad}/${totalToLoad}]`);
   if (whisperCount) console.log(`  🎤 Whisper транскрибировал: ${whisperCount} звонков`);
 
   // === Звонки из контактов (контрагентов) ===
@@ -1116,9 +1130,8 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
 
   const contactCallsByTask = {}; // taskId -> [{...call}]
   let contactCallsTotal = 0;
-  for (let i = 0; i < uniqueContacts.length; i++) {
-    const cpId = uniqueContacts[i];
-    if (i % 10 === 0 && i > 0) process.stdout.write(`\r    [${i}/${uniqueContacts.length}]`);
+  let contactIdx = 0;
+  await parallelMap(uniqueContacts, async (cpId) => {
     const comments = await getContactComments(cpId);
     for (const c of comments) {
       const desc = stripHtml(c.description);
@@ -1141,10 +1154,8 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
         source: 'contact',
       };
 
-      // Привязываем к связанным сделкам
       for (const taskId of contactToTasks[cpId]) {
         if (!contactCallsByTask[taskId]) contactCallsByTask[taskId] = [];
-        // Дедупликация: не добавляем если уже есть звонок с таким же временем ±5мин в комментариях сделки
         const existing = (commentsByTask[taskId] || []);
         const isDupe = existing.some(e =>
           (e.type === 'outCall' || e.type === 'inCall') &&
@@ -1157,9 +1168,10 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
         }
       }
     }
-    await sleep(30);
-  }
-  if (uniqueContacts.length > 10) console.log('');
+    contactIdx++;
+    if (contactIdx % 10 === 0) process.stdout.write(`\r    [${contactIdx}/${uniqueContacts.length}]`);
+  }, CONCURRENCY);
+  console.log(`\r    [${uniqueContacts.length}/${uniqueContacts.length}]`);
   console.log(`    ✅ ${contactCallsTotal} звонков из контактов`);
 
   // Формируем карточки сделок
@@ -1327,12 +1339,12 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
       } else {
         process.stdout.write(`  🤖 ${dayDMY}: ${dayDeals.length} сделок (кэш) `);
       }
-      for (let i = 0; i < dayDeals.length; i++) {
-        const da = dayDeals[i];
-        if (needAi > 0) process.stdout.write(`\r    [${i + 1}/${dayDeals.length}] #${da.deal.id}`);
+      let aiIdx = 0;
+      await parallelMap(dayDeals, async (da) => {
         da.aiAssessment = await aiDealFullAssessment(da, dayDMY, aiCache);
-        await sleep(100);
-      }
+        aiIdx++;
+        if (needAi > 0) process.stdout.write(`\r    [${aiIdx}/${dayDeals.length}]`);
+      }, CONCURRENCY);
       if (needAi > 0) console.log('\n    ✅');
       else console.log('✅');
 
