@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 cd /d c:\transcom
 
 :: Копируем report.html в deploy/index.html

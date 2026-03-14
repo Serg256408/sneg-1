@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 cd /d c:\transcom
 
 :: Получаем текущую дату в формате DD-MM-YYYY

@@ -33,4 +33,12 @@ deploy/.git/
 
 # Temp
 _tmp_*
+_check*.js
 *.tmp
+
+# Claude
+.claude/
+
+# Generated report
+report.html
+deploy/
