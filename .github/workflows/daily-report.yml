@@ -1,0 +1,56 @@
+name: Daily Report
+
+on:
+  schedule:
+    # 18:00 Moscow (UTC+3) = 15:00 UTC
+    - cron: '0 15 * * *'
+  workflow_dispatch: # ручной запуск из GitHub UI
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate report
+        env:
+          PLANFIX_URL: ${{ secrets.PLANFIX_URL }}
+          PLANFIX_TOKEN: ${{ secrets.PLANFIX_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+        run: |
+          TODAY=$(TZ=Europe/Moscow date +%d-%m-%Y)
+          echo "Generating report for $TODAY"
+          node analytics.js borovaya "$TODAY"
+
+      - name: Commit data files
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add ai_cache.json latest_data.json funnel_snapshot.json daily_log.txt report.html deploy/index.html
+          git diff --cached --quiet || git commit -m "Report $(TZ=Europe/Moscow date +%d.%m.%Y) $(TZ=Europe/Moscow date +%H:%M)"
+          git push
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./deploy
+          publish_branch: gh-pages

@@ -1941,6 +1941,11 @@ function upd(){
   const allC=cards.flatMap(d=>d.fCalls);
   const allA=cards.flatMap(d=>d.fAnalyses);
   const reports=D.dailyReports.filter(r=>inPeriod(r.date));
+  if(tab===6){
+    document.getElementById('mets').innerHTML='';
+    renderManager();
+    return;
+  }
   renderMets(allC,allA,reports,cards);
   if(tab===0)renderDay();
   else if(tab===1)renderDealsV2(cards);
@@ -1948,7 +1953,6 @@ function upd(){
   else if(tab===3)renderDaily(reports);
   else if(tab===4)renderFunnel();
   else if(tab===5)renderStats();
-  else if(tab===6)renderManager();
 }
 
 function renderMets(calls,analyses,reports,cards){
@@ -2969,15 +2973,15 @@ function renderManager(){
   h+='<h3>👔 Отчёт для руководителя за '+periodLabel+'</h3>';
   if(text){
     // Форматируем markdown-подобный текст
-    var lines=text.split('\\n').length>1?text.split('\\n'):text.split('\n');
+    var lines=text.split('\\n').length>1?text.split('\\n'):text.split('\\n');
     h+='<div style="font-size:13px;line-height:1.7;color:#cbd5e1">';
     for(var i=0;i<lines.length;i++){
       var line=lines[i];
       // Заголовки **ТЕКСТ**
-      line=line.replace(/\*\*([^*]+)\*\*/g,'<strong style="color:#f1f5f9">$1</strong>');
+      line=line.replace(/\\*\\*([^*]+)\\*\\*/g,'<strong style="color:#f1f5f9">$1</strong>');
       // Пункты списка
-      if(line.match(/^[\s]*[-•]\s/))line='<div style="padding-left:12px;margin:2px 0">'+line+'</div>';
-      else if(line.match(/^[\s]*\d+\.\s/))line='<div style="padding-left:8px;margin:4px 0;font-weight:600;color:#a78bfa">'+line+'</div>';
+      if(line.match(/^[\\s]*[-•]\\s/))line='<div style="padding-left:12px;margin:2px 0">'+line+'</div>';
+      else if(line.match(/^[\\s]*\\d+\\.\\s/))line='<div style="padding-left:8px;margin:4px 0;font-weight:600;color:#a78bfa">'+line+'</div>';
       else line='<div style="margin:3px 0">'+line+'</div>';
       h+=line;
     }

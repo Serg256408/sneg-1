@@ -81,3 +81,20 @@ warning: in the working copy of 'index.html', LF will be replaced by CRLF the ne
 🌐 C:\Users\speza\.cursor\sneg-1\report.html
 ✅ Готово!
 [15.03.2026  1:08:06,33] Отчет собран 
+warning: in the working copy of 'ai_cache.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'deploy/index.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'funnel_snapshot.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'latest_data.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'report.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.codex/skills/transcom-deals-ux/SKILL.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.codex/skills/transcom-deals-ux/agents/openai.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.codex/skills/transcom-project-workflow/SKILL.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.codex/skills/transcom-project-workflow/agents/openai.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.codex/skills/transcom-report-generation/SKILL.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.codex/skills/transcom-report-generation/agents/openai.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.tools/node-v24.14.0-win-x64/npm', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.tools/node-v24.14.0-win-x64/npx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'AGENTS.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'server.out.log', LF will be replaced by CRLF the next time Git touches it
+The process cannot access the file because it is being used by another process.
+[15.03.2026  1:08:31,47] Ошибка deploy, код 1 
