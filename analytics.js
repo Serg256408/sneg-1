@@ -75,7 +75,7 @@ function timeToMinNode(t) {
 
 const CALL_TAG = 15900;
 const ANALYSIS_TAG = 15920;
-const DEAL_FIELDS = 'id,name,parent,status,dateCreated,counterparty,dataTags,67906,76880,76866,76868,76872,76874,76876,76878';
+const DEAL_FIELDS = 'id,name,parent,status,dateTime,counterparty,dataTags,67906,76880,76866,76868,76872,76874,76876,76878';
 // Статусы которые НЕ анализируем (деньги уже поступили или завершена)
 const SKIP_STATUSES = ['Выполнение Работы', 'Сделанная', 'Завершённая', 'Сделка завершена'];
 const NEW_STATUSES = ['Новая', 'Обработка'];
@@ -336,10 +336,10 @@ async function aiDealFullAssessment(dealActivity, reportDate, aiCache) {
     vpTextDetect.reliableInSnow = allTextJoined.includes('снегопад') || allTextJoined.includes('надёжн') || allTextJoined.includes('надежн');
     vpTextDetect.manyVehicles = allTextJoined.includes('парк техники') || allTextJoined.includes('много техники') || allTextJoined.includes('большой парк');
   } else {
-    vpTextDetect.fiveBrigades = allTextJoined.includes('бригад') || allTextJoined.includes('геодезист') || allTextJoined.includes('проектировщик');
-    vpTextDetect.fullCycle = allTextJoined.includes('полный цикл') || allTextJoined.includes('от нуля') || allTextJoined.includes('от 0') || allTextJoined.includes('стоянок') || allTextJoined.includes('площадок');
-    vpTextDetect.bigProjects = allTextJoined.includes('микояновск') || allTextJoined.includes('рафинад') || allTextJoined.includes('западная долина') || allTextJoined.includes('тыс м') || allTextJoined.includes('тыс.м');
-    vpTextDetect.guarantee = allTextJoined.includes('гарантия') || allTextJoined.includes('гарантию') || allTextJoined.includes('бригадир') || allTextJoined.includes('фото-отчет') || allTextJoined.includes('фото отчет');
+    vpTextDetect.fiveBrigades = (allTextJoined.includes('5 бригад') || allTextJoined.includes('пять бригад')) && (allTextJoined.includes('геодезист') || allTextJoined.includes('проектировщик'));
+    vpTextDetect.fullCycle = allTextJoined.includes('полный цикл') || allTextJoined.includes('от нуля') || allTextJoined.includes('от 0');
+    vpTextDetect.bigProjects = allTextJoined.includes('микояновск') || allTextJoined.includes('рафинад') || allTextJoined.includes('западная долина');
+    vpTextDetect.guarantee = (allTextJoined.includes('гарантия') || allTextJoined.includes('гарантию')) && (allTextJoined.includes('бригадир') || allTextJoined.includes('фото-отчет') || allTextJoined.includes('фото отчет'));
   }
 
   // Те же слова в транскрибациях
@@ -351,10 +351,10 @@ async function aiDealFullAssessment(dealActivity, reportDate, aiCache) {
     vpCallDetect.reliableInSnow = allTrJoined.includes('снегопад') || allTrJoined.includes('надёжн') || allTrJoined.includes('надежн');
     vpCallDetect.manyVehicles = allTrJoined.includes('парк техники') || allTrJoined.includes('много техники') || allTrJoined.includes('большой парк');
   } else {
-    vpCallDetect.fiveBrigades = allTrJoined.includes('бригад') || allTrJoined.includes('геодезист') || allTrJoined.includes('проектировщик');
-    vpCallDetect.fullCycle = allTrJoined.includes('полный цикл') || allTrJoined.includes('от нуля') || allTrJoined.includes('от 0') || allTrJoined.includes('стоянок') || allTrJoined.includes('площадок');
-    vpCallDetect.bigProjects = allTrJoined.includes('микояновск') || allTrJoined.includes('рафинад') || allTrJoined.includes('западная долина') || allTrJoined.includes('тыс м') || allTrJoined.includes('тыс.м');
-    vpCallDetect.guarantee = allTrJoined.includes('гарантия') || allTrJoined.includes('гарантию') || allTrJoined.includes('бригадир') || allTrJoined.includes('фото-отчет') || allTrJoined.includes('фото отчет');
+    vpCallDetect.fiveBrigades = (allTrJoined.includes('5 бригад') || allTrJoined.includes('пять бригад')) && (allTrJoined.includes('геодезист') || allTrJoined.includes('проектировщик'));
+    vpCallDetect.fullCycle = allTrJoined.includes('полный цикл') || allTrJoined.includes('от нуля') || allTrJoined.includes('от 0');
+    vpCallDetect.bigProjects = allTrJoined.includes('микояновск') || allTrJoined.includes('рафинад') || allTrJoined.includes('западная долина');
+    vpCallDetect.guarantee = (allTrJoined.includes('гарантия') || allTrJoined.includes('гарантию')) && (allTrJoined.includes('бригадир') || allTrJoined.includes('фото-отчет') || allTrJoined.includes('фото отчет'));
   }
 
   // Формируем подсказку для ИИ
@@ -587,6 +587,21 @@ ${isSnow ? `ПРАВИЛА ОЦЕНКИ:
           const anyFromCall = vpKeys.some(k => vpCallDetect[k] && vp[k] && vp[k].done);
           vp.source = anyFromCall ? 'call' : 'text';
         }
+      }
+    }
+
+    // Синхронизируем missing с VP — убираем пункты где VP.done=true
+    if (result.verbalPresentation && result.missing) {
+      const vp = result.verbalPresentation;
+      const vpLabels = isSnow
+        ? { since2014: 'С 2014 года', manyObjects: 'Много объектов', govClients: 'Госучреждения', reliableInSnow: 'Надёжность', manyVehicles: 'Много техники' }
+        : { since2014: 'С 2014 года', fiveBrigades: '5 бригад', fullCycle: 'Полный цикл', bigProjects: 'Крупные', guarantee: 'Гарантия' };
+      const doneLabels = Object.entries(vpLabels).filter(([k]) => vp[k]?.done).map(([, v]) => v.toLowerCase());
+      if (doneLabels.length) {
+        result.missing = result.missing.filter(m => {
+          const ml = m.toLowerCase();
+          return !doneLabels.some(dl => ml.includes(dl));
+        });
       }
     }
 
@@ -1037,7 +1052,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
   const priorityTasks = activeTasks.filter(t => dealsWithAnyActivity.has(t.id));
   const otherTasks = activeTasks.filter(t => !dealsWithAnyActivity.has(t.id))
     .sort((a, b) => b.id - a.id);
-  const recentActive = [...priorityTasks, ...otherTasks].slice(0, Math.max(80, priorityTasks.length));
+  const recentActive = [...priorityTasks, ...otherTasks];
   console.log(`  💬 Комментарии ${recentActive.length} сделок (${priorityTasks.length} приоритетных)...`);
   // Карта parentId -> [subtaskId, ...]
   const parentToSubtasks = {};
@@ -1216,13 +1231,14 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
     const comments = [...taskComments, ...contactCalls];
     const totalDur = calls.reduce((s, c) => s + c.duration, 0);
 
-    // Определяем "новая" ли сделка (по статусу)
-    const isNew = NEW_STATUSES.includes(t.status?.name || '');
+    // "Новая" = создана в день отчёта + статус НЕ "Новая" (в "Новая" может быть спам)
+    const createdDate = t.dateTime?.date || t.dateCreated?.date || '';
+    const isNew = createdDate === reportDate && (t.status?.name || '') !== 'Новая';
 
     return {
       id: t.id, name: t.name, status: t.status?.name || '?',
       counterparty: t.counterparty?.name || '—',
-      dateCreated: t.dateCreated?.date || '',
+      dateCreated: t.dateTime?.date || t.dateCreated?.date || '',
       dealSum: parseFloat(cf[67906]?.value || 0) || 0,
       workDesc: extractWorkDesc(t.name),
       isActive: !SKIP_STATUSES.includes(t.status?.name || ''),
@@ -1435,12 +1451,19 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
     saveAiCache(aiCache);
   }
 
+  // Снимок статусов всех сделок за текущий день (для отслеживания переходов)
+  const statusSnapshot = {};
+  for (const card of dealCards) {
+    statusSnapshot[card.id] = { status: card.status, sum: card.dealSum || 0, name: card.name };
+  }
+
   return {
     dealCards, dailyReports, allCalls, allAnalyses,
     dailyActivity, funnelChanges, scriptCompliance,
     dailyDealActivity, aiDaySummaryText,
     multiDayActivity, multiDaySummary,
     managerSummaries,
+    statusSnapshot,
     snapshotDate: prevSnapshot?.date || null,
   };
 }
@@ -2813,6 +2836,100 @@ function renderStats(){
   for(const m of mets) h+='<div class="met"><div class="met-l">'+m.l+'</div><div class="met-v" style="color:'+m.c+'">'+m.v+'</div></div>';
   h+='</div></div>';
 
+  // === РАСПРЕДЕЛЕНИЕ СДЕЛОК ПО СТАТУСАМ (все сделки из Planfix) ===
+  var statusOrder2=['Новая','Обработка','В работе','Коммерческое предложение','Вывезли/Нашли поставщика','Дожим','Договор и оплата','Выполнение Работы','Сделанная','Сделка завершена'];
+  var statusData={};
+  D.dealCards.forEach(function(d){
+    var s=d.status||'?';
+    if(!statusData[s])statusData[s]={count:0,sum:0,deals:[]};
+    statusData[s].count++;
+    statusData[s].sum+=(d.dealSum||0);
+    statusData[s].deals.push(d);
+  });
+  var allStatuses=[...statusOrder2,...Object.keys(statusData).filter(function(k){return statusOrder2.indexOf(k)<0;})].filter(function(k){return statusData[k];});
+  var totalDealsAll=D.dealCards.length;
+  var totalSumAll=D.dealCards.reduce(function(s,d){return s+(d.dealSum||0);},0);
+  var maxStCount=Math.max.apply(null,allStatuses.map(function(s){return statusData[s].count;}))||1;
+
+  h+='<div class="sec"><h3>📊 Все сделки по статусам ('+totalDealsAll+')</h3>';
+  h+='<div style="overflow-x:auto"><table>';
+  h+='<tr><th>Статус</th><th style="text-align:center">Сделок</th><th style="text-align:right">Сумма</th><th style="text-align:right">%</th><th style="width:30%"></th></tr>';
+  for(var si=0;si<allStatuses.length;si++){
+    var st2=allStatuses[si];
+    var sd=statusData[st2];
+    var pct2=totalDealsAll?Math.round(sd.count/totalDealsAll*100):0;
+    var barPct=Math.round(sd.count/maxStCount*100);
+    var isWork=st2==='Выполнение Работы';
+    var isDone=['Договор и оплата','Выполнение Работы','Сделанная','Сделка завершена'].indexOf(st2)>=0;
+    var rowStyle=isWork?'background:rgba(52,211,153,.12);':'';
+    var nameCol=isWork?'#34d399':isDone?'#34d399':'#e2e8f0';
+    var barCol=isWork?'#34d399':isDone?'#34d399':'#60a5fa';
+    h+='<tr style="'+rowStyle+'">';
+    h+='<td style="font-weight:700;color:'+nameCol+';white-space:nowrap">'+(isWork?'🏗 ':'')+esc(st2)+'</td>';
+    h+='<td style="text-align:center;font-weight:700">'+sd.count+'</td>';
+    h+='<td style="text-align:right;font-weight:700;color:#fbbf24">'+(sd.sum?fmt(sd.sum)+' ₽':'—')+'</td>';
+    h+='<td style="text-align:right;color:#94a3b8">'+pct2+'%</td>';
+    h+='<td><div class="bar-bg"><div class="bar-f" style="width:'+barPct+'%;background:'+barCol+'"></div></div></td>';
+    h+='</tr>';
+    // Раскрываем список для ключевых статусов
+    if(isWork||st2==='Договор и оплата'||st2==='Дожим'){
+      sd.deals.sort(function(a,b){return(b.dealSum||0)-(a.dealSum||0);});
+      for(var di2=0;di2<sd.deals.length;di2++){
+        var deal=sd.deals[di2];
+        h+='<tr style="background:rgba(255,255,255,.02)">';
+        h+='<td style="padding-left:24px;font-size:11px;color:#94a3b8">↳ #'+deal.id+' '+esc((deal.name||'').substring(0,45))+'</td>';
+        h+='<td style="text-align:center;font-size:11px;color:#64748b">'+esc(deal.counterparty||'')+'</td>';
+        h+='<td style="text-align:right;font-size:11px;color:#fbbf24">'+(deal.dealSum?fmt(deal.dealSum)+' ₽':'—')+'</td>';
+        h+='<td colspan="2"></td></tr>';
+      }
+    }
+  }
+  h+='<tr style="border-top:2px solid rgba(255,255,255,.1);font-weight:800">';
+  h+='<td>Итого</td><td style="text-align:center">'+totalDealsAll+'</td>';
+  h+='<td style="text-align:right;color:#fbbf24">'+fmt(totalSumAll)+' ₽</td>';
+  h+='<td style="text-align:right">100%</td><td></td></tr>';
+  h+='</table></div>';
+
+  // Переходы за период (из statusHistory — копится ежедневно)
+  var sh=D.statusHistory||{};
+  var shDates=Object.keys(sh).sort(function(a,b){
+    var pa=a.split('-'),pb=b.split('-');
+    return new Date(pa[2]+'-'+pa[1]+'-'+pa[0])-new Date(pb[2]+'-'+pb[1]+'-'+pb[0]);
+  });
+  if(shDates.length>=2){
+    var firstSnap=sh[shDates[0]]||{};
+    var lastSnap=sh[shDates[shDates.length-1]]||{};
+    var movedTo={};
+    for(var id in lastSnap){
+      var cur=lastSnap[id];
+      var prev=firstSnap[id];
+      var prevStatus=prev?prev.status:null;
+      if(prevStatus!==cur.status && cur.status){
+        var ns=cur.status;
+        if(!movedTo[ns])movedTo[ns]={count:0,sum:0};
+        movedTo[ns].count++;
+        movedTo[ns].sum+=(cur.sum||0);
+      }
+    }
+    var mvStatuses=statusOrder2.filter(function(s){return movedTo[s]&&movedTo[s].count>0;});
+    if(mvStatuses.length){
+      h+='<div style="margin-top:14px"><h4 style="color:#a78bfa">🔄 Переходы за '+shDates.length+' дней ('+shDates[0]+' → '+shDates[shDates.length-1]+')</h4>';
+      h+='<table><tr><th>Перешли в</th><th style="text-align:center">Сделок</th><th style="text-align:right">Сумма</th></tr>';
+      for(var mi=0;mi<mvStatuses.length;mi++){
+        var ms=mvStatuses[mi];
+        var mv=movedTo[ms];
+        var isW=ms==='Выполнение Работы';
+        h+='<tr style="'+(isW?'background:rgba(52,211,153,.1)':'')+'"><td style="font-weight:700;color:'+(isW?'#34d399':'#e2e8f0')+'">'+(isW?'🏗 ':'')+esc(ms)+'</td>';
+        h+='<td style="text-align:center;font-weight:700">'+mv.count+'</td>';
+        h+='<td style="text-align:right;color:#fbbf24">'+(mv.sum?fmt(mv.sum)+' ₽':'—')+'</td></tr>';
+      }
+      h+='</table></div>';
+    }
+  } else if(shDates.length===1){
+    h+='<p style="font-size:11px;color:#64748b;margin-top:8px">📅 Первый снимок: '+shDates[0]+'. Переходы появятся после следующего запуска.</p>';
+  }
+  h+='</div>';
+
   // === АКТИВНОСТЬ ПО ДНЯМ — большая таблица ===
   h+='<div class="sec"><h3>📅 Активность менеджера по дням</h3>';
   h+='<div style="overflow-x:auto"><table>';
@@ -3196,6 +3313,23 @@ async function main() {
   console.log(`  📝 Анализов новых сделок: ${scriptCompliance.total}`);
   console.log(`  🤖 ИИ-сделок за день: ${dailyDealActivity.length}`);
 
+  // Загружаем и обновляем историю статусов
+  const dataFile = path.join(__dirname, 'latest_data.json');
+  let prevStatusHistory = {};
+  try {
+    const prev = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+    prevStatusHistory = prev.statusHistory || {};
+  } catch {}
+  // Добавляем снимок за текущий день
+  prevStatusHistory[reportDate] = result.statusSnapshot || {};
+  // Оставляем только последние 60 дней
+  const shKeys = Object.keys(prevStatusHistory).sort((a,b) => {
+    const pa=a.split('-'),pb=b.split('-');
+    return new Date(pb[2]+'-'+pb[1]+'-'+pb[0])-new Date(pa[2]+'-'+pa[1]+'-'+pa[0]);
+  }).slice(0, 60);
+  const statusHistory = {};
+  for (const k of shKeys) statusHistory[k] = prevStatusHistory[k];
+
   const outData = {
     generated: new Date().toISOString(),
     manager: mgr.name,
@@ -3204,6 +3338,7 @@ async function main() {
     dailyDealActivity, aiDaySummaryText,
     multiDayActivity, multiDaySummary,
     managerSummaries: result.managerSummaries || {},
+    statusHistory,
     snapshotDate: result.snapshotDate,
   };
 
