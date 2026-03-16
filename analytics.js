@@ -1174,6 +1174,29 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
   console.log(`\r    [${uniqueContacts.length}/${uniqueContacts.length}]`);
   console.log(`    ✅ ${contactCallsTotal} звонков из контактов`);
 
+  // Извлечение краткого описания работ из названия сделки
+  function extractWorkDesc(name) {
+    if (!name) return '';
+    const n = name.toLowerCase();
+    // Ключевые слова работ
+    const workKeywords = [
+      /асфальт\S*/i, /рем(?:онт)?\s+\S+/i, /вывоз\s+снега/i, /укладк\S*/i, /благоустройств\S*/i,
+      /тротуар\S*/i, /дорог\S*/i, /площадк\S*/i, /парковк\S*/i, /бордюр\S*/i,
+      /крошк\S*/i, /фрезеровк\S*/i, /разметк\S*/i, /щебен\S*/i, /грунтовк\S*/i,
+    ];
+    // Объём: число + единица измерения
+    const volMatch = name.match(/(\d[\d\s.,]*)\s*(м2|м²|кв\.?\s*м|м\.п\.|п\.м\.|м\.кв|тонн|т\b|км|куб\.?\s*м|м3|м³|шт)/i);
+    const vol = volMatch ? volMatch[0].trim() : '';
+    // Тип работ из ключевых слов
+    let workType = '';
+    for (const re of workKeywords) {
+      const m = name.match(re);
+      if (m) { workType = m[0].trim(); break; }
+    }
+    if (!workType && !vol) return '';
+    return [workType, vol].filter(Boolean).join(' ').trim();
+  }
+
   // Формируем карточки сделок
   const dealCards = dealTasks.map(t => {
     const cf = {};
@@ -1201,6 +1224,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
       counterparty: t.counterparty?.name || '—',
       dateCreated: t.dateCreated?.date || '',
       dealSum: parseFloat(cf[67906]?.value || 0) || 0,
+      workDesc: extractWorkDesc(t.name),
       isActive: !SKIP_STATUSES.includes(t.status?.name || ''),
       isNew,
       calls, analyses, comments,
@@ -1282,7 +1306,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
         customerKnowsCompany: card.analyses.some(a => a.howWeWork === 'Да'),
       };
       result.push({
-        deal: { id: card.id, name: card.name, status: card.status, counterparty: card.counterparty, dealSum: card.dealSum || 0 },
+        deal: { id: card.id, name: card.name, status: card.status, counterparty: card.counterparty, dealSum: card.dealSum || 0, workDesc: card.workDesc || '' },
         isNew: createdOnDate || card.isNew,
         actions,
         dayCalls: actions.filter(a => a.type === 'outCall' || a.type === 'inCall').length,
@@ -2052,6 +2076,7 @@ function renderDay(){
     h+='<div class="card-tags">';
     h+='<span style="font-size:11px;color:#94a3b8">'+esc(d.counterparty)+'</span>';
     h+='<span class="bg bg-b">'+esc(d.status)+'</span>';
+    if(d.workDesc)h+='<span class="bg" style="background:rgba(147,197,253,.1);color:#93c5fd">'+esc(d.workDesc)+'</span>';
     if(d.dealSum)h+='<span class="bg" style="background:rgba(251,191,36,.12);color:#fbbf24">'+fmt(d.dealSum)+' ₽</span>';
     if(da.isNew)h+='<span class="bg bg-p">Новая</span>';
     else h+='<span class="bg bg-y">Старая</span>';

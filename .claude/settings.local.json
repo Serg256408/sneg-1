@@ -26,7 +26,9 @@
       "Bash(.tools/node-v24.14.0-win-x64/node.exe analytics.js borovaya 12-03-2026 --no-send)",
       "Bash(.tools/node-v24.14.0-win-x64/node.exe .tools/node-v24.14.0-win-x64/lib/node_modules/npm/bin/npm-cli.js install)",
       "Bash(.tools/node-v24.14.0-win-x64/npm install:*)",
-      "Bash(.tools/node-v24.14.0-win-x64/node.exe -e \":*)"
+      "Bash(.tools/node-v24.14.0-win-x64/node.exe -e \":*)",
+      "Skill(html)",
+      "Skill(html:*)"
     ]
   }
 }

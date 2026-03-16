@@ -46,10 +46,14 @@ const server = http.createServer((req, res) => {
     }
 
     const ext = path.extname(filePath).toLowerCase();
-    res.writeHead(200, {
+    const headers = {
       'Content-Type': mimeTypes[ext] || 'application/octet-stream',
       'Cache-Control': 'no-store',
-    });
+    };
+    if (ext === '.html') {
+      headers['Content-Security-Policy'] = "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;";
+    }
+    res.writeHead(200, headers);
     res.end(data);
   });
 });
