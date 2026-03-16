@@ -2994,27 +2994,78 @@ function renderManager(){
   // === AI ВЫЖИМКА ===
   var text=ms[mgrPeriod]||null;
   var periodLabel=mgrPeriod==='day'?'день':mgrPeriod==='week'?'неделю':'месяц';
-  h+='<div class="sec" style="border-left:3px solid #a78bfa;min-height:100px">';
-  h+='<h3>👔 Отчёт для руководителя за '+periodLabel+'</h3>';
   if(text){
-    // Форматируем markdown-подобный текст
-    var lines=text.split('\\n').length>1?text.split('\\n'):text.split('\\n');
-    h+='<div style="font-size:13px;line-height:1.7;color:#cbd5e1">';
+    // Иконки и цвета для секций
+    var secStyles={
+      'КРАТКИЙ ИТОГ':{icon:'📋',color:'#60a5fa',bg:'rgba(96,165,250,.06)'},
+      'УСПЕХИ И ПРОГРЕСС':{icon:'🏆',color:'#34d399',bg:'rgba(52,211,153,.06)'},
+      'УСПЕХИ':{icon:'🏆',color:'#34d399',bg:'rgba(52,211,153,.06)'},
+      'ПРОБЛЕМЫ':{icon:'⚠️',color:'#f87171',bg:'rgba(248,113,113,.06)'},
+      'БЛИЖАЙШИЕ ОПЛАТЫ':{icon:'💰',color:'#fbbf24',bg:'rgba(251,191,36,.06)'},
+      'РЕКОМЕНДАЦИИ РУКОВОДИТЕЛЮ':{icon:'🎯',color:'#a78bfa',bg:'rgba(167,139,250,.06)'},
+      'РЕКОМЕНДАЦИИ':{icon:'🎯',color:'#a78bfa',bg:'rgba(167,139,250,.06)'},
+    };
+    // Разбиваем на секции по заголовкам (1. ТЕКСТ, 2. ТЕКСТ, **ТЕКСТ**)
+    var lines=text.split('\\n');
+    var sections=[];
+    var curSec={title:'Отчёт для руководителя за '+periodLabel,lines:[]};
     for(var i=0;i<lines.length;i++){
-      var line=lines[i];
-      // Заголовки **ТЕКСТ**
-      line=line.replace(/\\*\\*([^*]+)\\*\\*/g,'<strong style="color:#f1f5f9">$1</strong>');
-      // Пункты списка
-      if(line.match(/^[\\s]*[-•]\\s/))line='<div style="padding-left:12px;margin:2px 0">'+line+'</div>';
-      else if(line.match(/^[\\s]*\\d+\\.\\s/))line='<div style="padding-left:8px;margin:4px 0;font-weight:600;color:#a78bfa">'+line+'</div>';
-      else line='<div style="margin:3px 0">'+line+'</div>';
-      h+=line;
+      var line=lines[i].trim();
+      if(!line)continue;
+      // Убираем ** и ### обёртку для проверки заголовка
+      var clean=line.replace(/^#{1,4}\\s*/, '').replace(/^\\*\\*/, '').replace(/\\*\\*$/, '');
+      // Заголовок секции: "1. КРАТКИЙ ИТОГ" или "КРАТКИЙ ИТОГ" (4+ заглавных букв)
+      var secMatch=clean.match(/^(?:\\d+\\.\\s*)([А-ЯЁA-Z][А-ЯЁA-Z\\s]{3,})$/);
+      if(secMatch){
+        if(curSec.lines.length||sections.length===0)sections.push(curSec);
+        curSec={title:secMatch[1].trim(),lines:[]};
+        continue;
+      }
+      // Пропуск служебных строк
+      if(clean.match(/^ОТЧЁТ О РАБОТЕ/)||clean.match(/^Компания/)||clean.match(/^Период/)||clean==='---')continue;
+      curSec.lines.push(line);
     }
-    h+='</div>';
+    if(curSec.lines.length)sections.push(curSec);
+
+    // Рендерим каждую секцию отдельной карточкой
+    for(var si=0;si<sections.length;si++){
+      var sec=sections[si];
+      if(!sec.lines.length&&si>0)continue;
+      var st=null;
+      for(var sk in secStyles){if(sec.title.indexOf(sk)>=0){st=secStyles[sk];break;}}
+      if(!st)st={icon:'📄',color:'#94a3b8',bg:'rgba(148,163,184,.04)'};
+      h+='<div style="background:'+st.bg+';border-left:3px solid '+st.color+';border-radius:8px;padding:14px 18px;margin-bottom:10px">';
+      h+='<div style="font-size:14px;font-weight:700;color:'+st.color+';margin-bottom:8px">'+st.icon+' '+esc(sec.title)+'</div>';
+      h+='<div style="font-size:13px;line-height:1.8;color:#cbd5e1">';
+      for(var li=0;li<sec.lines.length;li++){
+        var ln=sec.lines[li];
+        // Жирный текст **xxx**
+        ln=ln.replace(/\\*\\*([^*]+)\\*\\*/g,'<strong style="color:#f1f5f9">$1</strong>');
+        // Денежные суммы выделяем
+        ln=ln.replace(/(\\d[\\d\\s.,]*\\s*(?:₽|руб|Р))/g,'<span style="color:#fbbf24;font-weight:600">$1</span>');
+        // Нумерованные пункты
+        if(ln.match(/^\\d+\\./)){
+          ln='<div style="padding:6px 0 6px 8px;border-bottom:1px solid rgba(148,163,184,.08)">'+ln+'</div>';
+        }
+        // Вложенные маркеры (    *   текст)
+        else if(ln.match(/^\\s{2,}[*•\\-]\\s+/)){
+          ln='<div style="padding:4px 0 4px 34px;position:relative;color:#94a3b8"><span style="position:absolute;left:18px;color:'+st.color+';opacity:.5">◦</span>'+ln.replace(/^\\s*[*•\\-]\\s+/,'')+'</div>';
+        }
+        // Маркеры * или - (включая "*   текст")
+        else if(ln.match(/^[*•\\-]\\s+/)){
+          ln='<div style="padding:6px 0 6px 18px;position:relative"><span style="position:absolute;left:2px;color:'+st.color+'">•</span>'+ln.replace(/^[*•\\-]\\s+/,'')+'</div>';
+        }
+        else{
+          ln='<div style="margin:3px 0">'+ln+'</div>';
+        }
+        h+=ln;
+      }
+      h+='</div></div>';
+    }
   }else{
-    h+='<div class="no-data">Нет данных за '+periodLabel+'. Запустите полный отчёт (node analytics.js) чтобы сгенерировать.</div>';
+    h+='<div class="sec" style="border-left:3px solid #a78bfa;min-height:100px"><h3>👔 Отчёт для руководителя за '+periodLabel+'</h3>';
+    h+='<div class="no-data">Нет данных за '+periodLabel+'. Запустите полный отчёт чтобы сгенерировать.</div></div>';
   }
-  h+='</div>';
 
   // === КЛЮЧЕВЫЕ ЦИФРЫ ===
   var active=D.dealCards.filter(function(d){return d.isActive;});
