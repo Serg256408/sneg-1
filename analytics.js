@@ -2895,8 +2895,18 @@ function renderStats(){
 
   // === РАСПРЕДЕЛЕНИЕ СДЕЛОК ПО СТАТУСАМ (все сделки из Planfix) ===
   var statusOrder2=['Новая','Обработка','В работе','Коммерческое предложение','Вывезли/Нашли поставщика','Дожим','Договор и оплата','Выполнение Работы','Сделанная','Сделка завершена'];
+  // Фильтруем сделки по периоду: те у которых была активность (звонки/комментарии) в диапазоне
+  var periodDeals=D.dealCards.filter(function(d){
+    // Проверяем звонки
+    if((d.calls||[]).some(function(c){return inStatRange(c.date);}))return true;
+    // Проверяем комментарии
+    if((d.comments||[]).some(function(c){return inStatRange(c.date);}))return true;
+    // Проверяем создание в периоде
+    if(d.dateCreated && inStatRange(d.dateCreated))return true;
+    return false;
+  });
   var statusData={};
-  D.dealCards.forEach(function(d){
+  periodDeals.forEach(function(d){
     var s=d.status||'?';
     if(!statusData[s])statusData[s]={count:0,sum:0,deals:[]};
     statusData[s].count++;
@@ -2904,11 +2914,12 @@ function renderStats(){
     statusData[s].deals.push(d);
   });
   var allStatuses=[...statusOrder2,...Object.keys(statusData).filter(function(k){return statusOrder2.indexOf(k)<0;})].filter(function(k){return statusData[k];});
-  var totalDealsAll=D.dealCards.length;
-  var totalSumAll=D.dealCards.reduce(function(s,d){return s+(d.dealSum||0);},0);
+  var totalDealsAll=periodDeals.length;
+  var totalSumAll=periodDeals.reduce(function(s,d){return s+(d.dealSum||0);},0);
   var maxStCount=Math.max.apply(null,allStatuses.map(function(s){return statusData[s].count;}))||1;
 
-  h+='<div class="sec"><h3>📊 Все сделки по статусам ('+totalDealsAll+')</h3>';
+  h+='<div class="sec"><h3>📊 Сделки по статусам за период ('+totalDealsAll+' из '+D.dealCards.length+')</h3>';
+  h+='<p style="color:#94a3b8;font-size:12px;margin-bottom:10px">Сделки с активностью за выбранный период</p>';
   h+='<div style="overflow-x:auto"><table>';
   h+='<tr><th>Статус</th><th style="text-align:center">Сделок</th><th style="text-align:right">Сумма</th><th style="text-align:right">%</th><th style="width:30%"></th></tr>';
   for(var si=0;si<allStatuses.length;si++){
