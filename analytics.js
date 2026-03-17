@@ -902,6 +902,34 @@ function computeFunnelChanges(prevSnapshot, currentCards) {
 
 // ============ СБОР ============
 
+async function discoverEmployees() {
+  const users = new Map();
+  // Собираем из первых 500 задач
+  for (let off = 0; off < 500; off += 100) {
+    try {
+      const r = await pf('/task/list', { offset: off, pageSize: 100, fields: 'id,assignees' });
+      for (const t of (r.tasks || [])) {
+        for (const u of (t.assignees?.users || [])) {
+          const numId = parseInt((u.id || '').replace('user:', ''));
+          if (numId && u.name) users.set(numId, u.name);
+        }
+      }
+      if ((r.tasks || []).length < 100) break;
+    } catch { break; }
+  }
+  // Добавляем текущих менеджеров из managers.json (на случай если не найдены)
+  for (const m of MANAGERS_LIST) users.set(m.userId, m.name);
+  return [...users.entries()].map(([id, name]) => {
+    const existing = MANAGERS_LIST.find(m => m.userId === id);
+    const lastName = name.split(' ').pop();
+    return {
+      userId: id, name,
+      alias: existing?.alias || lastName.toLowerCase().replace(/[^a-zа-яё]/gi, ''),
+      pfName: existing?.pfName || lastName,
+    };
+  });
+}
+
 async function getAllTasks(userId) {
   const all = [];
   let offset = 0;
@@ -3459,7 +3487,60 @@ ${c.aiSummary ? `<div class="card-summary">${c.aiSummary}...</div>` : ''}
 </div>`;
   }
 
-  html += `</div><div class="footer">Обновлено: ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК</div></body></html>`;
+  // Кнопка "+ Менеджер"
+  html += `<div style="text-align:center;margin-top:20px">
+<button onclick="document.getElementById('addModal').style.display='flex'" style="padding:12px 24px;background:#1e293b;color:#4ade80;border:2px dashed #334155;border-radius:12px;font-size:16px;cursor:pointer;font-weight:600">+ Добавить менеджера</button>
+</div>`;
+
+  // Модалка добавления менеджера
+  html += `<div id="addModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center">
+<div style="background:#1e293b;border-radius:16px;padding:30px;max-width:450px;width:90%;border:1px solid #334155">
+<h2 style="color:#fff;margin-bottom:20px;font-size:20px">Добавить менеджера</h2>
+<p style="color:#94a3b8;font-size:13px;margin-bottom:16px">Введите данные нового менеджера. userId можно найти в Planfix: Сотрудники → Профиль → число в URL.</p>
+<div style="margin-bottom:12px"><label style="color:#94a3b8;font-size:12px">Имя и Фамилия</label><br>
+<input id="mgrName" placeholder="Иван Иванов" style="width:100%;padding:10px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#fff;font-size:14px;margin-top:4px"></div>
+<div style="margin-bottom:12px"><label style="color:#94a3b8;font-size:12px">userId из Planfix</label><br>
+<input id="mgrId" type="number" placeholder="55" style="width:100%;padding:10px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#fff;font-size:14px;margin-top:4px"></div>
+<div id="addResult" style="display:none;margin-bottom:12px;padding:12px;border-radius:8px;font-size:12px"></div>
+<div style="display:flex;gap:10px;margin-top:16px">
+<button onclick="addManager()" style="flex:1;padding:10px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Добавить</button>
+<button onclick="document.getElementById('addModal').style.display='none'" style="flex:1;padding:10px;background:#334155;color:#94a3b8;border:none;border-radius:8px;font-size:14px;cursor:pointer">Отмена</button>
+</div>
+</div></div>
+
+<script>
+function addManager(){
+  var name=document.getElementById('mgrName').value.trim();
+  var id=parseInt(document.getElementById('mgrId').value);
+  if(!name||!id){alert('Заполните имя и userId');return;}
+  var alias=name.split(' ').pop().toLowerCase().replace(/[^a-zа-яё]/gi,'');
+  var pfName=name.split(' ').pop();
+  var entry={alias:alias,userId:id,name:name,pfName:pfName};
+  // Сохраняем в localStorage
+  var saved=JSON.parse(localStorage.getItem('transcom_managers')||'[]');
+  if(saved.find(function(m){return m.userId===id})){alert('Менеджер с таким ID уже добавлен');return;}
+  saved.push(entry);
+  localStorage.setItem('transcom_managers',JSON.stringify(saved));
+  // Показываем JSON для managers.json
+  var res=document.getElementById('addResult');
+  res.style.display='block';
+  res.style.background='#0f172a';
+  res.style.color='#4ade80';
+  res.innerHTML='<b>Добавлено!</b> Чтобы отчёт генерировался автоматически, добавьте в <code>managers.json</code>:<br><br>'
+    +'<code style="color:#fbbf24;word-break:break-all">'+JSON.stringify(entry)+'</code>'
+    +'<br><br>После коммита и пуша — отчёт появится при следующем запуске в 19:00.';
+  // Добавляем карточку на страницу
+  var grid=document.querySelector('.grid');
+  var div=document.createElement('div');
+  div.className='card';
+  div.innerHTML='<div class="card-name">'+name+'</div>'
+    +'<div style="color:#94a3b8;font-size:13px;padding:20px 0">Отчёт будет сгенерирован при следующем запуске после добавления в managers.json</div>'
+    +'<div style="padding:8px 12px;background:#0f172a;border-radius:8px;font-size:11px;color:#fbbf24">userId: '+id+' | alias: '+alias+'</div>';
+  grid.appendChild(div);
+}
+</script>`;
+
+  html += `<div class="footer">Обновлено: ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК</div></body></html>`;
 
   fs.writeFileSync(path.join(deployDir, 'index.html'), html, 'utf8');
   console.log(`\n📊 Дашборд: deploy/index.html (${cards.length} менеджеров)`);
