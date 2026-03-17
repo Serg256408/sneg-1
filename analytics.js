@@ -1727,11 +1727,11 @@ tr:hover td{background:rgba(59,130,246,.03)}
 <div class="hdr"><div class="hdr-in">
   <div class="logo">T</div>
   <div><div style="font-size:17px;font-weight:800;color:#f1f5f9">${managerName}</div><div style="font-size:12px;color:#64748b" id="upd"></div></div>
-  ${(allManagers && allManagers.length > 1) ? `<div style="display:flex;gap:6px;margin-left:auto;margin-right:12px;flex-wrap:wrap">${allManagers.map(m =>
+  ${allManagers ? `<div style="display:flex;gap:6px;margin-left:auto;margin-right:12px;flex-wrap:wrap">${allManagers.map(m =>
     m.name === managerName
       ? `<span style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#3b82f6;color:#fff">${m.name}</span>`
       : `<a href="../${m.alias}/index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#1e293b;color:#94a3b8;text-decoration:none;border:1px solid #334155">${m.name}</a>`
-  ).join('')}<a href="../index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#1e293b;color:#fbbf24;text-decoration:none;border:1px solid #334155">Все</a></div>` : ''}
+  ).join('')}<a href="../index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#1e293b;color:#fbbf24;text-decoration:none;border:1px solid #334155">Обзор</a></div>` : ''}
   <div class="pbar" id="pbar"></div>
 </div></div>
 <div class="cnt">
