@@ -182,3 +182,11 @@ The process cannot access the file because it is being used by another process.
   📤 Отправлено: 5, ошибок: 0
 ✅ Готово!
 [16.03.2026 18:01:51,30] Отчет собран 
+warning: in the working copy of 'ai_cache.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'deploy/index.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'funnel_snapshot.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'latest_data.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'report.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '_fix_report.js', LF will be replaced by CRLF the next time Git touches it
+The process cannot access the file because it is being used by another process.
+[16.03.2026 18:03:28,68] Ошибка deploy, код 1 
