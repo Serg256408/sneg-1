@@ -1524,7 +1524,7 @@ function buildStatsFromCache() {
   }));
 }
 
-function generateHtml(managerName, data) {
+function generateHtml(managerName, data, allManagers) {
   // Статистика из кэша ИИ + операционные данные из dealCards
   const statsData = buildStatsFromCache();
   // Операционная статистика по дням из dealCards
@@ -1699,6 +1699,11 @@ tr:hover td{background:rgba(59,130,246,.03)}
 <div class="hdr"><div class="hdr-in">
   <div class="logo">T</div>
   <div><div style="font-size:17px;font-weight:800;color:#f1f5f9">${managerName}</div><div style="font-size:12px;color:#64748b" id="upd"></div></div>
+  ${(allManagers && allManagers.length > 1) ? `<div style="display:flex;gap:6px;margin-left:auto;margin-right:12px;flex-wrap:wrap">${allManagers.map(m =>
+    m.name === managerName
+      ? `<span style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#3b82f6;color:#fff">${m.name}</span>`
+      : `<a href="../${m.alias}/index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#1e293b;color:#94a3b8;text-decoration:none;border:1px solid #334155">${m.name}</a>`
+  ).join('')}<a href="../index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#1e293b;color:#fbbf24;text-decoration:none;border:1px solid #334155">Все</a></div>` : ''}
   <div class="pbar" id="pbar"></div>
 </div></div>
 <div class="cnt">
@@ -3327,7 +3332,7 @@ async function runForManager(mgr, reportDate) {
   fs.writeFileSync(path.join(__dirname, 'latest_data.json'), JSON.stringify(outData, null, 2), 'utf8');
 
   // HTML
-  const html = generateHtml(mgr.name, outData);
+  const html = generateHtml(mgr.name, outData, MANAGERS_LIST);
   const htmlPath = mgrReportFile(mgr.alias);
   fs.writeFileSync(htmlPath, html, 'utf8');
   fs.writeFileSync(path.join(__dirname, 'report.html'), html, 'utf8');
@@ -3473,7 +3478,7 @@ async function main() {
       const dataFile = fs.existsSync(dataPath) ? dataPath : fallback;
       if (!fs.existsSync(dataFile)) { console.error('❌ Данные не найдены'); process.exit(1); }
       const outData = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
-      const html = generateHtml(mgr.name, outData);
+      const html = generateHtml(mgr.name, outData, MANAGERS_LIST);
       fs.writeFileSync(mgrReportFile(mgr.alias), html, 'utf8');
       fs.writeFileSync(path.join(__dirname, 'report.html'), html, 'utf8');
       if (!fs.existsSync(mgrDeployDir(mgr.alias))) fs.mkdirSync(mgrDeployDir(mgr.alias), { recursive: true });
@@ -3487,7 +3492,7 @@ async function main() {
         const dataFile = fs.existsSync(dataPath) ? dataPath : fallback;
         if (!fs.existsSync(dataFile)) continue;
         const outData = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
-        const html = generateHtml(mgr.name, outData);
+        const html = generateHtml(mgr.name, outData, MANAGERS_LIST);
         fs.writeFileSync(mgrReportFile(mgr.alias), html, 'utf8');
         fs.writeFileSync(path.join(__dirname, 'report.html'), html, 'utf8');
         if (!fs.existsSync(mgrDeployDir(mgr.alias))) fs.mkdirSync(mgrDeployDir(mgr.alias), { recursive: true });
