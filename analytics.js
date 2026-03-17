@@ -2050,9 +2050,24 @@ function renderMets(calls,analyses,reports,cards){
   const durSec=calls.reduce((s,c)=>s+c.duration,0);
   const avgB=analyses.length?Math.round(analyses.reduce((s,a)=>s+a.totalBalls,0)/analyses.length*10)/10:0;
   const fwd=D.funnelChanges.filter(c=>c.direction==='forward').length;
+  // Считаем новых и обработанных из multiDayActivity за выбранный период
+  var newCount=0,workedCount=0;
+  if(D.multiDayActivity){
+    Object.keys(D.multiDayActivity).forEach(function(dt){
+      if(!inPeriod(dt))return;
+      var day=D.multiDayActivity[dt]||[];
+      day.forEach(function(dd){
+        if(dd.isNew)newCount++;
+        workedCount++;
+      });
+    });
+  } else {
+    newCount=D.dailyActivity.newDeals.length;
+    workedCount=D.dailyActivity.workedDeals.length;
+  }
   const items=[
-    {v:D.dailyActivity.newDeals.length,l:'Новых сегодня',c:'#a78bfa'},
-    {v:D.dailyActivity.workedDeals.length,l:'Обработано',c:'#818cf8'},
+    {v:newCount,l:'Новых сегодня',c:'#a78bfa'},
+    {v:workedCount,l:'Обработано',c:'#818cf8'},
     {v:fwd,l:'Продвинуто',c:'#34d399'},
     {v:calls.length,l:'Звонков',c:'#60a5fa'},
     {v:Math.round(durSec/60)+'м',l:'Время звонков',c:'#818cf8'},
