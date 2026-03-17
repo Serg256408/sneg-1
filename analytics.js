@@ -18,10 +18,16 @@ const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
 const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY || '';
 const TRANSCRIPTION_CACHE_FILE = path.join(__dirname, 'transcriptions_cache.json');
 const AI_CACHE_FILE = path.join(__dirname, 'ai_cache.json');
-const MANAGERS = {
-  'Боровая': { userId: 41, name: 'Ия Боровая', pfName: 'Боровая' },
-  'borovaya': { userId: 41, name: 'Ия Боровая', pfName: 'Боровая' },
-};
+// Загрузка менеджеров из managers.json (фоллбэк на хардкод)
+const MANAGERS_FILE = path.join(__dirname, 'managers.json');
+let MANAGERS_LIST = [{ alias: 'borovaya', userId: 41, name: 'Ия Боровая', pfName: 'Боровая' }];
+try { MANAGERS_LIST = JSON.parse(fs.readFileSync(MANAGERS_FILE, 'utf8')); } catch {}
+const MANAGERS = {};
+for (const m of MANAGERS_LIST) {
+  MANAGERS[m.pfName] = m;
+  MANAGERS[m.alias] = m;
+  if (m.pfName) MANAGERS[m.pfName.toLowerCase()] = m;
+}
 
 let useAxios = true, axios;
 try { axios = require('axios'); } catch { useAxios = false; }
@@ -678,8 +684,8 @@ function calculateSalaryScore(aa) {
   return { total, max: 12, items };
 }
 
-async function aiDaySummary(dailyDeals, reportDate, aiCache) {
-  const cacheKey = `day_${reportDate}_${dailyDeals.length}_v3`;
+async function aiDaySummary(dailyDeals, reportDate, aiCache, mgrAlias) {
+  const cacheKey = `day_${mgrAlias || 'default'}_${reportDate}_${dailyDeals.length}_v3`;
   if (aiCache[cacheKey]) return aiCache[cacheKey];
 
   const dealsText = dailyDeals.map(d => {
@@ -709,8 +715,8 @@ ${dealsText}
 }
 
 // Итог для руководителя за период (день/неделя/месяц)
-async function aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, periodDays, reportDate, aiCache) {
-  const cacheKey = `mgr_${periodDays}d_${reportDate}_v1`;
+async function aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, periodDays, reportDate, aiCache, mgrAlias) {
+  const cacheKey = `mgr_${mgrAlias || 'default'}_${periodDays}d_${reportDate}_v1`;
   if (aiCache[cacheKey]) return aiCache[cacheKey];
 
   // Собираем даты за период
@@ -844,7 +850,16 @@ function isSameDay(dateStr, refDate) {
 
 // ============ СНИМКИ ВОРОНКИ ============
 
-const SNAPSHOT_FILE = path.join(__dirname, 'funnel_snapshot.json');
+let SNAPSHOT_FILE = path.join(__dirname, 'funnel_snapshot.json');
+
+function setSnapshotFile(alias) {
+  const perMgr = path.join(__dirname, 'data', `${alias}_funnel.json`);
+  // Миграция: если per-manager файла нет, но старый есть — копируем
+  if (!fs.existsSync(perMgr) && fs.existsSync(path.join(__dirname, 'funnel_snapshot.json'))) {
+    try { fs.copyFileSync(path.join(__dirname, 'funnel_snapshot.json'), perMgr); } catch {}
+  }
+  SNAPSHOT_FILE = perMgr;
+}
 
 function loadPreviousSnapshot() {
   try {
@@ -930,7 +945,8 @@ async function getContactComments(contactId) {
 
 // ============ ОБРАБОТКА ============
 
-async function buildDealCards(tasks, mgrPfName, reportDate) {
+async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
+  if (mgrAlias) setSnapshotFile(mgrAlias);
   const reportTasks = tasks.filter(t => (t.name || '').startsWith('Отчет'));
   // Разделяем: родительские сделки и подзадачи
   const subtasks = tasks.filter(t => t.parent && t.parent.id && !(t.name || '').startsWith('Отчет'));
@@ -1389,7 +1405,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
       else console.log('✅');
 
       // ИИ итог дня
-      multiDaySummary[dayDMY] = await aiDaySummary(dayDeals, dayDMY, aiCache);
+      multiDaySummary[dayDMY] = await aiDaySummary(dayDeals, dayDMY, aiCache, mgrAlias);
     }
 
     // Не сохраняем allComments/allCalls/allAnalyses в multiDay (экономим размер)
@@ -1442,11 +1458,11 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
   const managerSummaries = { day: null, week: null, month: null };
   if (OPENAI_KEY) {
     console.log(`\n👔 Генерация отчёта для руководителя...`);
-    managerSummaries.day = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 1, reportDMY, aiCache);
+    managerSummaries.day = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 1, reportDMY, aiCache, mgrAlias);
     if (managerSummaries.day) process.stdout.write('  ✅ День ');
-    managerSummaries.week = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 7, reportDMY, aiCache);
+    managerSummaries.week = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 7, reportDMY, aiCache, mgrAlias);
     if (managerSummaries.week) process.stdout.write('✅ Неделя ');
-    managerSummaries.month = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 30, reportDMY, aiCache);
+    managerSummaries.month = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 30, reportDMY, aiCache, mgrAlias);
     if (managerSummaries.month) console.log('✅ Месяц');
     saveAiCache(aiCache);
   }
@@ -3263,46 +3279,25 @@ init();
 </script></body></html>`;
 }
 
-// ============ MAIN ============
-async function main() {
-  // Режим --html: только перегенерация HTML из кэша (без Planfix)
-  if (process.argv.includes('--html')) {
-    const dataFile = path.join(__dirname, 'latest_data.json');
-    if (!fs.existsSync(dataFile)) { console.error('❌ latest_data.json не найден'); process.exit(1); }
-    const outData = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
-    const mgrName = outData.manager || 'Боровая';
-    const htmlPath = path.join(__dirname, 'report.html');
-    const html = generateHtml(mgrName, outData);
-    fs.writeFileSync(htmlPath, html, 'utf8');
-    const deployDir = path.join(__dirname, 'deploy');
-    if (!fs.existsSync(deployDir)) fs.mkdirSync(deployDir);
-    fs.writeFileSync(path.join(deployDir, 'index.html'), html, 'utf8');
-    console.log(`✅ HTML перегенерирован: ${htmlPath}`);
-    try { const { exec } = require('child_process'); exec(`start "" "${htmlPath}"`); } catch {}
-    return;
-  }
+// ============ Пути файлов для менеджера ============
+function mgrDataFile(alias) { return path.join(__dirname, 'data', `${alias}_latest.json`); }
+function mgrFunnelFile(alias) { return path.join(__dirname, 'data', `${alias}_funnel.json`); }
+function mgrReportFile(alias) { return path.join(__dirname, 'reports', `${alias}.html`); }
+function mgrDeployDir(alias) { return path.join(__dirname, 'deploy', alias); }
 
-  const rawFilterName = (process.argv[2] || 'Боровая').trim();
-  const mgr = MANAGERS[rawFilterName] || MANAGERS[rawFilterName.toLowerCase()];
-  if (!mgr) { console.error('❌ Менеджер не найден'); process.exit(1); }
-  if (!TOKEN) { console.error('❌ PLANFIX_TOKEN не задан'); process.exit(1); }
+// ============ Один менеджер ============
+async function runForManager(mgr, reportDate) {
+  console.log(`\n${'='.repeat(60)}`);
+  console.log(`🚀 ${mgr.name} — ${reportDate}\n`);
 
-  // Определяем дату отчёта
-  const arg3 = process.argv[3] || '';
-  let reportDate; // DD-MM-YYYY формат
-  if (/^\d{2}-\d{2}-\d{4}$/.test(arg3)) {
-    reportDate = arg3; // конкретная дата
-  } else {
-    const now = new Date();
-    reportDate = `${pad2(now.getDate())}-${pad2(now.getMonth()+1)}-${now.getFullYear()}`;
-  }
-
-  console.log(`🚀 ТрансКом v8.0 — ${mgr.name} — ${reportDate}\n`);
+  // Обеспечиваем директории
+  for (const d of [path.join(__dirname, 'data'), path.join(__dirname, 'reports'), mgrDeployDir(mgr.alias)])
+    if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 
   const tasks = await getAllTasks(mgr.userId);
   console.log(`  ✅ Сделок: ${tasks.length}\n`);
 
-  const result = await buildDealCards(tasks, mgr.pfName, reportDate);
+  const result = await buildDealCards(tasks, mgr.pfName, reportDate, mgr.alias);
   const { dealCards, dailyReports, allCalls, allAnalyses, dailyActivity, funnelChanges, scriptCompliance, dailyDealActivity, aiDaySummaryText, multiDayActivity, multiDaySummary } = result;
 
   console.log(`\n  📊 Сделок с звонками: ${dealCards.filter(d => d.totalCalls > 0).length}`);
@@ -3318,6 +3313,7 @@ async function main() {
   const outData = {
     generated: new Date().toISOString(),
     manager: mgr.name,
+    managerAlias: mgr.alias,
     reportDate,
     dealCards, dailyReports, dailyActivity, funnelChanges, scriptCompliance,
     dailyDealActivity, aiDaySummaryText,
@@ -3326,20 +3322,18 @@ async function main() {
     snapshotDate: result.snapshotDate,
   };
 
+  // Сохраняем данные (per-manager + совместимость со старым latest_data.json)
+  fs.writeFileSync(mgrDataFile(mgr.alias), JSON.stringify(outData, null, 2), 'utf8');
   fs.writeFileSync(path.join(__dirname, 'latest_data.json'), JSON.stringify(outData, null, 2), 'utf8');
-  const htmlPath = path.join(__dirname, 'report.html');
+
+  // HTML
   const html = generateHtml(mgr.name, outData);
+  const htmlPath = mgrReportFile(mgr.alias);
   fs.writeFileSync(htmlPath, html, 'utf8');
-  // Копируем в deploy для GitHub Pages
-  const deployDir = path.join(__dirname, 'deploy');
-  if (!fs.existsSync(deployDir)) fs.mkdirSync(deployDir);
-  fs.writeFileSync(path.join(deployDir, 'index.html'), html, 'utf8');
+  fs.writeFileSync(path.join(__dirname, 'report.html'), html, 'utf8');
+  fs.writeFileSync(path.join(mgrDeployDir(mgr.alias), 'index.html'), html, 'utf8');
 
   console.log(`\n🌐 ${htmlPath}`);
-  try {
-    const { exec } = require('child_process');
-    exec(process.platform === 'win32' ? `start "" "${htmlPath}"` : `xdg-open "${htmlPath}"`);
-  } catch {}
 
   // === Автоотправка ИИ-рекомендаций в Planfix за текущий день ===
   if (dailyDealActivity.length && !process.argv.includes('--no-send')) {
@@ -3383,7 +3377,165 @@ async function main() {
     }
   }
 
-  console.log('✅ Готово!');
+  console.log(`✅ ${mgr.name} — готово!`);
+  return outData;
+}
+
+// ============ Дашборд для всех менеджеров ============
+function generateDashboard(date) {
+  const deployDir = path.join(__dirname, 'deploy');
+  if (!fs.existsSync(deployDir)) fs.mkdirSync(deployDir, { recursive: true });
+
+  const cards = [];
+  for (const mgr of MANAGERS_LIST) {
+    const dataPath = mgrDataFile(mgr.alias);
+    if (!fs.existsSync(dataPath)) continue;
+    try {
+      const d = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+      const active = (d.dealCards || []).filter(c => c.isActive);
+      const pipeline = active.reduce((s, c) => s + (c.dealSum || 0), 0);
+      const dda = d.dailyDealActivity || [];
+      const totalCalls = dda.reduce((s, dd) => s + (dd.actions || []).filter(a => a.type === 'outCall' || a.type === 'inCall').length, 0);
+      const scores = dda.filter(dd => dd.ai?.salaryScore?.total).map(dd => dd.ai.salaryScore.total);
+      const avgScore = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : '—';
+      const closing = active.filter(c => ['Дожим', 'Договор и оплата'].includes(c.status));
+      const closingSum = closing.reduce((s, c) => s + (c.dealSum || 0), 0);
+      cards.push({
+        name: mgr.name, alias: mgr.alias,
+        activeDealCount: active.length, pipeline,
+        todayDeals: dda.length, totalCalls, avgScore,
+        closingCount: closing.length, closingSum,
+        reportDate: d.reportDate || date,
+        aiSummary: (d.aiDaySummaryText || '').substring(0, 200),
+      });
+    } catch {}
+  }
+
+  const fmtMoney = n => { if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M'; if (n >= 1e3) return Math.round(n / 1e3) + 'K'; return String(n); };
+
+  let html = `<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ТрансКом — Обзор менеджеров</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f172a;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:20px}
+.header{text-align:center;padding:20px 0 30px}
+.header h1{font-size:24px;color:#fff}
+.header .date{color:#94a3b8;font-size:14px;margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;max-width:1200px;margin:0 auto}
+.card{background:#1e293b;border-radius:12px;padding:20px;border:1px solid #334155;transition:transform .2s}
+.card:hover{transform:translateY(-2px);border-color:#3b82f6}
+.card-name{font-size:18px;font-weight:700;color:#fff;margin-bottom:12px}
+.card-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.met{background:#0f172a;border-radius:8px;padding:10px;text-align:center}
+.met-v{font-size:20px;font-weight:700}
+.met-l{font-size:10px;color:#94a3b8;text-transform:uppercase;margin-top:2px}
+.green{color:#4ade80}.yellow{color:#fbbf24}.blue{color:#60a5fa}.purple{color:#a78bfa}.cyan{color:#22d3ee}
+.card-summary{margin-top:12px;font-size:12px;color:#94a3b8;line-height:1.4}
+.card-link{display:block;text-align:center;margin-top:16px;padding:10px;background:#3b82f6;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px}
+.card-link:hover{background:#2563eb}
+.footer{text-align:center;margin-top:30px;color:#475569;font-size:12px}
+</style></head><body>
+<div class="header"><h1>ТрансКом — Обзор менеджеров</h1><div class="date">${date}</div></div>
+<div class="grid">`;
+
+  for (const c of cards) {
+    html += `<div class="card">
+<div class="card-name">${c.name}</div>
+<div class="card-metrics">
+<div class="met"><div class="met-v blue">${c.activeDealCount}</div><div class="met-l">Активных сделок</div></div>
+<div class="met"><div class="met-v green">${fmtMoney(c.pipeline)} ₽</div><div class="met-l">Пайплайн</div></div>
+<div class="met"><div class="met-v cyan">${c.todayDeals}</div><div class="met-l">Сделок за день</div></div>
+<div class="met"><div class="met-v purple">${c.totalCalls}</div><div class="met-l">Звонков за день</div></div>
+<div class="met"><div class="met-v yellow">${c.avgScore}/12</div><div class="met-l">Ср. балл</div></div>
+<div class="met"><div class="met-v green">${c.closingCount} / ${fmtMoney(c.closingSum)} ₽</div><div class="met-l">К оплате</div></div>
+</div>
+${c.aiSummary ? `<div class="card-summary">${c.aiSummary}...</div>` : ''}
+<a class="card-link" href="${c.alias}/index.html">Открыть полный отчёт →</a>
+</div>`;
+  }
+
+  html += `</div><div class="footer">Обновлено: ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК</div></body></html>`;
+
+  fs.writeFileSync(path.join(deployDir, 'index.html'), html, 'utf8');
+  console.log(`\n📊 Дашборд: deploy/index.html (${cards.length} менеджеров)`);
+}
+
+// ============ MAIN ============
+async function main() {
+  // Режим --html: перегенерация HTML из кэша
+  if (process.argv.includes('--html')) {
+    const rawName = process.argv.find(a => a !== '--html' && !a.endsWith('.js') && !a.startsWith('--') && a !== 'node');
+    if (rawName && MANAGERS[rawName]) {
+      // Один менеджер
+      const mgr = MANAGERS[rawName];
+      const dataPath = mgrDataFile(mgr.alias);
+      const fallback = path.join(__dirname, 'latest_data.json');
+      const dataFile = fs.existsSync(dataPath) ? dataPath : fallback;
+      if (!fs.existsSync(dataFile)) { console.error('❌ Данные не найдены'); process.exit(1); }
+      const outData = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+      const html = generateHtml(mgr.name, outData);
+      fs.writeFileSync(mgrReportFile(mgr.alias), html, 'utf8');
+      fs.writeFileSync(path.join(__dirname, 'report.html'), html, 'utf8');
+      if (!fs.existsSync(mgrDeployDir(mgr.alias))) fs.mkdirSync(mgrDeployDir(mgr.alias), { recursive: true });
+      fs.writeFileSync(path.join(mgrDeployDir(mgr.alias), 'index.html'), html, 'utf8');
+      console.log(`✅ HTML: ${mgrReportFile(mgr.alias)}`);
+    } else {
+      // Все менеджеры
+      for (const mgr of MANAGERS_LIST) {
+        const dataPath = mgrDataFile(mgr.alias);
+        const fallback = path.join(__dirname, 'latest_data.json');
+        const dataFile = fs.existsSync(dataPath) ? dataPath : fallback;
+        if (!fs.existsSync(dataFile)) continue;
+        const outData = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+        const html = generateHtml(mgr.name, outData);
+        fs.writeFileSync(mgrReportFile(mgr.alias), html, 'utf8');
+        fs.writeFileSync(path.join(__dirname, 'report.html'), html, 'utf8');
+        if (!fs.existsSync(mgrDeployDir(mgr.alias))) fs.mkdirSync(mgrDeployDir(mgr.alias), { recursive: true });
+        fs.writeFileSync(path.join(mgrDeployDir(mgr.alias), 'index.html'), html, 'utf8');
+        console.log(`✅ HTML: ${mgrReportFile(mgr.alias)}`);
+      }
+      const now = new Date();
+      generateDashboard(`${pad2(now.getDate())}-${pad2(now.getMonth()+1)}-${now.getFullYear()}`);
+    }
+    return;
+  }
+
+  if (!TOKEN) { console.error('❌ PLANFIX_TOKEN не задан'); process.exit(1); }
+
+  // Определяем дату отчёта
+  const dateArg = process.argv.find(a => /^\d{2}-\d{2}-\d{4}$/.test(a));
+  let reportDate;
+  if (dateArg) {
+    reportDate = dateArg;
+  } else {
+    const now = new Date();
+    reportDate = `${pad2(now.getDate())}-${pad2(now.getMonth()+1)}-${now.getFullYear()}`;
+  }
+
+  // Режим --all: все менеджеры
+  if (process.argv.includes('--all')) {
+    console.log(`🚀 ТрансКом v9.0 — ВСЕ менеджеры — ${reportDate}`);
+    console.log(`   Менеджеров: ${MANAGERS_LIST.length}\n`);
+    for (const mgr of MANAGERS_LIST) {
+      await runForManager(mgr, reportDate);
+    }
+    generateDashboard(reportDate);
+    console.log('\n✅ Все отчёты готовы!');
+    return;
+  }
+
+  // Один менеджер (обратная совместимость)
+  const rawFilterName = (process.argv[2] || 'Боровая').trim();
+  const mgr = MANAGERS[rawFilterName] || MANAGERS[rawFilterName.toLowerCase()];
+  if (!mgr) { console.error('❌ Менеджер не найден'); process.exit(1); }
+
+  await runForManager(mgr, reportDate);
+  generateDashboard(reportDate);
+
+  try {
+    const { exec } = require('child_process');
+    exec(process.platform === 'win32' ? `start "" "${path.join(__dirname, 'report.html')}"` : `xdg-open "${path.join(__dirname, 'report.html')}"`);
+  } catch {}
 }
 
 // === Отправка рекомендаций в Planfix ===

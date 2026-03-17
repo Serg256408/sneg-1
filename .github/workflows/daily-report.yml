@@ -14,7 +14,7 @@ permissions:
 jobs:
   report:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Generate report
+      - name: Generate reports for all managers
         env:
           PLANFIX_URL: ${{ secrets.PLANFIX_URL }}
           PLANFIX_TOKEN: ${{ secrets.PLANFIX_TOKEN }}
@@ -37,14 +37,14 @@ jobs:
           GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
         run: |
           TODAY=$(TZ=Europe/Moscow date +%d-%m-%Y)
-          echo "Generating report for $TODAY"
-          node analytics.js borovaya "$TODAY"
+          echo "Generating reports for $TODAY"
+          node analytics.js --all "$TODAY"
 
       - name: Commit data files
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add ai_cache.json latest_data.json funnel_snapshot.json daily_log.txt report.html deploy/index.html
+          git add ai_cache.json latest_data.json funnel_snapshot.json daily_log.txt report.html data/ reports/ deploy/ managers.json
           git diff --cached --quiet || git commit -m "Report $(TZ=Europe/Moscow date +%d.%m.%Y) $(TZ=Europe/Moscow date +%H:%M)"
           git pull --rebase || true
           git push
