@@ -77,7 +77,7 @@ const CALL_TAG = 15900;
 const ANALYSIS_TAG = 15920;
 const DEAL_FIELDS = 'id,name,parent,status,dateTime,counterparty,dataTags,67906,76880,76866,76868,76872,76874,76876,76878';
 // Статусы которые НЕ анализируем (деньги уже поступили или завершена)
-const SKIP_STATUSES = ['Выполнение Работы', 'Сделанная', 'Завершённая', 'Сделка завершена'];
+const SKIP_STATUSES = ['Сделанная', 'Завершённая', 'Сделка завершена'];
 const NEW_STATUSES = ['Новая', 'Обработка'];
 const FUNNEL_ORDER = [
   'Новая','Обработка','В работе','Коммерческое предложение',
@@ -1451,19 +1451,12 @@ async function buildDealCards(tasks, mgrPfName, reportDate) {
     saveAiCache(aiCache);
   }
 
-  // Снимок статусов всех сделок за текущий день (для отслеживания переходов)
-  const statusSnapshot = {};
-  for (const card of dealCards) {
-    statusSnapshot[card.id] = { status: card.status, sum: card.dealSum || 0, name: card.name };
-  }
-
   return {
     dealCards, dailyReports, allCalls, allAnalyses,
     dailyActivity, funnelChanges, scriptCompliance,
     dailyDealActivity, aiDaySummaryText,
     multiDayActivity, multiDaySummary,
     managerSummaries,
-    statusSnapshot,
     snapshotDate: prevSnapshot?.date || null,
   };
 }
@@ -2890,43 +2883,48 @@ function renderStats(){
   h+='<td style="text-align:right">100%</td><td></td></tr>';
   h+='</table></div>';
 
-  // Переходы за период (из statusHistory — копится ежедневно)
-  var sh=D.statusHistory||{};
-  var shDates=Object.keys(sh).sort(function(a,b){
-    var pa=a.split('-'),pb=b.split('-');
-    return new Date(pa[2]+'-'+pa[1]+'-'+pa[0])-new Date(pb[2]+'-'+pb[1]+'-'+pb[0]);
+  // Переходы за период (из комментариев "Статус изменён на ...")
+  var movedTo={};
+  D.dealCards.forEach(function(card){
+    (card.comments||[]).forEach(function(c){
+      if(!inStatRange(c.date))return;
+      var txt=(c.text||'');
+      var m=txt.match(/Статус изменён на (.+)/);
+      if(!m)return;
+      var newStatus=m[1].replace(/<[^>]*>/g,'').trim();
+      if(!newStatus)return;
+      if(!movedTo[newStatus])movedTo[newStatus]={count:0,sum:0,deals:[]};
+      if(!movedTo[newStatus].deals.some(function(d){return d.id==card.id;})){
+        movedTo[newStatus].count++;
+        movedTo[newStatus].sum+=(card.dealSum||0);
+        movedTo[newStatus].deals.push({id:card.id,name:card.name,sum:card.dealSum||0});
+      }
+    });
   });
-  if(shDates.length>=2){
-    var firstSnap=sh[shDates[0]]||{};
-    var lastSnap=sh[shDates[shDates.length-1]]||{};
-    var movedTo={};
-    for(var id in lastSnap){
-      var cur=lastSnap[id];
-      var prev=firstSnap[id];
-      var prevStatus=prev?prev.status:null;
-      if(prevStatus!==cur.status && cur.status){
-        var ns=cur.status;
-        if(!movedTo[ns])movedTo[ns]={count:0,sum:0};
-        movedTo[ns].count++;
-        movedTo[ns].sum+=(cur.sum||0);
+  var mvStatuses=statusOrder2.filter(function(s){return movedTo[s]&&movedTo[s].count>0;});
+  // Также добавляем статусы не в основном списке
+  Object.keys(movedTo).forEach(function(s){if(mvStatuses.indexOf(s)<0&&movedTo[s].count>0)mvStatuses.push(s);});
+  if(mvStatuses.length){
+    h+='<div style="margin-top:14px"><h4 style="color:#a78bfa">🔄 Переходы по воронке за выбранный период</h4>';
+    h+='<table><tr><th>Перешли в статус</th><th style="text-align:center">Сделок</th><th style="text-align:right">Сумма</th></tr>';
+    for(var mi=0;mi<mvStatuses.length;mi++){
+      var ms=mvStatuses[mi];
+      var mv=movedTo[ms];
+      var isW=ms==='Выполнение Работы';
+      var isDn=['Договор и оплата','Выполнение Работы','Сделанная','Сделка завершена'].indexOf(ms)>=0;
+      h+='<tr style="'+(isW?'background:rgba(52,211,153,.12);':'')+'"><td style="font-weight:700;color:'+(isW?'#34d399':isDn?'#34d399':'#e2e8f0')+'">'+(isW?'🏗 ':'')+esc(ms)+'</td>';
+      h+='<td style="text-align:center;font-weight:700">'+mv.count+'</td>';
+      h+='<td style="text-align:right;color:#fbbf24">'+(mv.sum?fmt(mv.sum)+' ₽':'—')+'</td></tr>';
+      if(isW||ms==='Договор и оплата'){
+        mv.deals.sort(function(a,b){return(b.sum||0)-(a.sum||0);});
+        for(var di3=0;di3<mv.deals.length;di3++){
+          var dd=mv.deals[di3];
+          h+='<tr style="background:rgba(255,255,255,.02)"><td style="padding-left:24px;font-size:11px;color:#94a3b8">↳ #'+dd.id+' '+esc((dd.name||'').substring(0,45))+'</td>';
+          h+='<td></td><td style="text-align:right;font-size:11px;color:#fbbf24">'+(dd.sum?fmt(dd.sum)+' ₽':'—')+'</td></tr>';
+        }
       }
     }
-    var mvStatuses=statusOrder2.filter(function(s){return movedTo[s]&&movedTo[s].count>0;});
-    if(mvStatuses.length){
-      h+='<div style="margin-top:14px"><h4 style="color:#a78bfa">🔄 Переходы за '+shDates.length+' дней ('+shDates[0]+' → '+shDates[shDates.length-1]+')</h4>';
-      h+='<table><tr><th>Перешли в</th><th style="text-align:center">Сделок</th><th style="text-align:right">Сумма</th></tr>';
-      for(var mi=0;mi<mvStatuses.length;mi++){
-        var ms=mvStatuses[mi];
-        var mv=movedTo[ms];
-        var isW=ms==='Выполнение Работы';
-        h+='<tr style="'+(isW?'background:rgba(52,211,153,.1)':'')+'"><td style="font-weight:700;color:'+(isW?'#34d399':'#e2e8f0')+'">'+(isW?'🏗 ':'')+esc(ms)+'</td>';
-        h+='<td style="text-align:center;font-weight:700">'+mv.count+'</td>';
-        h+='<td style="text-align:right;color:#fbbf24">'+(mv.sum?fmt(mv.sum)+' ₽':'—')+'</td></tr>';
-      }
-      h+='</table></div>';
-    }
-  } else if(shDates.length===1){
-    h+='<p style="font-size:11px;color:#64748b;margin-top:8px">📅 Первый снимок: '+shDates[0]+'. Переходы появятся после следующего запуска.</p>';
+    h+='</table></div>';
   }
   h+='</div>';
 
@@ -3317,23 +3315,6 @@ async function main() {
   console.log(`  📝 Анализов новых сделок: ${scriptCompliance.total}`);
   console.log(`  🤖 ИИ-сделок за день: ${dailyDealActivity.length}`);
 
-  // Загружаем и обновляем историю статусов
-  const dataFile = path.join(__dirname, 'latest_data.json');
-  let prevStatusHistory = {};
-  try {
-    const prev = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
-    prevStatusHistory = prev.statusHistory || {};
-  } catch {}
-  // Добавляем снимок за текущий день
-  prevStatusHistory[reportDate] = result.statusSnapshot || {};
-  // Оставляем только последние 60 дней
-  const shKeys = Object.keys(prevStatusHistory).sort((a,b) => {
-    const pa=a.split('-'),pb=b.split('-');
-    return new Date(pb[2]+'-'+pb[1]+'-'+pb[0])-new Date(pa[2]+'-'+pa[1]+'-'+pa[0]);
-  }).slice(0, 60);
-  const statusHistory = {};
-  for (const k of shKeys) statusHistory[k] = prevStatusHistory[k];
-
   const outData = {
     generated: new Date().toISOString(),
     manager: mgr.name,
@@ -3342,7 +3323,6 @@ async function main() {
     dailyDealActivity, aiDaySummaryText,
     multiDayActivity, multiDaySummary,
     managerSummaries: result.managerSummaries || {},
-    statusHistory,
     snapshotDate: result.snapshotDate,
   };
 
