@@ -3274,7 +3274,11 @@ async function main() {
     const outData = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
     const mgrName = outData.manager || 'Боровая';
     const htmlPath = path.join(__dirname, 'report.html');
-    fs.writeFileSync(htmlPath, generateHtml(mgrName, outData), 'utf8');
+    const html = generateHtml(mgrName, outData);
+    fs.writeFileSync(htmlPath, html, 'utf8');
+    const deployDir = path.join(__dirname, 'deploy');
+    if (!fs.existsSync(deployDir)) fs.mkdirSync(deployDir);
+    fs.writeFileSync(path.join(deployDir, 'index.html'), html, 'utf8');
     console.log(`✅ HTML перегенерирован: ${htmlPath}`);
     try { const { exec } = require('child_process'); exec(`start "" "${htmlPath}"`); } catch {}
     return;
@@ -3344,7 +3348,12 @@ async function main() {
 
   fs.writeFileSync(path.join(__dirname, 'latest_data.json'), JSON.stringify(outData, null, 2), 'utf8');
   const htmlPath = path.join(__dirname, 'report.html');
-  fs.writeFileSync(htmlPath, generateHtml(mgr.name, outData), 'utf8');
+  const html = generateHtml(mgr.name, outData);
+  fs.writeFileSync(htmlPath, html, 'utf8');
+  // Копируем в deploy для GitHub Pages
+  const deployDir = path.join(__dirname, 'deploy');
+  if (!fs.existsSync(deployDir)) fs.mkdirSync(deployDir);
+  fs.writeFileSync(path.join(deployDir, 'index.html'), html, 'utf8');
 
   console.log(`\n🌐 ${htmlPath}`);
   try {
