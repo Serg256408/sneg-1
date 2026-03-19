@@ -1311,6 +1311,10 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
     const hasActivity = card.comments.some(isManagerAction) ||
       card.calls.some(c => c.date === reportDMY);
 
+    // Входящая активность (клиенты, другие сотрудники) — не робот, не менеджер
+    const isOtherHuman = c => c.date === reportDMY && c.owner && !c.owner.includes(mgrPfName) && !c.owner.toLowerCase().includes('robot') && !(c.text||'').includes('целевое действие') && !(c.text||'').includes('Статус изменён');
+    const hasOtherActivity = card.comments.some(isOtherHuman);
+
     if (createdOnDate) {
       dailyActivity.newDeals.push({ id: card.id, name: card.name, status: card.status, counterparty: card.counterparty });
     } else if (hasActivity) {
@@ -1321,6 +1325,19 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
       dailyActivity.workedDeals.push({
         id: card.id, name: card.name, status: card.status,
         counterparty: card.counterparty, actions: dayActions,
+      });
+    }
+
+    // Входящие (клиент/другие написали, но менеджер не взаимодействовал)
+    if (!hasActivity && !createdOnDate && hasOtherActivity) {
+      const otherActions = [];
+      for (const c of card.comments.filter(isOtherHuman)) {
+        otherActions.push({ type: c.type, text: c.text.substring(0, 100), time: c.time, owner: c.owner });
+      }
+      if (!dailyActivity.incomingDeals) dailyActivity.incomingDeals = [];
+      dailyActivity.incomingDeals.push({
+        id: card.id, name: card.name, status: card.status,
+        counterparty: card.counterparty, actions: otherActions, dealSum: card.dealSum || 0,
       });
     }
   }
@@ -3328,6 +3345,29 @@ function renderManager(){
     h+='</tr>';
   }
   h+='</table></div>';
+
+  // === ВХОДЯЩИЕ ОБРАЩЕНИЯ (клиенты/другие сотрудники) ===
+  var inc=D.dailyActivity.incomingDeals||[];
+  if(inc.length){
+    h+='<div class="sec" style="margin-top:18px"><h3 style="color:#93c5fd">📨 Входящие обращения ('+inc.length+')</h3>';
+    h+='<div style="font-size:12px;color:#64748b;margin-bottom:10px">Сделки где написал клиент или другой сотрудник, но менеджер не взаимодействовал</div>';
+    for(var ii=0;ii<inc.length;ii++){
+      var dd=inc[ii];
+      h+='<div style="background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.15);border-radius:8px;padding:10px 14px;margin-bottom:6px">';
+      h+='<div style="font-weight:700;color:#e2e8f0">#'+dd.id+' '+esc(dd.name)+'</div>';
+      h+='<div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">';
+      if(dd.status) h+='<span class="tag">'+esc(dd.status)+'</span>';
+      if(dd.dealSum) h+='<span class="tag" style="background:#854d0e;color:#fbbf24">'+fmt(dd.dealSum)+' ₽</span>';
+      h+='</div>';
+      var acts=dd.actions||[];
+      for(var ai=0;ai<acts.length;ai++){
+        var a=acts[ai];
+        h+='<div style="font-size:12px;color:#94a3b8;margin-top:4px">'+esc(a.owner||'')+': '+esc(a.text||'')+'</div>';
+      }
+      h+='</div>';
+    }
+    h+='</div>';
+  }
 
   document.getElementById('out').innerHTML=h;
 }
