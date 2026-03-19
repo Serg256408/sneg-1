@@ -685,26 +685,46 @@ function calculateSalaryScore(aa) {
 }
 
 async function aiDaySummary(dailyDeals, reportDate, aiCache, mgrAlias) {
-  const cacheKey = `day_${mgrAlias || 'default'}_${reportDate}_${dailyDeals.length}_v3`;
+  const cacheKey = `day_${mgrAlias || 'default'}_${reportDate}_${dailyDeals.length}_v4`;
   if (aiCache[cacheKey]) return aiCache[cacheKey];
+
+  const totalCalls = dailyDeals.reduce((s, d) => s + (d.dayCalls || 0), 0);
+  const totalScore = dailyDeals.reduce((s, d) => { const ss = (d.aiAssessment || {}).salaryScore; return s + (ss ? ss.total : 0); }, 0);
+  const maxScore = dailyDeals.length * 12;
 
   const dealsText = dailyDeals.map(d => {
     const a = d.aiAssessment;
     const verdict = a ? a.overallVerdict || '' : '';
-    const acts = (d.actions || []).map(x => `${x.time} ${x.type}`).join(', ');
-    return `- "${d.deal.name}" (${d.deal.status}): ${acts || 'нет действий'}${verdict ? '\n  ' + verdict : ''}`;
+    const score = a && a.salaryScore ? a.salaryScore.total + '/' + a.salaryScore.max : '';
+    const calls = (d.actions || []).filter(x => x.type === 'outCall' || x.type === 'inCall').length;
+    const callsList = (d.actions || []).filter(x => x.type === 'outCall' || x.type === 'inCall')
+      .map(x => `${x.time} ${x.type === 'outCall' ? 'Исх' : 'Вх'}${x.transcription ? ' (с транскрибацией)' : ''}`).join(', ');
+    const sum = d.deal.dealSum ? d.deal.dealSum + '₽' : '';
+    let line = `- #${d.deal.id} "${d.deal.name}" (${d.deal.status}${sum ? ', ' + sum : ''}) ${d.deal.counterparty || ''}`;
+    if (calls) line += `\n  Звонки (${calls}): ${callsList}`;
+    if (score) line += `\n  Баллы: ${score}`;
+    if (verdict) line += `\n  Вердикт: ${verdict}`;
+    if (a && a.nextStep) line += `\n  След.шаг: ${a.nextStep}`;
+    return line;
   }).join('\n');
 
-  const prompt = `Резюмируй рабочий день менеджера по продажам (вывоз снега) за ${reportDate}.
+  const prompt = `Резюмируй рабочий день менеджера по продажам (вывоз снега, асфальтирование) за ${reportDate}.
 
-Обработано сделок: ${dailyDeals.length}
-Новых: ${dailyDeals.filter(d => d.isNew).length}
-Старых: ${dailyDeals.filter(d => !d.isNew).length}
+СТАТИСТИКА ДНЯ:
+- Обработано сделок: ${dailyDeals.length} (новых: ${dailyDeals.filter(d => d.isNew).length}, старых: ${dailyDeals.filter(d => !d.isNew).length})
+- Звонков: ${totalCalls}
+- Баллы ЗП: ${totalScore}/${maxScore}
 
-Сделки:
+СДЕЛКИ ЗА ДЕНЬ:
 ${dealsText}
 
-Кратко (3-5 предложений): ключевые результаты дня, сильные стороны, что можно улучшить, рекомендации.`;
+Напиши краткий итог дня (5-7 предложений):
+1. Что менеджер сделал за день (звонки, КП, продвижения)
+2. Ключевые сделки дня — какие продвинулись, с кем общался
+3. Проблемы — где менеджер пассивен, какие сделки требуют внимания
+4. Что нужно сделать завтра
+
+Указывай номера сделок (#ID). Пиши конкретно, без воды.`;
 
   const result = await openaiChat(prompt);
   if (result) {
@@ -1641,8 +1661,9 @@ function generateHtml(managerName, data, allManagers) {
   const statsData = buildStatsFromCache();
   // Операционная статистика по дням из dealCards
   const opsStats = {};
+  const mgrNameLow = (managerName || '').toLowerCase();
   for (const card of (data.dealCards || [])) {
-    // Звонки по дням
+    // Звонки по дням (уже фильтрованы по менеджеру из dataTags)
     for (const c of (card.calls || [])) {
       if (!c.date) continue;
       if (!opsStats[c.date]) opsStats[c.date] = { outCalls: 0, inCalls: 0, callDuration: 0, dealsWorked: new Set(), newDeals: new Set(), oldDeals: new Set(), statuses: {} };
@@ -1650,14 +1671,19 @@ function generateHtml(managerName, data, allManagers) {
       if (c.type === 'Исходящий') os.outCalls++; else os.inCalls++;
       os.callDuration += (c.duration || 0);
       os.dealsWorked.add(card.id);
-      if (card.isNew) os.newDeals.add(card.id); else os.oldDeals.add(card.id);
+      // isNew по дате дня, а не reportDate
+      const isNewOnDay = card.dateCreated === c.date;
+      if (isNewOnDay) os.newDeals.add(card.id); else os.oldDeals.add(card.id);
     }
-    // Комментарии по дням (для определения обработанных сделок без звонков)
+    // Комментарии по дням — ТОЛЬКО от менеджера (не роботы, не клиенты)
     for (const c of (card.comments || [])) {
       if (!c.date) continue;
+      const ownerLow = (c.owner || '').toLowerCase();
+      if (!ownerLow || !mgrNameLow || !ownerLow.includes(mgrNameLow)) continue;
       if (!opsStats[c.date]) opsStats[c.date] = { outCalls: 0, inCalls: 0, callDuration: 0, dealsWorked: new Set(), newDeals: new Set(), oldDeals: new Set(), statuses: {} };
       opsStats[c.date].dealsWorked.add(card.id);
-      if (card.isNew) opsStats[c.date].newDeals.add(card.id); else opsStats[c.date].oldDeals.add(card.id);
+      const isNewOnDay = card.dateCreated === c.date;
+      if (isNewOnDay) opsStats[c.date].newDeals.add(card.id); else opsStats[c.date].oldDeals.add(card.id);
     }
   }
   // Конвертируем Set в числа + мёржим с AI stats
@@ -3329,6 +3355,37 @@ function renderIncoming(){
 // ============ ВКЛАДКА РУКОВОДИТЕЛЯ ============
 var mgrPeriod='day';
 function setMgrPeriod(p){mgrPeriod=p;renderManager();}
+function parsePfDateClient(s){
+  if(!s)return null;
+  var m=s.match(/(\d{2})-(\d{2})-(\d{4})/);
+  if(m)return new Date(m[3]+'-'+m[2]+'-'+m[1]);
+  return new Date(s);
+}
+function mgrDealPopup(id){
+  var el=document.getElementById('mgr_inline_'+id);
+  if(el){el.style.display=el.style.display==='none'?'block':'none';return;}
+  var card=D.dealCards.find(function(c){return c.id===id;});
+  if(!card)return;
+  var ai=findLatestAiForDeal(id);
+  var h2='<div id="mgr_inline_'+id+'" style="margin:4px 0 8px 18px;padding:8px 12px;border-radius:6px;background:rgba(15,23,42,.7);border:1px solid rgba(148,163,184,.12);font-size:12px">';
+  h2+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">';
+  h2+='<span class="bg bg-b">'+esc(card.status)+'</span>';
+  h2+='<span style="color:#94a3b8">'+esc(card.counterparty||'')+'</span>';
+  if(card.dealSum)h2+='<span style="color:#fbbf24;font-weight:700">'+fmt(card.dealSum)+' ₽</span>';
+  h2+='<span style="color:#64748b">создана '+esc(card.dateCreated||'')+'</span>';
+  h2+='</div>';
+  if(ai&&ai.overallVerdict)h2+='<div style="color:#cbd5e1;margin-bottom:3px">'+esc(ai.overallVerdict)+'</div>';
+  if(ai&&ai.missing&&ai.missing.length)h2+='<div style="color:#f87171"><b>Не хватает:</b> '+esc(ai.missing.join(', '))+'</div>';
+  if(ai&&ai.nextStep)h2+='<div style="color:#34d399;margin-top:2px"><b>След.шаг:</b> '+esc(ai.nextStep)+'</div>';
+  h2+='</div>';
+  var btn=document.getElementById('mgr_btn_'+id);
+  if(btn)btn.insertAdjacentHTML('afterend',h2);
+}
+function linkifyDealIds(text){
+  return text.replace(/#(\d{4,6})/g,function(m,id){
+    return '<span id="mgr_btn_'+id+'" onclick="mgrDealPopup('+id+')" style="color:#60a5fa;cursor:pointer;text-decoration:underline;text-decoration-style:dotted">'+m+' ▾</span>';
+  });
+}
 function renderManager(){
   var h='';
   var ms=D.managerSummaries||{};
@@ -3395,6 +3452,8 @@ function renderManager(){
         ln=ln.replace(/\\*\\*([^*]+)\\*\\*/g,'<strong style="color:#f1f5f9">$1</strong>');
         // Денежные суммы выделяем
         ln=ln.replace(/(\\d[\\d\\s.,]*\\s*(?:₽|руб|Р))/g,'<span style="color:#fbbf24;font-weight:600">$1</span>');
+        // Номера сделок #XXXXX → кликабельные с раскрытием
+        ln=linkifyDealIds(ln);
         // Нумерованные пункты
         if(ln.match(/^\\d+\\./)){
           ln='<div style="padding:6px 0 6px 8px;border-bottom:1px solid rgba(148,163,184,.08)">'+ln+'</div>';
@@ -3417,6 +3476,101 @@ function renderManager(){
   }else{
     h+='<div class="sec" style="border-left:3px solid #a78bfa;min-height:100px"><h3>👔 Отчёт для руководителя за '+periodLabel+'</h3>';
     h+='<div class="no-data">Нет данных за '+periodLabel+'. Запустите полный отчёт чтобы сгенерировать.</div></div>';
+  }
+
+  // === СДЕЛКИ ЗА ПЕРИОД (раскрывающиеся карточки) ===
+  var periodDays=mgrPeriod==='day'?1:mgrPeriod==='week'?7:30;
+  var refDate=parsePfDateClient(D.reportDate);
+  var periodDeals=[];
+  if(D.multiDayActivity&&refDate){
+    var workedMap={};
+    Object.keys(D.multiDayActivity).forEach(function(dt){
+      var pd=parsePfDateClient(dt);
+      if(!pd)return;
+      var diff=Math.floor((refDate-pd)/86400000);
+      if(diff<0||diff>=periodDays)return;
+      var dayActs=D.multiDayActivity[dt]||[];
+      dayActs.forEach(function(da){
+        if(!workedMap[da.deal.id]){
+          workedMap[da.deal.id]={deal:da.deal,ai:null,days:[],calls:0,score:0,maxScore:0};
+        }
+        workedMap[da.deal.id].days.push(dt);
+        workedMap[da.deal.id].calls+=(da.dayCalls||0);
+        if(da.aiAssessment){
+          workedMap[da.deal.id].ai=da.aiAssessment;
+          var ss=da.aiAssessment.salaryScore||{};
+          workedMap[da.deal.id].score=ss.total||0;
+          workedMap[da.deal.id].maxScore=ss.max||12;
+        }
+      });
+    });
+    periodDeals=Object.values(workedMap).sort(function(a,b){return(b.deal.dealSum||0)-(a.deal.dealSum||0);});
+  }
+  if(periodDeals.length){
+    // Разделяем на проблемные (score <= 3 или нет звонков) и остальные
+    var problemDeals=periodDeals.filter(function(d){return d.score<=3||d.calls===0;});
+    var goodDeals=periodDeals.filter(function(d){return d.score>3&&d.calls>0;});
+
+    if(problemDeals.length){
+      h+='<div class="sec" style="border-left:3px solid #f87171"><h3>⚠️ Проблемные сделки ('+problemDeals.length+')</h3>';
+      h+='<div style="font-size:11px;color:#64748b;margin-bottom:8px">Низкие баллы или нет звонков. Нажмите для подробностей.</div>';
+      for(var i=0;i<problemDeals.length;i++){
+        var pd2=problemDeals[i];
+        var cardId='mgr_prob_'+pd2.deal.id;
+        var ai2=pd2.ai||{};
+        var scoreCol=pd2.score>=7?'#34d399':pd2.score>=4?'#fbbf24':'#f87171';
+        h+='<div style="border:1px solid rgba(248,113,113,.15);border-radius:8px;margin-bottom:4px;overflow:hidden">';
+        h+='<div onclick="var b=document.getElementById(&#39;'+cardId+'&#39;);b.style.display=b.style.display===&#39;none&#39;?&#39;block&#39;:&#39;none&#39;" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;background:rgba(248,113,113,.04)">';
+        h+='<span style="color:#64748b;font-size:11px;min-width:50px">#'+pd2.deal.id+'</span>';
+        h+='<span style="flex:1;font-size:13px;color:#e2e8f0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc((pd2.deal.name||'').substring(0,55))+'</span>';
+        if(pd2.deal.dealSum)h+='<span style="font-size:12px;font-weight:700;color:#fbbf24;white-space:nowrap">'+fmt(pd2.deal.dealSum)+' ₽</span>';
+        h+='<span style="font-size:12px;font-weight:700;color:'+scoreCol+';min-width:40px;text-align:right">'+pd2.score+'/'+pd2.maxScore+'</span>';
+        h+='<span style="color:#64748b;font-size:10px">▼</span>';
+        h+='</div>';
+        h+='<div id="'+cardId+'" style="display:none;padding:8px 12px 10px;border-top:1px solid rgba(248,113,113,.1);background:rgba(15,23,42,.5)">';
+        h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">';
+        h+='<span class="bg bg-b">'+esc(pd2.deal.status||'')+'</span>';
+        if(pd2.deal.counterparty)h+='<span style="font-size:11px;color:#94a3b8">'+esc(pd2.deal.counterparty)+'</span>';
+        h+='<span style="font-size:11px;color:#64748b">📞 '+pd2.calls+' зв.</span>';
+        h+='<span style="font-size:11px;color:#64748b">'+pd2.days.length+' дн.</span>';
+        h+='</div>';
+        if(ai2.overallVerdict)h+='<div style="font-size:12px;color:#cbd5e1;margin-bottom:4px">'+esc(ai2.overallVerdict)+'</div>';
+        if(ai2.missing&&ai2.missing.length){
+          h+='<div style="font-size:11px;color:#f87171;margin-bottom:4px"><b>Не хватает:</b> '+esc(ai2.missing.join(', '))+'</div>';
+        }
+        if(ai2.nextStep)h+='<div style="font-size:11px;color:#34d399"><b>След.шаг:</b> '+esc(ai2.nextStep)+'</div>';
+        h+='</div></div>';
+      }
+      h+='</div>';
+    }
+
+    if(goodDeals.length){
+      h+='<div class="sec" style="border-left:3px solid #34d399"><h3>✅ Обработанные сделки ('+goodDeals.length+')</h3>';
+      for(var i=0;i<goodDeals.length;i++){
+        var gd=goodDeals[i];
+        var cardId2='mgr_good_'+gd.deal.id;
+        var ai3=gd.ai||{};
+        var scoreCol2=gd.score>=7?'#34d399':gd.score>=4?'#fbbf24':'#f87171';
+        h+='<div style="border:1px solid rgba(52,211,153,.12);border-radius:8px;margin-bottom:4px;overflow:hidden">';
+        h+='<div onclick="var b=document.getElementById(&#39;'+cardId2+'&#39;);b.style.display=b.style.display===&#39;none&#39;?&#39;block&#39;:&#39;none&#39;" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;background:rgba(52,211,153,.04)">';
+        h+='<span style="color:#64748b;font-size:11px;min-width:50px">#'+gd.deal.id+'</span>';
+        h+='<span style="flex:1;font-size:13px;color:#e2e8f0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc((gd.deal.name||'').substring(0,55))+'</span>';
+        if(gd.deal.dealSum)h+='<span style="font-size:12px;font-weight:700;color:#fbbf24;white-space:nowrap">'+fmt(gd.deal.dealSum)+' ₽</span>';
+        h+='<span style="font-size:12px;font-weight:700;color:'+scoreCol2+';min-width:40px;text-align:right">'+gd.score+'/'+gd.maxScore+'</span>';
+        h+='<span style="color:#64748b;font-size:10px">▼</span>';
+        h+='</div>';
+        h+='<div id="'+cardId2+'" style="display:none;padding:8px 12px 10px;border-top:1px solid rgba(52,211,153,.1);background:rgba(15,23,42,.5)">';
+        h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">';
+        h+='<span class="bg bg-b">'+esc(gd.deal.status||'')+'</span>';
+        if(gd.deal.counterparty)h+='<span style="font-size:11px;color:#94a3b8">'+esc(gd.deal.counterparty)+'</span>';
+        h+='<span style="font-size:11px;color:#64748b">📞 '+gd.calls+' зв.</span>';
+        h+='</div>';
+        if(ai3.overallVerdict)h+='<div style="font-size:12px;color:#cbd5e1;margin-bottom:4px">'+esc(ai3.overallVerdict)+'</div>';
+        if(ai3.nextStep)h+='<div style="font-size:11px;color:#34d399"><b>След.шаг:</b> '+esc(ai3.nextStep)+'</div>';
+        h+='</div></div>';
+      }
+      h+='</div>';
+    }
   }
 
   // === КЛЮЧЕВЫЕ ЦИФРЫ ===
@@ -3488,6 +3642,44 @@ function renderManager(){
     h+='</tr>';
   }
   h+='</table></div>';
+
+  // === ТРЕБУЮТ ДОЖИМА: КП отправлено, но нет звонка давно ===
+  var staleDeals=[];
+  var now=new Date();
+  D.dealCards.forEach(function(c){
+    if(!c.isActive) return;
+    if(c.status!=='Коммерческое предложение'&&c.status!=='Дожим') return;
+    // Последний звонок менеджера
+    var lastCall=null;
+    (c.calls||[]).forEach(function(cl){
+      var p=cl.date.split('-');
+      var d=new Date(p[2]+'-'+p[1]+'-'+p[0]);
+      if(!lastCall||d>lastCall)lastCall=d;
+    });
+    var daysSince=lastCall?Math.floor((now-lastCall)/(1000*60*60*24)):999;
+    if(daysSince>=3){
+      staleDeals.push({id:c.id,name:c.name,status:c.status,dealSum:c.dealSum||0,counterparty:c.counterparty,daysSince:daysSince,lastCall:lastCall?lastCall.toLocaleDateString('ru-RU'):'никогда'});
+    }
+  });
+  staleDeals.sort(function(a,b){return (b.dealSum||0)-(a.dealSum||0);});
+  if(staleDeals.length){
+    h+='<div class="sec" style="margin-top:18px"><h3 style="color:#f59e0b">🔔 Требуют дожима ('+staleDeals.length+')</h3>';
+    h+='<div style="font-size:12px;color:#64748b;margin-bottom:10px">Сделки в статусе КП/Дожим без звонка 3+ дней</div>';
+    h+='<table style="width:100%;font-size:13px"><tr style="color:#64748b;font-size:11px"><th style="text-align:left">Сделка</th><th>Статус</th><th>Сумма</th><th>Дней без звонка</th><th>Посл. звонок</th></tr>';
+    for(var si=0;si<Math.min(staleDeals.length,30);si++){
+      var sd=staleDeals[si];
+      var urgColor=sd.daysSince>=14?'#f87171':sd.daysSince>=7?'#fbbf24':'#94a3b8';
+      h+='<tr>';
+      h+='<td style="font-weight:600;color:#e2e8f0;padding:6px 0">#'+sd.id+' '+esc(sd.name.substring(0,40))+'</td>';
+      h+='<td style="text-align:center"><span class="tag">'+esc(sd.status)+'</span></td>';
+      h+='<td style="text-align:right;font-weight:700;color:#fbbf24">'+(sd.dealSum?fmt(sd.dealSum)+' ₽':'—')+'</td>';
+      h+='<td style="text-align:center;font-weight:700;color:'+urgColor+'">'+sd.daysSince+'</td>';
+      h+='<td style="text-align:center;color:#94a3b8;font-size:12px">'+sd.lastCall+'</td>';
+      h+='</tr>';
+    }
+    if(staleDeals.length>30) h+='<tr><td colspan="5" style="color:#64748b;font-size:12px">...ещё '+(staleDeals.length-30)+'</td></tr>';
+    h+='</table></div>';
+  }
 
   // === ВХОДЯЩИЕ ОБРАЩЕНИЯ (клиенты/другие сотрудники) ===
   var inc=D.dailyActivity.incomingDeals||[];
