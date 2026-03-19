@@ -716,7 +716,7 @@ ${dealsText}
 
 // Итог для руководителя за период (день/неделя/месяц)
 async function aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, periodDays, reportDate, aiCache, mgrAlias) {
-  const cacheKey = `mgr_${mgrAlias || 'default'}_${periodDays}d_${reportDate}_v1`;
+  const cacheKey = `mgr_${mgrAlias || 'default'}_${periodDays}d_${reportDate}_v2`;
   if (aiCache[cacheKey]) return aiCache[cacheKey];
 
   // Собираем даты за период
@@ -753,12 +753,15 @@ async function aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, fu
     }
   }
 
-  // Топ сделки по сумме (активные)
-  const activeBig = dealCards.filter(d => d.isActive && d.dealSum > 0)
+  // Только сделки, обработанные менеджером за период (из dealMap)
+  const workedIds = new Set(Object.keys(dealMap).map(Number));
+
+  // Топ сделки по сумме — ТОЛЬКО обработанные за период
+  const activeBig = dealCards.filter(d => workedIds.has(d.id) && d.dealSum > 0)
     .sort((a, b) => (b.dealSum || 0) - (a.dealSum || 0)).slice(0, 10);
 
-  // Сделки ближе к оплате
-  const closing = dealCards.filter(d => ['Дожим', 'Договор и оплата'].includes(d.status));
+  // Сделки ближе к оплате — ТОЛЬКО обработанные за период
+  const closing = dealCards.filter(d => workedIds.has(d.id) && ['Дожим', 'Договор и оплата'].includes(d.status));
 
   // Движения воронки за период
   const fwdMoves = (funnelChanges || []).filter(c => c.direction === 'forward');
@@ -767,12 +770,12 @@ async function aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, fu
   // Дневные итоги
   const daySummaries = allDates.map(d => `${d}: ${(multiDaySummary || {})[d] || 'нет итога'}`).join('\n');
 
-  // Детали по ключевым сделкам
+  // Детали по ключевым сделкам — с номерами
   const dealDetails = Object.values(dealMap)
     .sort((a, b) => (b.deal.dealSum || 0) - (a.deal.dealSum || 0))
     .slice(0, 20)
     .map(d => {
-      let line = `- "${d.deal.name}" (${d.deal.status}, ${d.deal.dealSum ? d.deal.dealSum + '₽' : 'без суммы'})`;
+      let line = `- #${d.deal.id} "${d.deal.name}" (${d.deal.status}, ${d.deal.dealSum ? d.deal.dealSum + '₽' : 'без суммы'})`;
       line += ` — работали ${d.days.length} дн.`;
       if (d.ai) {
         if (d.ai.nextStep) line += ` | След.шаг: ${d.ai.nextStep}`;
@@ -785,36 +788,39 @@ async function aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, fu
 
   const prompt = `Ты составляешь отчёт для РУКОВОДИТЕЛЯ компании ТрансКом (вывоз снега, асфальтирование).
 Период: за ${periodName} (${allDates.length} рабочих дней, ${allDates[allDates.length - 1]} — ${allDates[0]}).
+Отчёт об эффективности МЕНЕДЖЕРА ПО ПРОДАЖАМ за этот период.
+
+ВАЖНО: Анализируй ТОЛЬКО сделки, с которыми менеджер реально работал за этот период (звонил, писал, продвигал). НЕ включай сделки, по которым не было активности менеджера за период.
 
 СТАТИСТИКА ПЕРИОДА:
 - Обработано обращений: ${totalDeals} (новых: ${newDeals})
-- Уникальных сделок: ${Object.keys(dealMap).length}
+- Уникальных сделок за период: ${Object.keys(dealMap).length}
 - Звонков: ${totalCalls}
 - Продвижений по воронке: ${fwdMoves.length}
 - Откатов назад: ${bwdMoves.length}
-- Сделок на стадии "Дожим"/"Договор и оплата": ${closing.length} (сумма: ${closing.reduce((s, d) => s + (d.dealSum || 0), 0)}₽)
+- Обработанных сделок на стадии "Дожим"/"Договор и оплата": ${closing.length}${closing.length ? ' (сумма: ' + closing.reduce((s, d) => s + (d.dealSum || 0), 0) + '₽)' : ''}
 
 ИТОГИ ПО ДНЯМ:
 ${daySummaries}
 
-КЛЮЧЕВЫЕ СДЕЛКИ (по сумме):
+СДЕЛКИ, ОБРАБОТАННЫЕ ЗА ПЕРИОД (по сумме):
 ${dealDetails}
 
-ТОП СДЕЛКИ ПО ДЕНЬГАМ (все активные):
-${activeBig.map(d => `- "${d.name}" ${d.status} — ${d.dealSum}₽`).join('\n')}
+ТОП ОБРАБОТАННЫХ СДЕЛОК ПО ДЕНЬГАМ:
+${activeBig.length ? activeBig.map(d => `- #${d.id} "${d.name}" ${d.status} — ${d.dealSum}₽`).join('\n') : 'Нет сделок с суммой'}
 
-БЛИЗКО К ОПЛАТЕ:
-${closing.length ? closing.map(d => `- "${d.name}" — ${d.dealSum || 0}₽ (${d.status})`).join('\n') : 'Нет'}
+БЛИЗКО К ОПЛАТЕ (обработанные за период):
+${closing.length ? closing.map(d => `- #${d.id} "${d.name}" — ${d.dealSum || 0}₽ (${d.status})`).join('\n') : 'Нет'}
 
 Напиши отчёт для руководителя в формате:
 
-1. **КРАТКИЙ ИТОГ** (3-4 предложения): главные результаты за ${periodName}, тон деловой
+1. **КРАТКИЙ ИТОГ** (3-4 предложения): главные результаты менеджера за ${periodName}, тон деловой
 2. **УСПЕХИ И ПРОГРЕСС**: какие сделки продвинулись, кто может заплатить, конкретные достижения
 3. **ПРОБЛЕМЫ**: где застряли, что буксует, какие сделки требуют внимания руководителя
 4. **БЛИЖАЙШИЕ ОПЛАТЫ**: какие сделки ближе всего к оплате, суммы, что нужно дожать
 5. **РЕКОМЕНДАЦИИ РУКОВОДИТЕЛЮ**: конкретные действия — кому позвонить, куда подключиться, что проконтролировать
 
-Пиши конкретно с именами сделок и суммами. Не общие фразы, а факты и действия.`;
+ОБЯЗАТЕЛЬНО указывай номера сделок (#ID) при упоминании. Пиши конкретно с именами, номерами и суммами. Не общие фразы, а факты и действия.`;
 
   const result = await openaiChat(prompt, 'Ты бизнес-аналитик, составляешь отчёт для директора. Пиши по-русски, конкретно, с цифрами и именами.', 2000, 'deepseek-chat');
   if (result) {
@@ -1423,7 +1429,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
       };
       result.push({
         deal: { id: card.id, name: card.name, status: card.status, counterparty: card.counterparty, dealSum: card.dealSum || 0, workDesc: card.workDesc || '' },
-        isNew: createdOnDate || card.isNew,
+        isNew: createdOnDate,
         actions,
         dayCalls: actions.filter(a => a.type === 'outCall' || a.type === 'inCall').length,
         planfixScript: dayAnalyses.length ? dayAnalyses[0] : null,
@@ -2057,7 +2063,7 @@ function buildDayActivity(dateStr){
     };
     result.push({
       deal:{id:card.id,name:card.name,status:card.status,counterparty:card.counterparty,dealSum:card.dealSum||0},
-      isNew:isCreatedToday||card.isNew,
+      isNew:isCreatedToday,
       actions,
       dayCalls:actions.filter(a=>a.type==='outCall'||a.type==='inCall').length,
       planfixScript:dayAnalyses.length?dayAnalyses[0]:null,
@@ -2133,8 +2139,8 @@ function renderMets(calls,analyses,reports,cards){
   const durSec=calls.reduce((s,c)=>s+c.duration,0);
   const avgB=analyses.length?Math.round(analyses.reduce((s,a)=>s+a.totalBalls,0)/analyses.length*10)/10:0;
   const fwd=D.funnelChanges.filter(c=>c.direction==='forward').length;
-  // Считаем новых и обработанных из multiDayActivity за выбранный период
-  var newCount=0,workedCount=0;
+  // Считаем новых, обработанных и звонков из multiDayActivity за выбранный период
+  var newCount=0,workedCount=0,mdaCallCount=0,mdaCallDur=0;
   if(D.multiDayActivity){
     Object.keys(D.multiDayActivity).forEach(function(dt){
       if(!inPeriod(dt))return;
@@ -2142,18 +2148,23 @@ function renderMets(calls,analyses,reports,cards){
       day.forEach(function(dd){
         if(dd.isNew)newCount++;
         workedCount++;
+        (dd.actions||[]).forEach(function(a){
+          if(a.type==='outCall'||a.type==='inCall'){mdaCallCount++;mdaCallDur+=(a.duration||0);}
+        });
       });
     });
   } else {
     newCount=D.dailyActivity.newDeals.length;
     workedCount=D.dailyActivity.workedDeals.length;
   }
+  var totalCalls=mdaCallCount||calls.length;
+  var totalDurMin=mdaCallCount?Math.round(mdaCallDur/60):Math.round(durSec/60);
   const items=[
     {v:newCount,l:'Новых сегодня',c:'#a78bfa'},
     {v:workedCount,l:'Обработано',c:'#818cf8'},
     {v:fwd,l:'Продвинуто',c:'#34d399'},
-    {v:calls.length,l:'Звонков',c:'#60a5fa'},
-    {v:Math.round(durSec/60)+'м',l:'Время звонков',c:'#818cf8'},
+    {v:totalCalls,l:'Звонков',c:'#60a5fa'},
+    {v:totalDurMin+'м',l:'Время звонков',c:'#818cf8'},
     {v:analyses.length,l:'С анализом',c:'#f472b6'},
     {v:avgB,l:'Ср. балл',c:avgB>=15?'#34d399':avgB>=10?'#fbbf24':'#f87171'},
     {v:sum(reports,'contract'),l:'Договор/оплата',c:'#34d399'},
@@ -2243,6 +2254,8 @@ function renderDay(){
     if(d.dealSum)h+='<span class="bg" style="background:rgba(251,191,36,.12);color:#fbbf24">'+fmt(d.dealSum)+' ₽</span>';
     if(da.isNew)h+='<span class="bg bg-p">Новая</span>';
     else h+='<span class="bg bg-y">Старая</span>';
+    var dcCard=D.dealCards.find(function(c){return c.id===d.id});
+    if(dcCard&&dcCard.dateCreated)h+='<span style="font-size:10px;color:#64748b;margin-left:2px">'+esc(dcCard.dateCreated)+'</span>';
     if(callCount)h+='<span class="bg" style="background:rgba(52,211,153,.12);color:#34d399">📞 '+callCount+'</span>';
     h+='</div>';
     h+='</div>';
