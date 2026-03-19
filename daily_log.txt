@@ -697,3 +697,15 @@ The process cannot access the file because it is being used by another process.
 
 📊 Дашборд: deploy/index.html (1 менеджеров)
 [19.03.2026 18:36:34,34] Отчет собран 
+warning: in the working copy of '.claude/settings.local.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'ai_cache.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'data/borovaya_funnel.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'data/borovaya_latest.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'deploy/borovaya/index.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'deploy/index.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'latest_data.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'report.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'reports/borovaya.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'transcriptions_cache.json', LF will be replaced by CRLF the next time Git touches it
+The process cannot access the file because it is being used by another process.
+[19.03.2026 18:36:45,08] Ошибка deploy, код 1 
