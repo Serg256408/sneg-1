@@ -724,7 +724,7 @@ ${dealsText}
 3. Проблемы — где менеджер пассивен, какие сделки требуют внимания
 4. Что нужно сделать завтра
 
-Указывай номера сделок (#ID). Пиши конкретно, без воды.`;
+КРИТИЧЕСКОЕ ПРАВИЛО: При каждом упоминании сделки ОБЯЗАТЕЛЬНО пиши "#ID название" (например: #31766 "Асфальтирование/4200м2"). НИКОГДА не упоминай сделку без #ID. Пиши конкретно, без воды.`;
 
   const result = await openaiChat(prompt);
   if (result) {
@@ -736,7 +736,7 @@ ${dealsText}
 
 // Итог для руководителя за период (день/неделя/месяц)
 async function aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, periodDays, reportDate, aiCache, mgrAlias) {
-  const cacheKey = `mgr_${mgrAlias || 'default'}_${periodDays}d_${reportDate}_v2`;
+  const cacheKey = `mgr_${mgrAlias || 'default'}_${periodDays}d_${reportDate}_v3`;
   if (aiCache[cacheKey]) return aiCache[cacheKey];
 
   // Собираем даты за период
@@ -840,7 +840,7 @@ ${closing.length ? closing.map(d => `- #${d.id} "${d.name}" — ${d.dealSum || 0
 4. **БЛИЖАЙШИЕ ОПЛАТЫ**: какие сделки ближе всего к оплате, суммы, что нужно дожать
 5. **РЕКОМЕНДАЦИИ РУКОВОДИТЕЛЮ**: конкретные действия — кому позвонить, куда подключиться, что проконтролировать
 
-ОБЯЗАТЕЛЬНО указывай номера сделок (#ID) при упоминании. Пиши конкретно с именами, номерами и суммами. Не общие фразы, а факты и действия.`;
+КРИТИЧЕСКОЕ ПРАВИЛО: При КАЖДОМ упоминании сделки ОБЯЗАТЕЛЬНО пиши "#ID название" (например: #31766 "Асфальтирование/4200м2"). НИКОГДА не упоминай сделку без #ID. Пиши конкретно с именами, номерами и суммами.`;
 
   const result = await openaiChat(prompt, 'Ты бизнес-аналитик, составляешь отчёт для директора. Пиши по-русски, конкретно, с цифрами и именами.', 2000, 'deepseek-chat');
   if (result) {
@@ -1929,6 +1929,8 @@ let dealSearch='';
 let dealStatus='all';
 let dealFocus='all';
 let dealSort='activity';
+let dealFrom='';
+let dealTo='';
 const cardOpenState={};
 
 // Все уникальные даты с активностью из dealCards
@@ -2003,9 +2005,11 @@ function findLatestAiForDeal(id){
   }
   return null;
 }
-function getScoreColor(avgB){
+function getScoreColor(avgB,maxB){
   if(avgB===null||avgB===undefined)return '#94a3b8';
-  return avgB>=15?'#34d399':avgB>=10?'#fbbf24':'#f87171';
+  var max=maxB||12;
+  var pct=avgB/max;
+  return pct>=0.6?'#34d399':pct>=0.35?'#fbbf24':'#f87171';
 }
 function dealHasQuery(card,query){
   if(!query)return true;
@@ -2040,6 +2044,8 @@ function resetDealFilters(){
   dealStatus='all';
   dealFocus='all';
   dealSort='activity';
+  dealFrom='';
+  dealTo='';
   renderDealsV2(currentCards);
 }
 
@@ -2638,19 +2644,39 @@ function renderDealsV2(cards){
   if(!cards.length){document.getElementById('out').innerHTML='<div class="no-data">Нет данных за период</div>';return}
   const query=(dealSearch||'').trim().toLowerCase();
   const statusOptions=[...new Set(cards.map(d=>d.status).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
+  // Конвертация DD-MM-YYYY → YYYY-MM-DD для сравнения с date input
+  function dmyToIso(d){if(!d)return '';var p=d.split('-');return p.length===3&&p[2].length===4?p[2]+'-'+p[1]+'-'+p[0]:d;}
+  function inDealRange(dateStr){
+    if(!dealFrom&&!dealTo)return true;
+    var iso=dmyToIso(dateStr);
+    if(dealFrom&&iso<dealFrom)return false;
+    if(dealTo&&iso>dealTo)return false;
+    return true;
+  }
+  var hasDealRange=!!(dealFrom||dealTo);
   const prepared=cards.map(d=>{
-    const transcripts=d.fComments.filter(c=>(c.type==='outCall'||c.type==='inCall')&&c.transcription);
-    const notes=d.fComments.filter(c=>c.type==='note'&&c.text.length>5);
-    const durM=Math.round(d.fCalls.reduce((s,c)=>s+c.duration,0)/60);
-    const avgB=d.fAnalyses.length?Math.round(d.fAnalyses.reduce((s,a)=>s+a.totalBalls,0)/d.fAnalyses.length*10)/10:null;
+    // Фильтрация данных по выбранному периоду
+    const fCalls=hasDealRange?d.fCalls.filter(c=>inDealRange(c.date)):d.fCalls;
+    const fComments=hasDealRange?d.fComments.filter(c=>inDealRange(c.date)):d.fComments;
+    const fAnalyses=hasDealRange?d.fAnalyses.filter(a=>inDealRange(a.date)):d.fAnalyses;
+    const transcripts=fComments.filter(c=>(c.type==='outCall'||c.type==='inCall')&&c.transcription);
+    const notes=fComments.filter(c=>c.type==='note'&&c.text.length>5);
+    const durM=Math.round(fCalls.reduce((s,c)=>s+c.duration,0)/60);
+    // ИИ salaryScore (из 12) — приоритет, иначе Planfix анализы
+    const aiData=findLatestAiForDeal(d.id);
+    const aiScore=aiData&&aiData.salaryScore?aiData.salaryScore:null;
+    const avgB=aiScore?aiScore.total:fAnalyses.length?Math.round(fAnalyses.reduce((s,a)=>s+a.totalBalls,0)/fAnalyses.length*10)/10:null;
+    const maxB=aiScore?aiScore.max:29;
     const lastTouch=getLastTouch(d);
     return {
       ...d,
+      fCalls,fComments,fAnalyses,
       ui:{
         transcripts,
         notes,
         durM,
         avgB,
+        maxB,
         lastTouch,
         lastStamp:lastTouch?dateStamp(lastTouch.date,lastTouch.time):0,
       }
@@ -2663,6 +2689,8 @@ function renderDealsV2(cards){
     if(dealFocus==='analyses'&&!d.fAnalyses.length)return false;
     if(dealFocus==='transcripts'&&!d.ui.transcripts.length)return false;
     if(dealFocus==='notes'&&!d.ui.notes.length)return false;
+    // Фильтр по периоду: показывать только сделки с активностью в диапазоне
+    if(hasDealRange&&!d.fCalls.length&&!d.fComments.length&&!d.fAnalyses.length)return false;
     return true;
   });
 
@@ -2679,7 +2707,7 @@ function renderDealsV2(cards){
   const visibleTranscripts=prepared.reduce((s,d)=>s+d.ui.transcripts.length,0);
   const visibleNew=prepared.filter(d=>d.isNew).length;
   const anyOpen=prepared.some(d=>cardOpenState['deal_'+d.id]);
-  const hasFilters=!!dealSearch||dealStatus!=='all'||dealFocus!=='all'||dealSort!=='activity';
+  const hasFilters=!!dealSearch||dealStatus!=='all'||dealFocus!=='all'||dealSort!=='activity'||!!dealFrom||!!dealTo;
 
   let h='<div class="deal-tools">';
   h+='<div class="deal-tools-grid">';
@@ -2704,7 +2732,16 @@ function renderDealsV2(cards){
   h+='<option value="score"'+(dealSort==='score'?' selected':'')+'>Средний балл</option>';
   h+='<option value="sum"'+(dealSort==='sum'?' selected':'')+'>Сумма сделки</option>';
   h+='<option value="name"'+(dealSort==='name'?' selected':'')+'>По названию</option>';
-  h+='</select></div></div>';
+  h+='</select></div>';
+  h+='</div>';
+  // Фильтр по периоду (от — до)
+  h+='<div style="display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap">';
+  h+='<span style="font-size:11px;color:#64748b">с</span>';
+  h+='<input type="date" id="dealFrom" value="'+(dealFrom||'')+'" onchange="dealFrom=this.value;renderDealsV2(currentCards)" style="background:#1e293b;border:1px solid rgba(255,255,255,.1);color:#e2e8f0;padding:4px 8px;border-radius:6px;font-size:11px;font-family:inherit">';
+  h+='<span style="font-size:11px;color:#64748b">по</span>';
+  h+='<input type="date" id="dealTo" value="'+(dealTo||'')+'" onchange="dealTo=this.value;renderDealsV2(currentCards)" style="background:#1e293b;border:1px solid rgba(255,255,255,.1);color:#e2e8f0;padding:4px 8px;border-radius:6px;font-size:11px;font-family:inherit">';
+  if(dealFrom||dealTo)h+='<button class="toggle-btn" onclick="dealFrom=\\'\\';dealTo=\\'\\';renderDealsV2(currentCards)" style="font-size:11px;padding:3px 8px">✕</button>';
+  h+='</div>';
   h+='<div class="deal-tools-row"><div class="deal-chips">';
   h+='<div class="deal-chip">Показано <strong>'+prepared.length+'</strong> из '+cards.length+'</div>';
   h+='<div class="deal-chip">Звонки <strong>'+visibleCalls+'</strong></div>';
@@ -2724,7 +2761,7 @@ function renderDealsV2(cards){
 
   for(const d of prepared){
     const avgB=d.ui.avgB;
-    const scoreColor=getScoreColor(avgB);
+    const scoreColor=getScoreColor(avgB,d.ui.maxB);
     const transcripts=d.ui.transcripts;
     const notes=d.ui.notes;
     const topNote=notes[0]?notes[0].text.substring(0,160):'';
@@ -2747,7 +2784,7 @@ function renderDealsV2(cards){
     h+='<div class="deal-kpis">';
     h+='<div class="deal-kpi"><span class="deal-kpi-v" style="color:#60a5fa">'+d.fCalls.length+'</span><span class="deal-kpi-l">Звонков</span></div>';
     h+='<div class="deal-kpi"><span class="deal-kpi-v" style="color:#818cf8">'+d.ui.durM+'м</span><span class="deal-kpi-l">Время</span></div>';
-    h+='<div class="deal-kpi"><span class="deal-kpi-v" style="color:'+scoreColor+'">'+(avgB===null?'—':avgB+'б')+'</span><span class="deal-kpi-l">Средний балл</span></div>';
+    h+='<div class="deal-kpi"><span class="deal-kpi-v" style="color:'+scoreColor+'">'+(avgB===null?'—':avgB+'/'+d.ui.maxB)+'</span><span class="deal-kpi-l">Средний балл</span></div>';
     h+='<div class="deal-kpi"><span class="deal-kpi-v" style="color:#f8fafc">'+(d.dealSum?fmt(d.dealSum):'—')+'</span><span class="deal-kpi-l">Сумма</span></div>';
     h+='</div></div>';
 
@@ -3112,13 +3149,11 @@ function renderStats(){
       h+='<tr style="'+(isW?'background:rgba(52,211,153,.12);':'')+'"><td style="font-weight:700;color:'+(isW?'#34d399':isDn?'#34d399':'#e2e8f0')+'">'+(isW?'🏗 ':'')+esc(ms)+'</td>';
       h+='<td style="text-align:center;font-weight:700">'+mv.count+'</td>';
       h+='<td style="text-align:right;color:#fbbf24">'+(mv.sum?fmt(mv.sum)+' ₽':'—')+'</td></tr>';
-      if(isW||ms==='Договор и оплата'){
-        mv.deals.sort(function(a,b){return(b.sum||0)-(a.sum||0);});
-        for(var di3=0;di3<mv.deals.length;di3++){
-          var dd=mv.deals[di3];
-          h+='<tr style="background:rgba(255,255,255,.02)"><td style="padding-left:24px;font-size:11px;color:#94a3b8">↳ #'+dd.id+' '+esc((dd.name||'').substring(0,45))+'</td>';
-          h+='<td></td><td style="text-align:right;font-size:11px;color:#fbbf24">'+(dd.sum?fmt(dd.sum)+' ₽':'—')+'</td></tr>';
-        }
+      mv.deals.sort(function(a,b){return(b.sum||0)-(a.sum||0);});
+      for(var di3=0;di3<mv.deals.length;di3++){
+        var dd=mv.deals[di3];
+        h+='<tr style="background:rgba(255,255,255,.02)"><td style="padding-left:24px;font-size:11px;color:#94a3b8">↳ #'+dd.id+' '+esc((dd.name||'').substring(0,45))+'</td>';
+        h+='<td></td><td style="text-align:right;font-size:11px;color:#fbbf24">'+(dd.sum?fmt(dd.sum)+' ₽':'—')+'</td></tr>';
       }
     }
     h+='</table></div>';
@@ -3134,11 +3169,15 @@ function renderStats(){
     const pa=a.split('-'),pb=b.split('-');
     return new Date(pa[2]+'-'+pa[1]+'-'+pa[0])-new Date(pb[2]+'-'+pb[1]+'-'+pb[0]);
   });
+  let totDeals=0,totNew=0,totOld=0,totOut=0,totIn=0,totMin=0,totScore=0,totScoreDays=0;
   for(const date of allDates){
     const o=ops.find(x=>x.date===date)||{outCalls:0,inCalls:0,callMinutes:0,dealsWorked:0,newDeals:0,oldDeals:0};
     const s=st.find(x=>x.date===date);
     const avg=s?s.avgScore:'-';
     const col=s?(s.avgScore>=7?'#34d399':s.avgScore>=4?'#fbbf24':'#f87171'):'#64748b';
+    totDeals+=o.dealsWorked;totNew+=o.newDeals;totOld+=o.oldDeals;
+    totOut+=o.outCalls;totIn+=o.inCalls;totMin+=o.callMinutes;
+    if(s){totScore+=s.avgScore;totScoreDays++;}
     h+='<tr>';
     h+='<td style="white-space:nowrap;font-weight:600">'+date+'</td>';
     h+='<td style="font-weight:700">'+o.dealsWorked+'</td>';
@@ -3150,6 +3189,18 @@ function renderStats(){
     h+='<td style="color:'+col+';font-weight:700">'+avg+'</td>';
     h+='</tr>';
   }
+  const totAvg=totScoreDays?+(totScore/totScoreDays).toFixed(1):'-';
+  const totAvgCol=totScoreDays?(totAvg>=7?'#34d399':totAvg>=4?'#fbbf24':'#f87171'):'#64748b';
+  h+='<tr style="border-top:2px solid rgba(255,255,255,.15);font-weight:800;background:rgba(255,255,255,.04)">';
+  h+='<td>Итого</td>';
+  h+='<td>'+totDeals+'</td>';
+  h+='<td style="color:#c084fc">'+totNew+'</td>';
+  h+='<td style="color:#818cf8">'+totOld+'</td>';
+  h+='<td style="color:#34d399">'+totOut+'</td>';
+  h+='<td style="color:#60a5fa">'+totIn+'</td>';
+  h+='<td style="color:#818cf8">'+totMin+'</td>';
+  h+='<td style="color:'+totAvgCol+'">'+totAvg+'</td>';
+  h+='</tr>';
   h+='</table></div></div>';
 
   // === ЗВОНКИ ПО ДНЯМ — гистограмма ===
