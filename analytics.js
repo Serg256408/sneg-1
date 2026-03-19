@@ -1117,15 +1117,33 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
       const desc = stripHtml(c.description);
       const dt = c.dateTime || {};
       let type = 'note';
-      if (desc.toLowerCase().startsWith('исходящий звонок')) type = 'outCall';
-      else if (desc.toLowerCase().startsWith('входящий звонок')) type = 'inCall';
-      else if (desc.toLowerCase().startsWith('ндз')) type = 'ndz';
+      const descLow = desc.toLowerCase();
+      if (descLow.startsWith('исходящий звонок')) type = 'outCall';
+      else if (descLow.startsWith('входящий звонок')) type = 'inCall';
+      else if (descLow.startsWith('ндз')) type = 'ndz';
+      // Робот Аргон: звонки внутри текста (не в начале)
+      else if (descLow.includes('входящий звонок') || descLow.includes('исходящий звонок')) {
+        type = descLow.includes('исходящий звонок') ? 'outCall' : 'inCall';
+      }
 
       let transcription = null;
       if (type === 'outCall' || type === 'inCall') {
         transcription = extractTranscription(c.description);
         if (!transcription && OPENAI_KEY) {
           transcription = await transcribeCallIfNeeded({ transcription, files: c.files || [] }, transcriptionCache);
+          if (transcription) whisperCount++;
+        }
+      }
+      // note-комментарии с mp3-файлами "Запись звонка" — тоже транскрибируем
+      if (!transcription && type === 'note' && OPENAI_KEY) {
+        const cFiles = c.files || [];
+        const hasCallRecording = cFiles.some(f => {
+          const fn = (f.name || f.fileName || '').toLowerCase();
+          return fn.endsWith('.mp3') && fn.includes('запись звонка');
+        });
+        if (hasCallRecording) {
+          type = 'inCall'; // помечаем как звонок
+          transcription = await transcribeCallIfNeeded({ transcription: null, files: cFiles }, transcriptionCache);
           if (transcription) whisperCount++;
         }
       }
@@ -1176,14 +1194,19 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
   if (whisperCount) console.log(`  🎤 Whisper транскрибировал: ${whisperCount} звонков`);
 
   // === Звонки из контактов (контрагентов) ===
-  // Собираем уникальных контрагентов из активных сделок
+  // Собираем уникальных контрагентов из активных сделок (любой контрагент, даже без имени)
   const contactToTasks = {}; // contactId -> [taskId, ...]
+  let skippedNoId = 0;
   for (const t of recentActive) {
     const cpId = (t.counterparty?.id || '').replace('contact:', '');
-    if (!cpId) continue;
+    if (!cpId) {
+      if (t.counterparty?.name) skippedNoId++;
+      continue;
+    }
     if (!contactToTasks[cpId]) contactToTasks[cpId] = [];
     contactToTasks[cpId].push(t.id);
   }
+  if (skippedNoId) console.log(`    ⚠️ ${skippedNoId} сделок с контрагентом без ID — звонки из контакта не загружены`);
   const uniqueContacts = Object.keys(contactToTasks);
   console.log(`  👤 Звонки из ${uniqueContacts.length} контактов...`);
 
@@ -1194,10 +1217,24 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
     const comments = await getContactComments(cpId);
     for (const c of comments) {
       const desc = stripHtml(c.description);
+      const descLow = desc.toLowerCase();
       const dt = c.dateTime || {};
       let type = null;
-      if (desc.toLowerCase().startsWith('исходящий звонок')) type = 'outCall';
-      else if (desc.toLowerCase().startsWith('входящий звонок')) type = 'inCall';
+      if (descLow.startsWith('исходящий звонок')) type = 'outCall';
+      else if (descLow.startsWith('входящий звонок')) type = 'inCall';
+      // Робот Аргон: звонки внутри текста (не в начале)
+      else if (descLow.includes('исходящий звонок')) type = 'outCall';
+      else if (descLow.includes('входящий звонок')) type = 'inCall';
+
+      // note-комментарии с mp3 "Запись звонка" — тоже звонок
+      if (!type) {
+        const cFiles = c.files || [];
+        const hasCallRecording = cFiles.some(f => {
+          const fn = (f.name || f.fileName || '').toLowerCase();
+          return fn.endsWith('.mp3') && fn.includes('запись звонка');
+        });
+        if (hasCallRecording) type = 'inCall';
+      }
       if (!type) continue;
 
       let transcription = extractTranscription(c.description);
@@ -1463,6 +1500,28 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
     }));
   }
 
+  // === Входящие обращения по дням (не от менеджера, не от роботов) ===
+  const incomingByDate = {};
+  for (const card of dealCards) {
+    if (!card.isActive) continue;
+    for (const c of card.comments) {
+      if (!c.owner || c.owner.includes(mgrPfName) || c.owner.toLowerCase().includes('robot')) continue;
+      if ((c.text||'').includes('целевое действие') || (c.text||'').includes('Статус изменён')) continue;
+      if (!incomingByDate[c.date]) incomingByDate[c.date] = [];
+      // Не дублировать сделку за один день
+      const existing = incomingByDate[c.date].find(d => d.id === card.id);
+      if (existing) {
+        existing.actions.push({ type: c.type, text: (c.text||'').substring(0, 100), time: c.time, owner: c.owner });
+      } else {
+        incomingByDate[c.date].push({
+          id: card.id, name: card.name, status: card.status,
+          counterparty: card.counterparty, dealSum: card.dealSum || 0,
+          actions: [{ type: c.type, text: (c.text||'').substring(0, 100), time: c.time, owner: c.owner }],
+        });
+      }
+    }
+  }
+
   // Для совместимости — reportDate
   const dailyDealActivity = multiDayActivity[reportDMY] || [];
   const aiDaySummaryText = multiDaySummary[reportDMY] || null;
@@ -1519,7 +1578,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
     dailyActivity, funnelChanges, scriptCompliance,
     dailyDealActivity, aiDaySummaryText,
     multiDayActivity, multiDaySummary,
-    managerSummaries,
+    managerSummaries, incomingByDate,
     snapshotDate: prevSnapshot?.date || null,
   };
 }
@@ -1831,7 +1890,7 @@ async function sendToPlanfix(taskId){
 }
 let selectedDate=D.reportDate||'';
 function getTabName(){return 'День '+selectedDate}
-const TABS_BASE=['','Все сделки','Качество','Ежедневные','Воронка','📊 Статистика','👔 Руководитель'];
+const TABS_BASE=['','Все сделки','Качество','Ежедневные','Воронка','📊 Статистика','👔 Руководитель','📨 Входящие'];
 let period=7,tab=0;
 let currentCards=[];
 let dealSearch='';
@@ -2052,6 +2111,11 @@ function upd(){
   if(tab===6){
     document.getElementById('mets').innerHTML='';
     renderManager();
+    return;
+  }
+  if(tab===7){
+    document.getElementById('mets').innerHTML='';
+    renderIncoming();
     return;
   }
   renderMets(allC,allA,reports,cards);
@@ -3183,6 +3247,72 @@ function toggleColl(id){
   if(isOpen){body.classList.remove('open');hdr.classList.remove('open')}
   else{body.classList.add('open');hdr.classList.add('open')}
 }
+// ============ ВКЛАДКА ВХОДЯЩИЕ ============
+function renderIncoming(){
+  var h='';
+  var ibd=D.incomingByDate||{};
+  var dates=Object.keys(ibd).sort(function(a,b){
+    var pa=a.split('-'),pb=b.split('-');
+    return new Date(pb[2]+'-'+pb[1]+'-'+pb[0])-new Date(pa[2]+'-'+pa[1]+'-'+pa[0]);
+  });
+
+  // Фильтр по периоду
+  var now=new Date();
+  var cutoff=new Date(now);
+  cutoff.setDate(cutoff.getDate()-period);
+  dates=dates.filter(function(d){
+    var p=d.split('-');
+    return new Date(p[2]+'-'+p[1]+'-'+p[0])>=cutoff;
+  });
+
+  var totalDeals=0,totalActions=0;
+  dates.forEach(function(d){totalDeals+=(ibd[d]||[]).length;(ibd[d]||[]).forEach(function(dd){totalActions+=(dd.actions||[]).length;});});
+
+  h+='<div class="sec"><h3 style="color:#93c5fd">📨 Входящие обращения</h3>';
+  h+='<div style="font-size:12px;color:#64748b;margin-bottom:12px">Сделки где написал клиент или другой сотрудник, но менеджер не взаимодействовал</div>';
+
+  // Метрики
+  h+='<div class="mets" style="margin-bottom:14px">';
+  h+='<div class="met"><div class="met-v" style="color:#60a5fa">'+totalDeals+'</div><div class="met-l">Сделок</div></div>';
+  h+='<div class="met"><div class="met-v" style="color:#fbbf24">'+totalActions+'</div><div class="met-l">Сообщений</div></div>';
+  h+='<div class="met"><div class="met-v" style="color:#94a3b8">'+dates.length+'</div><div class="met-l">Дней</div></div>';
+  h+='</div>';
+
+  if(!dates.length){
+    h+='<div style="color:#64748b;padding:20px;text-align:center">Нет входящих обращений за выбранный период</div>';
+  }
+
+  for(var di=0;di<dates.length;di++){
+    var dt=dates[di];
+    var deals=ibd[dt]||[];
+    if(!deals.length) continue;
+    h+='<div style="margin-bottom:16px">';
+    h+='<div style="font-weight:700;color:#94a3b8;font-size:13px;margin-bottom:8px;border-bottom:1px solid rgba(148,163,184,.15);padding-bottom:4px">'+esc(dt)+' — '+deals.length+' сделок</div>';
+    for(var i=0;i<deals.length;i++){
+      var dd=deals[i];
+      h+='<div style="background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.12);border-radius:8px;padding:10px 14px;margin-bottom:6px">';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center">';
+      h+='<div style="font-weight:700;color:#e2e8f0;font-size:13px">#'+dd.id+' '+esc(dd.name.substring(0,60))+'</div>';
+      if(dd.dealSum) h+='<span style="font-size:12px;font-weight:700;color:#fbbf24">'+fmt(dd.dealSum)+' ₽</span>';
+      h+='</div>';
+      h+='<div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">';
+      if(dd.status) h+='<span class="tag">'+esc(dd.status)+'</span>';
+      if(dd.counterparty) h+='<span style="font-size:11px;color:#94a3b8">'+esc(dd.counterparty)+'</span>';
+      h+='</div>';
+      var acts=dd.actions||[];
+      for(var ai=0;ai<Math.min(acts.length,3);ai++){
+        var a=acts[ai];
+        h+='<div style="font-size:12px;color:#94a3b8;margin-top:4px">'+esc(a.time||'')+' <b style="color:#60a5fa">'+esc(a.owner||'')+'</b>: '+esc(a.text||'')+'</div>';
+      }
+      if(acts.length>3) h+='<div style="font-size:11px;color:#64748b;margin-top:2px">...ещё '+(acts.length-3)+' сообщений</div>';
+      h+='</div>';
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+  document.getElementById('out').innerHTML=h;
+}
+
 // ============ ВКЛАДКА РУКОВОДИТЕЛЯ ============
 var mgrPeriod='day';
 function setMgrPeriod(p){mgrPeriod=p;renderManager();}
