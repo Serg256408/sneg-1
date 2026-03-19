@@ -1307,15 +1307,15 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
   for (const card of dealCards) {
     if (!card.isActive) continue;
     const createdOnDate = isSameDay(card.dateCreated, reportDateObj);
-    const isHumanComment = c => c.date === reportDMY && !c.owner.toLowerCase().includes('robot') && !(c.text||'').includes('целевое действие') && !(c.text||'').includes('Статус изменён');
-    const hasActivity = card.comments.some(isHumanComment) ||
+    const isManagerAction = c => c.date === reportDMY && c.owner && c.owner.includes(mgrPfName);
+    const hasActivity = card.comments.some(isManagerAction) ||
       card.calls.some(c => c.date === reportDMY);
 
     if (createdOnDate) {
       dailyActivity.newDeals.push({ id: card.id, name: card.name, status: card.status, counterparty: card.counterparty });
     } else if (hasActivity) {
       const dayActions = [];
-      for (const c of card.comments.filter(c => c.date === reportDMY && !c.owner.toLowerCase().includes('robot') && !(c.text||'').includes('целевое действие') && !(c.text||'').includes('Статус изменён'))) {
+      for (const c of card.comments.filter(c => c.date === reportDMY && c.owner && c.owner.includes(mgrPfName))) {
         dayActions.push({ type: c.type, text: c.text.substring(0, 100), time: c.time });
       }
       dailyActivity.workedDeals.push({
@@ -1332,8 +1332,8 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
     for (const card of dealCards) {
       if (!card.isActive) continue;
       const createdOnDate = isSameDay(card.dateCreated, dateObj);
-      const isHuman = c => !c.owner.toLowerCase().includes('robot') && !(c.text||'').includes('целевое действие') && !(c.text||'').includes('Статус изменён');
-      const dayComments = card.comments.filter(c => c.date === dateDMY && isHuman(c));
+      const isManagerAction = c => c.owner && c.owner.includes(mgrPfName);
+      const dayComments = card.comments.filter(c => c.date === dateDMY && isManagerAction(c));
       const dayCalls = card.calls.filter(c => c.date === dateDMY);
       if (!dayComments.length && !dayCalls.length && !createdOnDate) continue;
 
