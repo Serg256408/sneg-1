@@ -1713,113 +1713,113 @@ function generateHtml(managerName, data, allManagers) {
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Manrope',system-ui,sans-serif;background:#0a0e1a;color:#e2e8f0;min-height:100vh}
-.hdr{background:linear-gradient(135deg,#1e293b,#0f172a);border-bottom:1px solid rgba(59,130,246,.15);padding:14px 20px}
+body{font-family:'Inter','Manrope',system-ui,-apple-system,sans-serif;background:#f7f7f8;color:#1a1a2e;min-height:100vh}
+.hdr{background:#fff;border-bottom:1px solid #e5e5e5;padding:14px 20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .hdr-in{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff}
+.logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#d97706,#b45309);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#1a1a2e}
 .pbar{display:flex;gap:5px;margin-left:auto;flex-wrap:wrap}
-.pbtn{padding:6px 12px;border-radius:7px;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;background:rgba(30,41,59,.8);color:#94a3b8;transition:.2s}
-.pbtn.on{background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;box-shadow:0 2px 10px rgba(59,130,246,.3)}
+.pbtn{padding:6px 12px;border-radius:7px;border:1px solid #e5e5e5;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;background:#fff;color:#6b7280;transition:.2s}
+.pbtn.on{background:#d97706;color:#1a1a2e;border-color:#d97706;box-shadow:0 2px 8px rgba(217,119,6,.2)}
 .cnt{max-width:1200px;margin:0 auto;padding:16px}
 .mets{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:14px}
-.met{background:rgba(15,23,42,.7);border:1px solid rgba(255,255,255,.04);border-radius:12px;padding:10px;text-align:center}
-.met-v{font-size:20px;font-weight:800;margin:2px 0}
-.met-l{font-size:9px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
-.tabs{display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:14px;flex-wrap:wrap}
-.tab{padding:8px 14px;cursor:pointer;color:#64748b;font-size:13px;font-weight:600;border-bottom:2px solid transparent;transition:.2s}
-.tab.on{color:#60a5fa;border-color:#3b82f6;background:rgba(59,130,246,.05)}
-.sec{background:rgba(15,23,42,.7);border:1px solid rgba(255,255,255,.04);border-radius:14px;padding:16px;margin-bottom:12px}
-.sec h3{font-size:14px;font-weight:700;color:#f1f5f9;margin-bottom:10px}
-.sec h4{font-size:13px;font-weight:600;color:#94a3b8;margin:10px 0 6px}
+.met{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:10px;text-align:center}
+.met-v{font-size:20px;font-weight:800;margin:2px 0;color:#1a1a2e}
+.met-l{font-size:9px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.tabs{display:flex;gap:0;border-bottom:1px solid #e5e5e5;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:8px 14px;cursor:pointer;color:#6b7280;font-size:13px;font-weight:600;border-bottom:2px solid transparent;transition:.2s}
+.tab.on{color:#d97706;border-color:#d97706;background:rgba(217,119,6,.04)}
+.sec{background:#fff;border:1px solid #e5e5e5;border-radius:14px;padding:16px;margin-bottom:12px}
+.sec h3{font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:10px}
+.sec h4{font-size:13px;font-weight:600;color:#6b7280;margin:10px 0 6px}
 table{width:100%;border-collapse:collapse;font-size:12px}
-th{text-align:left;padding:5px 8px;color:#64748b;font-weight:600;border-bottom:1px solid rgba(255,255,255,.08);font-size:11px;white-space:nowrap}
-td{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:top}
-tr:hover td{background:rgba(59,130,246,.03)}
+th{text-align:left;padding:5px 8px;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e5e5;font-size:11px;white-space:nowrap}
+td{padding:5px 8px;border-bottom:1px solid #f3f4f6;vertical-align:top;color:#374151}
+tr:hover td{background:rgba(217,119,6,.03)}
 .bg{padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap}
-.bg-g{background:rgba(52,211,153,.12);color:#34d399}
-.bg-y{background:rgba(251,191,36,.12);color:#fbbf24}
-.bg-r{background:rgba(248,113,113,.12);color:#f87171}
-.bg-b{background:rgba(96,165,250,.12);color:#60a5fa}
-.bg-p{background:rgba(167,139,250,.12);color:#a78bfa}
-.yes{color:#34d399;font-weight:700}.no{color:#64748b}
-.bar-bg{height:5px;background:rgba(30,41,59,.8);border-radius:3px;overflow:hidden;margin-top:2px}
+.bg-g{background:rgba(22,163,74,.1);color:#16a34a}
+.bg-y{background:rgba(202,138,4,.1);color:#b45309}
+.bg-r{background:rgba(220,38,38,.1);color:#dc2626}
+.bg-b{background:rgba(37,99,235,.08);color:#2563eb}
+.bg-p{background:rgba(124,58,237,.08);color:#7c3aed}
+.yes{color:#16a34a;font-weight:700}.no{color:#9ca3af}
+.bar-bg{height:5px;background:#f3f4f6;border-radius:3px;overflow:hidden;margin-top:2px}
 .bar-f{height:100%;border-radius:3px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:700px){.grid2{grid-template-columns:1fr}.mets{grid-template-columns:repeat(3,1fr)}}
 .deal-hdr{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px}
-.deal-meta{font-size:11px;color:#64748b;display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.deal-meta{font-size:11px;color:#6b7280;display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
 .deal-stat{display:flex;gap:12px;flex-wrap:wrap}
 .deal-stat span{font-size:12px;font-weight:700}
-.cmt{font-size:11px;color:#94a3b8;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.02)}
+.cmt{font-size:11px;color:#6b7280;padding:4px 0;border-bottom:1px solid #f3f4f6}
 .cmt-type{font-size:10px;font-weight:700;margin-right:4px}
-.no-data{text-align:center;padding:30px;color:#475569;font-size:14px}
-.transcript{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:10px;margin:6px 0;font-size:11px;line-height:1.6;color:#94a3b8;max-height:200px;overflow-y:auto;white-space:pre-wrap}
-.toggle-btn{background:none;border:1px solid rgba(255,255,255,.08);color:#64748b;padding:2px 8px;border-radius:5px;cursor:pointer;font-size:10px;font-family:inherit}
-.toggle-btn:hover{color:#60a5fa;border-color:rgba(59,130,246,.3)}
-.act-card{background:rgba(15,23,42,.5);border:1px solid rgba(255,255,255,.04);border-radius:10px;padding:12px;margin-bottom:8px}
-.act-card h4{margin:0 0 6px;font-size:13px;color:#f1f5f9}
+.no-data{text-align:center;padding:30px;color:#9ca3af;font-size:14px}
+.transcript{background:#f9fafb;border:1px solid #e5e5e5;border-radius:8px;padding:10px;margin:6px 0;font-size:11px;line-height:1.6;color:#374151;max-height:200px;overflow-y:auto;white-space:pre-wrap}
+.toggle-btn{background:#fff;border:1px solid #d1d5db;color:#6b7280;padding:2px 8px;border-radius:5px;cursor:pointer;font-size:10px;font-family:inherit}
+.toggle-btn:hover{color:#d97706;border-color:#d97706}
+.act-card{background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:12px;margin-bottom:8px}
+.act-card h4{margin:0 0 6px;font-size:13px;color:#1a1a2e}
 .act-tag{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;margin:2px}
-.change-fwd{color:#34d399}.change-bwd{color:#f87171}
-.ai-box{margin-top:10px;padding:10px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:8px}
-.ai-label{font-size:11px;font-weight:700;color:#a78bfa;margin-bottom:4px}
-.script-box{margin-top:10px;padding:10px;background:rgba(59,130,246,.04);border:1px solid rgba(59,130,246,.1);border-radius:8px}
+.change-fwd{color:#16a34a}.change-bwd{color:#dc2626}
+.ai-box{margin-top:10px;padding:10px;background:rgba(124,58,237,.04);border:1px solid rgba(124,58,237,.12);border-radius:8px}
+.ai-label{font-size:11px;font-weight:700;color:#7c3aed;margin-bottom:4px}
+.script-box{margin-top:10px;padding:10px;background:rgba(37,99,235,.03);border:1px solid rgba(37,99,235,.1);border-radius:8px}
 /* Collapsible sections */
-.coll{border-radius:10px;margin-top:10px;overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+.coll{border-radius:10px;margin-top:10px;overflow:hidden;border:1px solid #e5e5e5}
 .coll-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;user-select:none;transition:background .2s;font-size:12px;font-weight:700}
-.coll-hdr:hover{filter:brightness(1.2)}
-.coll-hdr .arr{font-size:10px;color:#64748b;transition:transform .25s;display:inline-block}
+.coll-hdr:hover{background:#f9fafb}
+.coll-hdr .arr{font-size:10px;color:#6b7280;transition:transform .25s;display:inline-block}
 .coll-hdr.open .arr{transform:rotate(90deg)}
 .coll-body{max-height:0;overflow:hidden;transition:max-height .3s ease-out}
 .coll-body.open{max-height:5000px;transition:max-height .5s ease-in}
 .coll-inner{padding:10px 14px 14px}
 /* Card header redesign */
-.card{background:rgba(15,23,42,.8);border:1px solid rgba(255,255,255,.06);border-radius:16px;margin-bottom:14px;overflow:hidden}
-.card-top{padding:16px 18px 12px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;user-select:none;transition:background .2s}
-.card-top:hover{background:rgba(255,255,255,.03)}
-.card-top .card-arrow{color:#64748b;font-size:10px;transition:transform .2s;margin-right:4px}
+.card{background:#fff;border:1px solid #e5e5e5;border-radius:16px;margin-bottom:14px;overflow:hidden}
+.card-top{padding:16px 18px 12px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;border-bottom:1px solid #f3f4f6;cursor:pointer;user-select:none;transition:background .2s}
+.card-top:hover{background:#f9fafb}
+.card-top .card-arrow{color:#6b7280;font-size:10px;transition:transform .2s;margin-right:4px}
 .card-top.open .card-arrow{transform:rotate(90deg)}
-.card-title{font-size:14px;font-weight:800;color:#f1f5f9;margin-bottom:4px}
+.card-title{font-size:14px;font-weight:800;color:#1a1a2e;margin-bottom:4px}
 .card-tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px}
 .card-body{padding:0 4px 8px;display:none}
 .card-body.open{display:block}
 /* Result block */
-.result-block{margin:12px 14px;padding:12px 16px;background:linear-gradient(135deg,rgba(96,165,250,.08),rgba(139,92,246,.06));border:1px solid rgba(96,165,250,.15);border-radius:12px}
-.result-block .res-title{font-size:11px;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.result-block .res-text{font-size:13px;line-height:1.7;color:#e2e8f0}
-.result-block .res-verdict{font-size:12px;line-height:1.5;color:#fbbf24;margin-top:6px;font-weight:700;padding-top:6px;border-top:1px solid rgba(255,255,255,.05)}
+.result-block{margin:12px 14px;padding:12px 16px;background:linear-gradient(135deg,rgba(37,99,235,.04),rgba(124,58,237,.03));border:1px solid rgba(37,99,235,.12);border-radius:12px}
+.result-block .res-title{font-size:11px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.result-block .res-text{font-size:13px;line-height:1.7;color:#1a1a2e}
+.result-block .res-verdict{font-size:12px;line-height:1.5;color:#b45309;margin-top:6px;font-weight:700;padding-top:6px;border-top:1px solid #f3f4f6}
 /* Score pill */
 .score-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:800}
-.deal-tools{position:sticky;top:8px;z-index:4;background:rgba(15,23,42,.92);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px 16px;margin-bottom:14px;backdrop-filter:blur(18px);box-shadow:0 10px 30px rgba(2,6,23,.24)}
+.deal-tools{position:sticky;top:8px;z-index:4;background:rgba(255,255,255,.95);border:1px solid #e5e5e5;border-radius:16px;padding:14px 16px;margin-bottom:14px;backdrop-filter:blur(18px);box-shadow:0 4px 16px rgba(0,0,0,.06)}
 .deal-tools-grid{display:grid;grid-template-columns:minmax(220px,2fr) repeat(3,minmax(150px,1fr));gap:10px}
 .deal-field{display:flex;flex-direction:column;gap:6px}
-.deal-label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
-.deal-input,.deal-select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(2,6,23,.5);color:#e2e8f0;font-size:13px;font-family:inherit;outline:none}
-.deal-input:focus,.deal-select:focus{border-color:rgba(96,165,250,.45);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.deal-label{font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px}
+.deal-input,.deal-select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #d1d5db;background:#fff;color:#1a1a2e;font-size:13px;font-family:inherit;outline:none}
+.deal-input:focus,.deal-select:focus{border-color:#d97706;box-shadow:0 0 0 3px rgba(217,119,6,.1)}
 .deal-tools-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px}
 .deal-chips{display:flex;gap:8px;flex-wrap:wrap}
-.deal-chip{padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);font-size:12px;color:#cbd5e1}
-.deal-chip strong{color:#f8fafc}
-.deal-card{background:rgba(15,23,42,.78);border:1px solid rgba(255,255,255,.05);border-radius:18px;margin-bottom:12px;overflow:hidden;box-shadow:0 10px 30px rgba(2,6,23,.18)}
-.deal-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;user-select:none;transition:background .2s}
-.deal-card-top:hover{background:rgba(255,255,255,.03)}
-.deal-card-title{font-size:15px;font-weight:800;color:#f8fafc;line-height:1.4}
+.deal-chip{padding:7px 10px;border-radius:999px;background:#f3f4f6;border:1px solid #e5e5e5;font-size:12px;color:#374151}
+.deal-chip strong{color:#1a1a2e}
+.deal-card{background:#fff;border:1px solid #e5e5e5;border-radius:18px;margin-bottom:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.deal-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:16px 18px;border-bottom:1px solid #f3f4f6;cursor:pointer;user-select:none;transition:background .2s}
+.deal-card-top:hover{background:#f9fafb}
+.deal-card-title{font-size:15px;font-weight:800;color:#1a1a2e;line-height:1.4}
 .deal-card-top.open .card-arrow{transform:rotate(90deg)}
 .deal-card-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
 .deal-card-body{display:none;padding:16px 18px 18px}
 .deal-card-body.open{display:block}
 .deal-kpis{display:grid;grid-template-columns:repeat(4,minmax(88px,1fr));gap:8px;min-width:min(420px,100%)}
-.deal-kpi{padding:10px 12px;border-radius:14px;background:rgba(2,6,23,.36);border:1px solid rgba(255,255,255,.05);text-align:left}
-.deal-kpi-v{display:block;font-size:18px;font-weight:800;color:#f8fafc}
-.deal-kpi-l{display:block;margin-top:3px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.45px}
+.deal-kpi{padding:10px 12px;border-radius:14px;background:#f9fafb;border:1px solid #e5e5e5;text-align:left}
+.deal-kpi-v{display:block;font-size:18px;font-weight:800;color:#1a1a2e}
+.deal-kpi-l{display:block;margin-top:3px;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.45px}
 .deal-summary{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:10px;margin-bottom:14px}
-.deal-summary-item{padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05)}
-.deal-summary-item b{display:block;font-size:11px;color:#64748b;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
-.deal-summary-item span{display:block;font-size:13px;font-weight:600;color:#e2e8f0;line-height:1.45}
+.deal-summary-item{padding:10px 12px;border-radius:14px;background:#f9fafb;border:1px solid #e5e5e5}
+.deal-summary-item b{display:block;font-size:11px;color:#6b7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.deal-summary-item span{display:block;font-size:13px;font-weight:600;color:#1a1a2e;line-height:1.45}
 .deal-section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 8px}
 .deal-section-title h4{margin:0}
-.deal-empty{padding:18px;border-radius:14px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.08);color:#64748b;text-align:center;font-size:13px}
-.deal-table-wrap{overflow-x:auto;border:1px solid rgba(255,255,255,.04);border-radius:12px}
-.deal-caption{font-size:11px;color:#64748b}
+.deal-empty{padding:18px;border-radius:14px;background:rgba(0,0,0,.03);border:1px dashed rgba(0,0,0,.08);color:#6b7280;text-align:center;font-size:13px}
+.deal-table-wrap{overflow-x:auto;border:1px solid rgba(0,0,0,.03);border-radius:12px}
+.deal-caption{font-size:11px;color:#6b7280}
 @media(max-width:900px){
   .deal-tools-grid{grid-template-columns:repeat(2,minmax(160px,1fr))}
   .deal-kpis{grid-template-columns:repeat(2,minmax(88px,1fr));min-width:0;width:100%}
@@ -1836,12 +1836,12 @@ tr:hover td{background:rgba(59,130,246,.03)}
 </head><body>
 <div class="hdr"><div class="hdr-in">
   <div class="logo">T</div>
-  <div><div style="font-size:17px;font-weight:800;color:#f1f5f9">${managerName}</div><div style="font-size:12px;color:#64748b" id="upd"></div></div>
+  <div><div style="font-size:17px;font-weight:800;color:#1a1a2e">${managerName}</div><div style="font-size:12px;color:#6b7280" id="upd"></div></div>
   ${allManagers ? `<div style="display:flex;gap:6px;margin-left:auto;margin-right:12px;flex-wrap:wrap">${allManagers.map(m =>
     m.name === managerName
-      ? `<span style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#3b82f6;color:#fff">${m.name}</span>`
-      : `<a href="../${m.alias}/index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#1e293b;color:#94a3b8;text-decoration:none;border:1px solid #334155">${m.name}</a>`
-  ).join('')}<a href="../index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#1e293b;color:#fbbf24;text-decoration:none;border:1px solid #334155">Обзор</a></div>` : ''}
+      ? `<span style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#3b82f6;color:#1a1a2e">${m.name}</span>`
+      : `<a href="../${m.alias}/index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#6b7280;text-decoration:none;border:1px solid #d1d5db">${m.name}</a>`
+  ).join('')}<a href="../index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#fbbf24;text-decoration:none;border:1px solid #d1d5db">Обзор</a></div>` : ''}
   <div class="pbar" id="pbar"></div>
 </div></div>
 <div class="cnt">
@@ -2006,7 +2006,7 @@ function findLatestAiForDeal(id){
   return null;
 }
 function getScoreColor(avgB,maxB){
-  if(avgB===null||avgB===undefined)return '#94a3b8';
+  if(avgB===null||avgB===undefined)return '#9ca3af';
   var max=maxB||12;
   var pct=avgB/max;
   return pct>=0.6?'#34d399':pct>=0.35?'#fbbf24':'#f87171';
@@ -2215,8 +2215,8 @@ function renderDay(){
   // Выбор даты
   const dates=getAllDates();
   h+='<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
-  h+='<span style="font-size:12px;color:#64748b;font-weight:600">📅 Дата:</span>';
-  h+='<select id="datePicker" onchange="setDate(this.value)" style="padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:#1e293b;color:#e2e8f0;font-size:13px;font-family:inherit;cursor:pointer">';
+  h+='<span style="font-size:12px;color:#6b7280;font-weight:600">📅 Дата:</span>';
+  h+='<select id="datePicker" onchange="setDate(this.value)" style="padding:6px 10px;border-radius:8px;border:1px solid rgba(0,0,0,.1);background:#fff;color:#1a1a2e;font-size:13px;font-family:inherit;cursor:pointer">';
   for(const dt of dates){
     const hasAi=D.multiDayActivity&&D.multiDayActivity[dt];
     h+='<option value="'+dt+'"'+(dt===selectedDate?' selected':'')+'>'+dt+(hasAi?' (ИИ)':'')+'</option>';
@@ -2233,7 +2233,7 @@ function renderDay(){
   if(daySummary){
     h+='<div class="sec" style="border-left:3px solid #8b5cf6;background:rgba(139,92,246,.06)">';
     h+='<h3>🤖 ИИ-итог дня ('+esc(selectedDate)+')</h3>';
-    h+='<div style="font-size:13px;line-height:1.7;color:#cbd5e1;white-space:pre-wrap">'+esc(daySummary)+'</div>';
+    h+='<div style="font-size:13px;line-height:1.7;color:#374151;white-space:pre-wrap">'+esc(daySummary)+'</div>';
     h+='</div>';
   }
 
@@ -2257,7 +2257,7 @@ function renderDay(){
   }
 
   // Кнопка развернуть/свернуть
-  h+='<div style="text-align:right;margin-bottom:8px"><button id="toggleAllBtn" onclick="toggleAllCards()" style="padding:4px 12px;font-size:11px;font-weight:600;color:#94a3b8;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer">📂 Развернуть всё</button></div>';
+  h+='<div style="text-align:right;margin-bottom:8px"><button id="toggleAllBtn" onclick="toggleAllCards()" style="padding:4px 12px;font-size:11px;font-weight:600;color:#6b7280;background:rgba(0,0,0,.03);border:1px solid rgba(0,0,0,.08);border-radius:6px;cursor:pointer">📂 Развернуть всё</button></div>';
 
   // Карточки сделок за день
   for(let di=0;di<deals.length;di++){
@@ -2280,14 +2280,14 @@ function renderDay(){
     h+='<div style="flex:1;min-width:200px">';
     h+='<div class="card-title"><span class="card-arrow">▶</span> #'+d.id+' '+esc((d.name||'').substring(0,70))+'</div>';
     h+='<div class="card-tags">';
-    h+='<span style="font-size:11px;color:#94a3b8">'+esc(d.counterparty)+'</span>';
+    h+='<span style="font-size:11px;color:#6b7280">'+esc(d.counterparty)+'</span>';
     h+='<span class="bg bg-b">'+esc(d.status)+'</span>';
     if(d.workDesc)h+='<span class="bg" style="background:rgba(147,197,253,.1);color:#93c5fd">'+esc(d.workDesc)+'</span>';
     if(d.dealSum)h+='<span class="bg" style="background:rgba(251,191,36,.12);color:#fbbf24">'+fmt(d.dealSum)+' ₽</span>';
     if(da.isNew)h+='<span class="bg bg-p">Новая</span>';
     else h+='<span class="bg bg-y">Старая</span>';
     var dcCard=D.dealCards.find(function(c){return c.id===d.id});
-    if(dcCard&&dcCard.dateCreated)h+='<span style="font-size:10px;color:#64748b;margin-left:2px">'+esc(dcCard.dateCreated)+'</span>';
+    if(dcCard&&dcCard.dateCreated)h+='<span style="font-size:10px;color:#6b7280;margin-left:2px">'+esc(dcCard.dateCreated)+'</span>';
     if(callCount)h+='<span class="bg" style="background:rgba(52,211,153,.12);color:#34d399">📞 '+callCount+'</span>';
     h+='</div>';
     h+='</div>';
@@ -2313,9 +2313,9 @@ function renderDay(){
     // === ДЕЙСТВИЯ ЗА ДЕНЬ (collapsible, open by default) ===
     if(acts.length){
       const cid='acts_'+uid;
-      h+='<div class="coll" style="background:rgba(15,23,42,.4)">';
+      h+='<div class="coll" style="background:#f9fafb">';
       h+='<div class="coll-hdr open" id="hdr_'+cid+'" onclick="toggleColl(&#39;'+cid+'&#39;)" style="color:#60a5fa;background:rgba(96,165,250,.06)">';
-      h+='<span class="arr">▶</span> 📅 Действия за '+esc(selectedDate||'')+' <span style="color:#64748b;font-weight:500;margin-left:4px">('+acts.length+')</span></div>';
+      h+='<span class="arr">▶</span> 📅 Действия за '+esc(selectedDate||'')+' <span style="color:#6b7280;font-weight:500;margin-left:4px">('+acts.length+')</span></div>';
       h+='<div class="coll-body open" id="body_'+cid+'"><div class="coll-inner">';
       for(let ai=0;ai<acts.length;ai++){
         const a=acts[ai];
@@ -2325,20 +2325,20 @@ function renderDay(){
         const src=a.source==='contact'?' <span class="bg bg-p" style="font-size:9px">контакт</span>':'';
         const durMin=a.duration?Math.round(a.duration/60):0;
         const durCol=durMin>=3?'#34d399':durMin>=1?'#fbbf24':'#f87171';
-        h+='<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">';
+        h+='<div style="padding:8px 0;border-bottom:1px solid rgba(0,0,0,.03)">';
         h+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
         h+='<span style="color:#60a5fa;font-weight:700;font-size:13px">'+esc(a.time||'?')+'</span>';
-        h+='<span style="font-size:12px;font-weight:600;color:#e2e8f0">'+icon+' '+lbl+'</span>'+src;
+        h+='<span style="font-size:12px;font-weight:600;color:#1a1a2e">'+icon+' '+lbl+'</span>'+src;
         if(a.duration)h+='<span style="font-size:12px;font-weight:700;color:'+durCol+'">'+durMin+'м</span>';
         h+='</div>';
         if(isCall){
           const nextNote=acts.slice(ai+1).find(n=>n.type==='note'&&n.text&&Math.abs(timeToMin(n.time)-timeToMin(a.time))<5);
           if(nextNote&&nextNote.text){
-            h+='<div style="margin-top:6px;padding:8px 12px;background:rgba(251,191,36,.06);border-left:3px solid #fbbf24;border-radius:0 8px 8px 0;font-size:12px;color:#e2e8f0;line-height:1.6">'+esc(nextNote.text.substring(0,300))+'</div>';
+            h+='<div style="margin-top:6px;padding:8px 12px;background:rgba(251,191,36,.06);border-left:3px solid #fbbf24;border-radius:0 8px 8px 0;font-size:12px;color:#1a1a2e;line-height:1.6">'+esc(nextNote.text.substring(0,300))+'</div>';
           }
         }
         if(a.text&&!isCall){
-          h+='<div style="margin-top:6px;padding:8px 12px;background:rgba(148,163,184,.05);border-left:3px solid #475569;border-radius:0 8px 8px 0;font-size:12px;color:#cbd5e1;line-height:1.6">'+esc(a.text.substring(0,400))+'</div>';
+          h+='<div style="margin-top:6px;padding:8px 12px;background:rgba(148,163,184,.05);border-left:3px solid #d1d5db;border-radius:0 8px 8px 0;font-size:12px;color:#374151;line-height:1.6">'+esc(a.text.substring(0,400))+'</div>';
         }
         if(a.transcription){
           const tid='tr_day_'+d.id+'_'+ai;
@@ -2355,14 +2355,14 @@ function renderDay(){
     if(hist.length){
       const cid='hist_'+uid;
       h+='<div class="coll" style="background:rgba(100,116,139,.04)">';
-      h+='<div class="coll-hdr" id="hdr_'+cid+'" onclick="toggleColl(&#39;'+cid+'&#39;)" style="color:#94a3b8;background:rgba(100,116,139,.06)">';
-      h+='<span class="arr">▶</span> 📜 История сделки <span style="color:#64748b;font-weight:500;margin-left:4px">('+hist.length+' записей)</span></div>';
+      h+='<div class="coll-hdr" id="hdr_'+cid+'" onclick="toggleColl(&#39;'+cid+'&#39;)" style="color:#6b7280;background:rgba(100,116,139,.06)">';
+      h+='<span class="arr">▶</span> 📜 История сделки <span style="color:#6b7280;font-weight:500;margin-left:4px">('+hist.length+' записей)</span></div>';
       h+='<div class="coll-body" id="body_'+cid+'"><div class="coll-inner" style="max-height:350px;overflow-y:auto">';
       for(const c of hist.slice(0,30)){
         const icon=c.type==='outCall'?'📤':c.type==='inCall'?'📥':c.type==='ndz'?'⏰':'📝';
-        h+='<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03)">';
-        h+='<span style="color:#475569;font-size:10px;font-weight:600">'+esc(c.date)+' '+esc(c.time)+'</span> '+icon+' ';
-        h+='<span style="font-size:11px;color:#94a3b8">'+esc(c.text.substring(0,150))+'</span>';
+        h+='<div style="padding:4px 0;border-bottom:1px solid rgba(0,0,0,.03)">';
+        h+='<span style="color:#6b7280;font-size:10px;font-weight:600">'+esc(c.date)+' '+esc(c.time)+'</span> '+icon+' ';
+        h+='<span style="font-size:11px;color:#6b7280">'+esc(c.text.substring(0,150))+'</span>';
         if(c.transcription){
           const tid='tr_hist_'+d.id+'_'+c.id;
           h+=' <button class="toggle-btn" onclick="toggleTr(&#39;'+tid+'&#39;)" style="font-size:9px">транскр.</button>';
@@ -2419,7 +2419,7 @@ function renderDay(){
           if(!v)continue;
           const vpItemCol=v.done?(vpIsCall?'#34d399':'#fbbf24'):'#f87171';
           h+='<div style="font-size:11px;margin:3px 0;margin-left:12px"><span style="color:'+vpItemCol+'">'+(v.done?(vpIsCall?'✅':'☑️'):'❌')+'</span> '+it.l;
-          if(v.note)h+=' <span style="color:#64748b;font-size:10px">— '+esc(v.note)+'</span>';
+          if(v.note)h+=' <span style="color:#6b7280;font-size:10px">— '+esc(v.note)+'</span>';
           h+='</div>';
         }
         h+='</div>';
@@ -2444,15 +2444,15 @@ function renderDay(){
         h+='<div style="display:grid;gap:4px;margin-bottom:10px">';
         for(const ci of checkItems){
           const ciBorderCol=ci.done?(ci.isText?'#fbbf24':'#34d399'):'rgba(248,113,113,.4)';
-          h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(255,255,255,.02);border-radius:6px;border-left:3px solid '+ciBorderCol+'">';
+          h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(0,0,0,.02);border-radius:6px;border-left:3px solid '+ciBorderCol+'">';
           h+='<span style="font-size:14px">'+(ci.done?(ci.isText?'☑️':'✅'):'❌')+'</span>';
-          h+='<span style="font-size:12px;font-weight:600;color:'+(ci.done?'#e2e8f0':'#94a3b8')+'">'+ci.label+'</span>';
+          h+='<span style="font-size:12px;font-weight:600;color:'+(ci.done?'#1a1a2e':'#9ca3af')+'">'+ci.label+'</span>';
           if(ci.badge){
             const bgCol=ci.badgeCall?'rgba(52,211,153,.15)':'rgba(251,191,36,.15)';
             const txCol=ci.badgeCall?'#34d399':'#fbbf24';
             h+='<span class="bg" style="font-size:9px;background:'+bgCol+';color:'+txCol+'">'+ci.badge+'</span>';
           }
-          if(ci.note)h+='<span style="color:#64748b;font-size:10px;margin-left:auto">'+esc(ci.note)+'</span>';
+          if(ci.note)h+='<span style="color:#6b7280;font-size:10px;margin-left:auto">'+esc(ci.note)+'</span>';
           h+='</div>';
         }
         h+='</div>';
@@ -2468,11 +2468,11 @@ function renderDay(){
         h+='<span style="font-size:12px;font-weight:700;color:'+col+'">💰 Баллы для ЗП</span>';
         h+='<span style="font-size:16px;font-weight:800;color:'+col+'">'+ss.total+' / '+ss.max+'</span>';
         h+='</div>';
-        h+='<div style="background:rgba(255,255,255,.06);border-radius:4px;height:8px;margin-bottom:8px"><div style="background:'+col+';height:100%;border-radius:4px;width:'+pct+'%;transition:width .3s"></div></div>';
+        h+='<div style="background:rgba(0,0,0,.05);border-radius:4px;height:8px;margin-bottom:8px"><div style="background:'+col+';height:100%;border-radius:4px;width:'+pct+'%;transition:width .3s"></div></div>';
         if(ss.items&&ss.items.length){
           for(const it of ss.items){
-            h+='<div style="font-size:10px;color:#94a3b8;padding:2px 0">✅ '+esc(it.name)+': <strong style="color:'+col+'">+'+it.score+'</strong>';
-            if(it.note)h+=' <span style="color:#64748b">— '+esc(it.note)+'</span>';
+            h+='<div style="font-size:10px;color:#6b7280;padding:2px 0">✅ '+esc(it.name)+': <strong style="color:'+col+'">+'+it.score+'</strong>';
+            if(it.note)h+=' <span style="color:#6b7280">— '+esc(it.note)+'</span>';
             h+='</div>';
           }
         }
@@ -2490,7 +2490,7 @@ function renderDay(){
         const ctaDone=aa.callToAction&&aa.callToAction.done;
         if(!ctaDone) missing.push('Призыв к действию (3б)');
         if(missing.length){
-          h+='<div style="font-size:10px;color:#f87171;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.04)">Не набрано: '+esc(missing.join(', '))+'</div>';
+          h+='<div style="font-size:10px;color:#f87171;margin-top:6px;padding-top:6px;border-top:1px solid rgba(0,0,0,.03)">Не набрано: '+esc(missing.join(', '))+'</div>';
         }
         if(textWarnings.length){
           h+='<div style="font-size:10px;color:#fbbf24;margin-top:4px">⚠️ Балл снижен: '+esc(textWarnings.join('; '))+'. Рекомендуем проговаривать по телефону!</div>';
@@ -2501,7 +2501,7 @@ function renderDay(){
       // Planfix анализ за сегодня
       const pf=da.planfixScript;
       if(pf){
-        h+='<div style="margin-top:8px;padding:6px 10px;background:rgba(100,116,139,.06);border-radius:6px;font-size:10px;color:#64748b">';
+        h+='<div style="margin-top:8px;padding:6px 10px;background:rgba(100,116,139,.06);border-radius:6px;font-size:10px;color:#6b7280">';
         h+='Planfix ('+esc(D.reportDate||'')+'): '+pf.totalBalls+'б | '+esc((pf.verdict||'').split('(')[0].trim());
         h+=' | Презент:'+yn(pf.howWeWork)+' Призыв:'+yn(pf.callToAction)+' Счёт:'+yn(pf.sentInvoice);
         h+='</div>';
@@ -2607,7 +2607,7 @@ function renderDeals(cards){
           h+='<td><strong>'+matchA.totalBalls+'</strong></td>';
           h+='<td><span class="bg '+vc+'">'+esc(matchA.verdict.split('(')[0].trim())+'</span></td>';
         } else {
-          h+='<td colspan="5" style="color:#475569;font-size:11px">'+(c.duration<30?'Короткий':'Нет анализа')+'</td>';
+          h+='<td colspan="5" style="color:#6b7280;font-size:11px">'+(c.duration<30?'Короткий':'Нет анализа')+'</td>';
         }
         h+='</tr>';
       }
@@ -2631,7 +2631,7 @@ function renderDeals(cards){
     if(notes.length){
       h+='<h4>💬 Заметки</h4>';
       for(const n of notes){
-        h+='<div class="cmt"><span style="color:#64748b;font-size:10px">'+esc(n.date)+' '+esc(n.time)+'</span> '+esc(n.text.substring(0,120))+'</div>';
+        h+='<div class="cmt"><span style="color:#6b7280;font-size:10px">'+esc(n.date)+' '+esc(n.time)+'</span> '+esc(n.text.substring(0,120))+'</div>';
       }
     }
     h+='</div>';
@@ -2736,10 +2736,10 @@ function renderDealsV2(cards){
   h+='</div>';
   // Фильтр по периоду (от — до)
   h+='<div style="display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap">';
-  h+='<span style="font-size:11px;color:#64748b">с</span>';
-  h+='<input type="date" id="dealFrom" value="'+(dealFrom||'')+'" onchange="dealFrom=this.value;renderDealsV2(currentCards)" style="background:#1e293b;border:1px solid rgba(255,255,255,.1);color:#e2e8f0;padding:4px 8px;border-radius:6px;font-size:11px;font-family:inherit">';
-  h+='<span style="font-size:11px;color:#64748b">по</span>';
-  h+='<input type="date" id="dealTo" value="'+(dealTo||'')+'" onchange="dealTo=this.value;renderDealsV2(currentCards)" style="background:#1e293b;border:1px solid rgba(255,255,255,.1);color:#e2e8f0;padding:4px 8px;border-radius:6px;font-size:11px;font-family:inherit">';
+  h+='<span style="font-size:11px;color:#6b7280">с</span>';
+  h+='<input type="date" id="dealFrom" value="'+(dealFrom||'')+'" onchange="dealFrom=this.value;renderDealsV2(currentCards)" style="background:#fff;border:1px solid rgba(0,0,0,.1);color:#1a1a2e;padding:4px 8px;border-radius:6px;font-size:11px;font-family:inherit">';
+  h+='<span style="font-size:11px;color:#6b7280">по</span>';
+  h+='<input type="date" id="dealTo" value="'+(dealTo||'')+'" onchange="dealTo=this.value;renderDealsV2(currentCards)" style="background:#fff;border:1px solid rgba(0,0,0,.1);color:#1a1a2e;padding:4px 8px;border-radius:6px;font-size:11px;font-family:inherit">';
   if(dealFrom||dealTo)h+='<button class="toggle-btn" onclick="dealFrom=\\'\\';dealTo=\\'\\';renderDealsV2(currentCards)" style="font-size:11px;padding:3px 8px">✕</button>';
   h+='</div>';
   h+='<div class="deal-tools-row"><div class="deal-chips">';
@@ -2769,13 +2769,13 @@ function renderDealsV2(cards){
     const isOpen=!!cardOpenState[cardId];
     const lastTouchLabel=d.ui.lastTouch?formatTouch(d.ui.lastTouch.date,d.ui.lastTouch.time):'Нет касаний';
     const statusClass=(d.status||'').includes('Договор')||(d.status||'').includes('Выполнение')||(d.status||'').includes('Сделка')?'bg-g':(d.status||'').includes('Коммерческое')||(d.status||'').includes('Дожим')?'bg-b':(d.status||'').includes('Новая')||(d.status||'').includes('Обработка')?'bg-y':'bg-p';
-    const borderColor=d.isNew?'#a78bfa':avgB!==null?scoreColor:(d.fCalls.length?'#60a5fa':'#475569');
+    const borderColor=d.isNew?'#a78bfa':avgB!==null?scoreColor:(d.fCalls.length?'#2563eb':'#d1d5db');
     h+='<div class="deal-card" style="border-left:3px solid '+borderColor+'">';
     h+='<div class="deal-card-top'+(isOpen?' open':'')+'" id="chdr_'+cardId+'" onclick="toggleCard(&#39;'+cardId+'&#39;)">';
     h+='<div style="flex:1;min-width:220px">';
     h+='<div class="deal-card-title"><span class="card-arrow">▸</span> #'+d.id+' '+esc((d.name||'').substring(0,80))+'</div>';
     h+='<div class="deal-card-meta">';
-    h+='<span style="font-size:12px;color:#94a3b8">'+esc((d.counterparty||'Без контрагента').substring(0,60))+'</span>';
+    h+='<span style="font-size:12px;color:#6b7280">'+esc((d.counterparty||'Без контрагента').substring(0,60))+'</span>';
     h+='<span class="bg '+statusClass+'">'+esc(d.status||'Без статуса')+'</span>';
     if(d.isNew)h+='<span class="bg bg-p">Новая</span>';
     if(transcripts.length)h+='<span class="bg bg-b">🎙 '+transcripts.length+'</span>';
@@ -2785,7 +2785,7 @@ function renderDealsV2(cards){
     h+='<div class="deal-kpi"><span class="deal-kpi-v" style="color:#60a5fa">'+d.fCalls.length+'</span><span class="deal-kpi-l">Звонков</span></div>';
     h+='<div class="deal-kpi"><span class="deal-kpi-v" style="color:#818cf8">'+d.ui.durM+'м</span><span class="deal-kpi-l">Время</span></div>';
     h+='<div class="deal-kpi"><span class="deal-kpi-v" style="color:'+scoreColor+'">'+(avgB===null?'—':avgB+'/'+d.ui.maxB)+'</span><span class="deal-kpi-l">Средний балл</span></div>';
-    h+='<div class="deal-kpi"><span class="deal-kpi-v" style="color:#f8fafc">'+(d.dealSum?fmt(d.dealSum):'—')+'</span><span class="deal-kpi-l">Сумма</span></div>';
+    h+='<div class="deal-kpi"><span class="deal-kpi-v" style="color:#1a1a2e">'+(d.dealSum?fmt(d.dealSum):'—')+'</span><span class="deal-kpi-l">Сумма</span></div>';
     h+='</div></div>';
 
     h+='<div class="deal-card-body'+(isOpen?' open':'')+'" id="cbody_'+cardId+'">';
@@ -2818,7 +2818,7 @@ function renderDealsV2(cards){
           h+='<td><strong>'+matchA.totalBalls+'</strong></td>';
           h+='<td><span class="bg '+vc+'">'+esc(matchA.verdict.split('(')[0].trim())+'</span></td>';
         } else {
-          h+='<td colspan="5" style="color:#475569;font-size:11px">'+(c.duration<30?'Короткий звонок':'Нет анализа')+'</td>';
+          h+='<td colspan="5" style="color:#6b7280;font-size:11px">'+(c.duration<30?'Короткий звонок':'Нет анализа')+'</td>';
         }
         h+='</tr>';
       }
@@ -2840,7 +2840,7 @@ function renderDealsV2(cards){
     if(notes.length){
       h+='<div class="deal-section-title"><h4>💬 Заметки</h4><span class="deal-caption">'+notes.length+' записей</span></div>';
       for(const n of notes.slice(0,8)){
-        h+='<div class="cmt"><span style="color:#64748b;font-size:10px">'+esc(n.date)+' '+esc(n.time)+'</span> '+esc(n.text.substring(0,220))+'</div>';
+        h+='<div class="cmt"><span style="color:#6b7280;font-size:10px">'+esc(n.date)+' '+esc(n.time)+'</span> '+esc(n.text.substring(0,220))+'</div>';
       }
     }
     h+='</div></div>';
@@ -2870,7 +2870,7 @@ function renderQuality(analyses,cards){
     h+='</div><div style="text-align:center;padding:20px">';
     const sc_col=sc.avgScore>=15?'#34d399':sc.avgScore>=10?'#fbbf24':'#f87171';
     h+='<div style="font-size:36px;font-weight:800;color:'+sc_col+'">'+sc.avgScore+'</div>';
-    h+='<div style="font-size:12px;color:#64748b">Ср. балл новых</div>';
+    h+='<div style="font-size:12px;color:#6b7280">Ср. балл новых</div>';
     h+='</div></div>';
 
     // Детали по сделкам
@@ -2947,7 +2947,7 @@ function renderFunnel(){
   [...order,...Object.keys(funnel).filter(k=>!order.includes(k))].forEach(s=>{
     const n=funnel[s]||0;if(!n)return;
     const pct=Math.round(n/max*100);const good=['Договор и оплата','Выполнение Работы','Сделка завершена','Сделанная'].includes(s);
-    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span style="width:180px;font-size:12px;color:#94a3b8;text-align:right;flex-shrink:0">'+s+'</span><div class="bar-bg" style="flex:1;height:18px"><div class="bar-f" style="width:'+pct+'%;background:'+(good?'#34d399':'#60a5fa')+'"></div></div><span style="width:30px;font-size:13px;font-weight:700;text-align:right">'+n+'</span></div>';
+    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span style="width:180px;font-size:12px;color:#6b7280;text-align:right;flex-shrink:0">'+s+'</span><div class="bar-bg" style="flex:1;height:18px"><div class="bar-f" style="width:'+pct+'%;background:'+(good?'#34d399':'#60a5fa')+'"></div></div><span style="width:30px;font-size:13px;font-weight:700;text-align:right">'+n+'</span></div>';
   });
   h+='</div>';
 
@@ -2959,7 +2959,7 @@ function renderFunnel(){
       const cls=c.direction==='forward'?'change-fwd':'change-bwd';
       const arrow=c.direction==='forward'?'→ ✅':'→ ⬅️';
       h+='<tr><td style="font-size:11px">#'+c.dealId+' '+esc(c.dealName.substring(0,40))+'</td>';
-      h+='<td style="font-size:11px;color:#64748b">'+esc(c.counterparty.substring(0,25))+'</td>';
+      h+='<td style="font-size:11px;color:#6b7280">'+esc(c.counterparty.substring(0,25))+'</td>';
       h+='<td><span class="bg bg-y">'+esc(c.from)+'</span></td>';
       h+='<td class="'+cls+'" style="font-size:14px">'+arrow+'</td>';
       h+='<td><span class="bg '+(c.direction==='forward'?'bg-g':'bg-r')+'">'+esc(c.to)+'</span></td></tr>';
@@ -3007,16 +3007,16 @@ function renderStats(){
   // === ФИЛЬТР ПЕРИОДА ===
   h+='<div class="sec" style="padding:10px 14px">';
   h+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
-  h+='<span style="font-size:12px;font-weight:700;color:#94a3b8">Период:</span>';
+  h+='<span style="font-size:12px;font-weight:700;color:#6b7280">Период:</span>';
   h+='<button class="pbtn" onclick="setStatPeriod(3)">3 дня</button>';
   h+='<button class="pbtn" onclick="setStatPeriod(7)">7 дней</button>';
   h+='<button class="pbtn" onclick="setStatPeriod(14)">14 дней</button>';
   h+='<button class="pbtn" onclick="setStatPeriod(30)">30 дней</button>';
   h+='<button class="pbtn" onclick="statFrom=\\'\\';statTo=\\'\\';document.getElementById(\\'sf\\').value=\\'\\';document.getElementById(\\'st\\').value=\\'\\';renderStats()">Всё</button>';
-  h+='<span style="margin-left:8px;font-size:11px;color:#64748b">с</span>';
-  h+='<input type="date" id="sf" value="'+(statFrom||'')+'" onchange="statDateChanged()" style="background:#1e293b;border:1px solid rgba(255,255,255,.1);color:#e2e8f0;padding:4px 8px;border-radius:6px;font-size:11px;font-family:inherit">';
-  h+='<span style="font-size:11px;color:#64748b">по</span>';
-  h+='<input type="date" id="st" value="'+(statTo||'')+'" onchange="statDateChanged()" style="background:#1e293b;border:1px solid rgba(255,255,255,.1);color:#e2e8f0;padding:4px 8px;border-radius:6px;font-size:11px;font-family:inherit">';
+  h+='<span style="margin-left:8px;font-size:11px;color:#6b7280">с</span>';
+  h+='<input type="date" id="sf" value="'+(statFrom||'')+'" onchange="statDateChanged()" style="background:#fff;border:1px solid rgba(0,0,0,.1);color:#1a1a2e;padding:4px 8px;border-radius:6px;font-size:11px;font-family:inherit">';
+  h+='<span style="font-size:11px;color:#6b7280">по</span>';
+  h+='<input type="date" id="st" value="'+(statTo||'')+'" onchange="statDateChanged()" style="background:#fff;border:1px solid rgba(0,0,0,.1);color:#1a1a2e;padding:4px 8px;border-radius:6px;font-size:11px;font-family:inherit">';
   h+='</div></div>';
 
   if(!ops.length&&!st.length){
@@ -3078,7 +3078,7 @@ function renderStats(){
   var maxStCount=Math.max.apply(null,allStatuses.map(function(s){return statusData[s].count;}))||1;
 
   h+='<div class="sec"><h3>📊 Сделки по статусам за период ('+totalDealsAll+' из '+D.dealCards.length+')</h3>';
-  h+='<p style="color:#94a3b8;font-size:12px;margin-bottom:10px">Сделки с активностью за выбранный период</p>';
+  h+='<p style="color:#6b7280;font-size:12px;margin-bottom:10px">Сделки с активностью за выбранный период</p>';
   h+='<div style="overflow-x:auto"><table>';
   h+='<tr><th>Статус</th><th style="text-align:center">Сделок</th><th style="text-align:right">Сумма</th><th style="text-align:right">%</th><th style="width:30%"></th></tr>';
   for(var si=0;si<allStatuses.length;si++){
@@ -3089,13 +3089,13 @@ function renderStats(){
     var isWork=st2==='Выполнение Работы';
     var isDone=['Договор и оплата','Выполнение Работы','Сделанная','Сделка завершена'].indexOf(st2)>=0;
     var rowStyle=isWork?'background:rgba(52,211,153,.12);':'';
-    var nameCol=isWork?'#34d399':isDone?'#34d399':'#e2e8f0';
+    var nameCol=isWork?'#16a34a':isDone?'#16a34a':'#1a1a2e';
     var barCol=isWork?'#34d399':isDone?'#34d399':'#60a5fa';
     h+='<tr style="'+rowStyle+'">';
     h+='<td style="font-weight:700;color:'+nameCol+';white-space:nowrap">'+(isWork?'🏗 ':'')+esc(st2)+'</td>';
     h+='<td style="text-align:center;font-weight:700">'+sd.count+'</td>';
     h+='<td style="text-align:right;font-weight:700;color:#fbbf24">'+(sd.sum?fmt(sd.sum)+' ₽':'—')+'</td>';
-    h+='<td style="text-align:right;color:#94a3b8">'+pct2+'%</td>';
+    h+='<td style="text-align:right;color:#6b7280">'+pct2+'%</td>';
     h+='<td><div class="bar-bg"><div class="bar-f" style="width:'+barPct+'%;background:'+barCol+'"></div></div></td>';
     h+='</tr>';
     // Раскрываем список для ключевых статусов
@@ -3103,15 +3103,15 @@ function renderStats(){
       sd.deals.sort(function(a,b){return(b.dealSum||0)-(a.dealSum||0);});
       for(var di2=0;di2<sd.deals.length;di2++){
         var deal=sd.deals[di2];
-        h+='<tr style="background:rgba(255,255,255,.02)">';
-        h+='<td style="padding-left:24px;font-size:11px;color:#94a3b8">↳ #'+deal.id+' '+esc((deal.name||'').substring(0,45))+'</td>';
-        h+='<td style="text-align:center;font-size:11px;color:#64748b">'+esc(deal.counterparty||'')+'</td>';
+        h+='<tr style="background:rgba(0,0,0,.02)">';
+        h+='<td style="padding-left:24px;font-size:11px;color:#6b7280">↳ #'+deal.id+' '+esc((deal.name||'').substring(0,45))+'</td>';
+        h+='<td style="text-align:center;font-size:11px;color:#6b7280">'+esc(deal.counterparty||'')+'</td>';
         h+='<td style="text-align:right;font-size:11px;color:#fbbf24">'+(deal.dealSum?fmt(deal.dealSum)+' ₽':'—')+'</td>';
         h+='<td colspan="2"></td></tr>';
       }
     }
   }
-  h+='<tr style="border-top:2px solid rgba(255,255,255,.1);font-weight:800">';
+  h+='<tr style="border-top:2px solid rgba(0,0,0,.1);font-weight:800">';
   h+='<td>Итого</td><td style="text-align:center">'+totalDealsAll+'</td>';
   h+='<td style="text-align:right;color:#fbbf24">'+fmt(totalSumAll)+' ₽</td>';
   h+='<td style="text-align:right">100%</td><td></td></tr>';
@@ -3146,13 +3146,13 @@ function renderStats(){
       var mv=movedTo[ms];
       var isW=ms==='Выполнение Работы';
       var isDn=['Договор и оплата','Выполнение Работы','Сделанная','Сделка завершена'].indexOf(ms)>=0;
-      h+='<tr style="'+(isW?'background:rgba(52,211,153,.12);':'')+'"><td style="font-weight:700;color:'+(isW?'#34d399':isDn?'#34d399':'#e2e8f0')+'">'+(isW?'🏗 ':'')+esc(ms)+'</td>';
+      h+='<tr style="'+(isW?'background:rgba(52,211,153,.12);':'')+'"><td style="font-weight:700;color:'+(isW?'#16a34a':isDn?'#16a34a':'#1a1a2e')+'">'+(isW?'🏗 ':'')+esc(ms)+'</td>';
       h+='<td style="text-align:center;font-weight:700">'+mv.count+'</td>';
       h+='<td style="text-align:right;color:#fbbf24">'+(mv.sum?fmt(mv.sum)+' ₽':'—')+'</td></tr>';
       mv.deals.sort(function(a,b){return(b.sum||0)-(a.sum||0);});
       for(var di3=0;di3<mv.deals.length;di3++){
         var dd=mv.deals[di3];
-        h+='<tr style="background:rgba(255,255,255,.02)"><td style="padding-left:24px;font-size:11px;color:#94a3b8">↳ #'+dd.id+' '+esc((dd.name||'').substring(0,45))+'</td>';
+        h+='<tr style="background:rgba(0,0,0,.02)"><td style="padding-left:24px;font-size:11px;color:#6b7280">↳ #'+dd.id+' '+esc((dd.name||'').substring(0,45))+'</td>';
         h+='<td></td><td style="text-align:right;font-size:11px;color:#fbbf24">'+(dd.sum?fmt(dd.sum)+' ₽':'—')+'</td></tr>';
       }
     }
@@ -3191,7 +3191,7 @@ function renderStats(){
   }
   const totAvg=totScoreDays?+(totScore/totScoreDays).toFixed(1):'-';
   const totAvgCol=totScoreDays?(totAvg>=7?'#34d399':totAvg>=4?'#fbbf24':'#f87171'):'#64748b';
-  h+='<tr style="border-top:2px solid rgba(255,255,255,.15);font-weight:800;background:rgba(255,255,255,.04)">';
+  h+='<tr style="border-top:2px solid rgba(0,0,0,.1);font-weight:800;background:rgba(0,0,0,.03)">';
   h+='<td>Итого</td>';
   h+='<td>'+totDeals+'</td>';
   h+='<td style="color:#c084fc">'+totNew+'</td>';
@@ -3209,10 +3209,10 @@ function renderStats(){
   for(const o of ops){
     const pct=Math.round(o.outCalls/maxCalls*100);
     h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">';
-    h+='<span style="width:80px;font-size:11px;color:#94a3b8;text-align:right;flex-shrink:0">'+o.date+'</span>';
+    h+='<span style="width:80px;font-size:11px;color:#6b7280;text-align:right;flex-shrink:0">'+o.date+'</span>';
     h+='<div class="bar-bg" style="flex:1;height:18px"><div class="bar-f" style="width:'+pct+'%;background:#34d399"></div></div>';
     h+='<span style="width:40px;font-size:12px;font-weight:700;color:#34d399;text-align:right">'+o.outCalls+'</span>';
-    h+='<span style="width:40px;font-size:10px;color:#64748b">'+o.callMinutes+'м</span>';
+    h+='<span style="width:40px;font-size:10px;color:#6b7280">'+o.callMinutes+'м</span>';
     h+='</div>';
   }
   h+='</div>';
@@ -3224,10 +3224,10 @@ function renderStats(){
       const pct=Math.round(s.avgScore/12*100);
       const col=s.avgScore>=7?'#34d399':s.avgScore>=4?'#fbbf24':'#f87171';
       h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">';
-      h+='<span style="width:80px;font-size:11px;color:#94a3b8;text-align:right;flex-shrink:0">'+s.date+'</span>';
+      h+='<span style="width:80px;font-size:11px;color:#6b7280;text-align:right;flex-shrink:0">'+s.date+'</span>';
       h+='<div class="bar-bg" style="flex:1;height:18px"><div class="bar-f" style="width:'+pct+'%;background:'+col+'"></div></div>';
       h+='<span style="width:70px;font-size:12px;font-weight:700;color:'+col+';text-align:right">'+s.avgScore+'/12</span>';
-      h+='<span style="width:50px;font-size:10px;color:#64748b">'+s.deals+' сд.</span>';
+      h+='<span style="width:50px;font-size:10px;color:#6b7280">'+s.deals+' сд.</span>';
       h+='</div>';
     }
     h+='</div>';
@@ -3261,8 +3261,8 @@ function renderStats(){
     const totalText=st.reduce((a,s)=>a+s.textSources,0);
     const totalSrc=totalCall+totalText||1;
     h+='<div style="margin-top:12px;display:flex;gap:20px;align-items:center;flex-wrap:wrap">';
-    h+='<div style="text-align:center"><div style="font-size:24px;font-weight:800;color:#34d399">'+totalCall+'</div><div style="font-size:10px;color:#94a3b8">По телефону (3б)</div></div>';
-    h+='<div style="text-align:center"><div style="font-size:24px;font-weight:800;color:#fbbf24">'+totalText+'</div><div style="font-size:10px;color:#94a3b8">Переписка (1.5б)</div></div>';
+    h+='<div style="text-align:center"><div style="font-size:24px;font-weight:800;color:#34d399">'+totalCall+'</div><div style="font-size:10px;color:#6b7280">По телефону (3б)</div></div>';
+    h+='<div style="text-align:center"><div style="font-size:24px;font-weight:800;color:#fbbf24">'+totalText+'</div><div style="font-size:10px;color:#6b7280">Переписка (1.5б)</div></div>';
     h+='<div style="flex:1;min-width:200px"><div class="bar-bg" style="height:20px;display:flex;overflow:hidden">';
     h+='<div style="width:'+Math.round(totalCall/totalSrc*100)+'%;background:#34d399"></div>';
     h+='<div style="width:'+Math.round(totalText/totalSrc*100)+'%;background:#fbbf24"></div>';
@@ -3281,7 +3281,7 @@ function renderStats(){
       const pct=Math.round(n/maxSt*100);
       const good=['Договор и оплата','Выполнение Работы','Сделка завершена','Сделанная'].includes(s);
       h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">';
-      h+='<span style="width:180px;font-size:11px;color:#94a3b8;text-align:right;flex-shrink:0">'+s+'</span>';
+      h+='<span style="width:180px;font-size:11px;color:#6b7280;text-align:right;flex-shrink:0">'+s+'</span>';
       h+='<div class="bar-bg" style="flex:1;height:18px"><div class="bar-f" style="width:'+pct+'%;background:'+(good?'#34d399':'#60a5fa')+'"></div></div>';
       h+='<span style="width:30px;font-size:12px;font-weight:700;text-align:right">'+n+'</span>';
       h+='</div>';
@@ -3359,17 +3359,17 @@ function renderIncoming(){
   dates.forEach(function(d){totalDeals+=(ibd[d]||[]).length;(ibd[d]||[]).forEach(function(dd){totalActions+=(dd.actions||[]).length;});});
 
   h+='<div class="sec"><h3 style="color:#93c5fd">📨 Входящие обращения</h3>';
-  h+='<div style="font-size:12px;color:#64748b;margin-bottom:12px">Сделки где написал клиент или другой сотрудник, но менеджер не взаимодействовал</div>';
+  h+='<div style="font-size:12px;color:#6b7280;margin-bottom:12px">Сделки где написал клиент или другой сотрудник, но менеджер не взаимодействовал</div>';
 
   // Метрики
   h+='<div class="mets" style="margin-bottom:14px">';
   h+='<div class="met"><div class="met-v" style="color:#60a5fa">'+totalDeals+'</div><div class="met-l">Сделок</div></div>';
   h+='<div class="met"><div class="met-v" style="color:#fbbf24">'+totalActions+'</div><div class="met-l">Сообщений</div></div>';
-  h+='<div class="met"><div class="met-v" style="color:#94a3b8">'+dates.length+'</div><div class="met-l">Дней</div></div>';
+  h+='<div class="met"><div class="met-v" style="color:#6b7280">'+dates.length+'</div><div class="met-l">Дней</div></div>';
   h+='</div>';
 
   if(!dates.length){
-    h+='<div style="color:#64748b;padding:20px;text-align:center">Нет входящих обращений за выбранный период</div>';
+    h+='<div style="color:#6b7280;padding:20px;text-align:center">Нет входящих обращений за выбранный период</div>';
   }
 
   for(var di=0;di<dates.length;di++){
@@ -3377,24 +3377,24 @@ function renderIncoming(){
     var deals=ibd[dt]||[];
     if(!deals.length) continue;
     h+='<div style="margin-bottom:16px">';
-    h+='<div style="font-weight:700;color:#94a3b8;font-size:13px;margin-bottom:8px;border-bottom:1px solid rgba(148,163,184,.15);padding-bottom:4px">'+esc(dt)+' — '+deals.length+' сделок</div>';
+    h+='<div style="font-weight:700;color:#6b7280;font-size:13px;margin-bottom:8px;border-bottom:1px solid rgba(148,163,184,.15);padding-bottom:4px">'+esc(dt)+' — '+deals.length+' сделок</div>';
     for(var i=0;i<deals.length;i++){
       var dd=deals[i];
       h+='<div style="background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.12);border-radius:8px;padding:10px 14px;margin-bottom:6px">';
       h+='<div style="display:flex;justify-content:space-between;align-items:center">';
-      h+='<div style="font-weight:700;color:#e2e8f0;font-size:13px">#'+dd.id+' '+esc(dd.name.substring(0,60))+'</div>';
+      h+='<div style="font-weight:700;color:#1a1a2e;font-size:13px">#'+dd.id+' '+esc(dd.name.substring(0,60))+'</div>';
       if(dd.dealSum) h+='<span style="font-size:12px;font-weight:700;color:#fbbf24">'+fmt(dd.dealSum)+' ₽</span>';
       h+='</div>';
       h+='<div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">';
       if(dd.status) h+='<span class="tag">'+esc(dd.status)+'</span>';
-      if(dd.counterparty) h+='<span style="font-size:11px;color:#94a3b8">'+esc(dd.counterparty)+'</span>';
+      if(dd.counterparty) h+='<span style="font-size:11px;color:#6b7280">'+esc(dd.counterparty)+'</span>';
       h+='</div>';
       var acts=dd.actions||[];
       for(var ai=0;ai<Math.min(acts.length,3);ai++){
         var a=acts[ai];
-        h+='<div style="font-size:12px;color:#94a3b8;margin-top:4px">'+esc(a.time||'')+' <b style="color:#60a5fa">'+esc(a.owner||'')+'</b>: '+esc(a.text||'')+'</div>';
+        h+='<div style="font-size:12px;color:#6b7280;margin-top:4px">'+esc(a.time||'')+' <b style="color:#60a5fa">'+esc(a.owner||'')+'</b>: '+esc(a.text||'')+'</div>';
       }
-      if(acts.length>3) h+='<div style="font-size:11px;color:#64748b;margin-top:2px">...ещё '+(acts.length-3)+' сообщений</div>';
+      if(acts.length>3) h+='<div style="font-size:11px;color:#6b7280;margin-top:2px">...ещё '+(acts.length-3)+' сообщений</div>';
       h+='</div>';
     }
     h+='</div>';
@@ -3418,14 +3418,14 @@ function mgrDealPopup(id){
   var card=D.dealCards.find(function(c){return c.id===id;});
   if(!card)return;
   var ai=findLatestAiForDeal(id);
-  var h2='<div id="mgr_inline_'+id+'" style="margin:4px 0 8px 18px;padding:8px 12px;border-radius:6px;background:rgba(15,23,42,.7);border:1px solid rgba(148,163,184,.12);font-size:12px">';
+  var h2='<div id="mgr_inline_'+id+'" style="margin:4px 0 8px 18px;padding:8px 12px;border-radius:6px;background:#f9fafb;border:1px solid rgba(148,163,184,.12);font-size:12px">';
   h2+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">';
   h2+='<span class="bg bg-b">'+esc(card.status)+'</span>';
-  h2+='<span style="color:#94a3b8">'+esc(card.counterparty||'')+'</span>';
+  h2+='<span style="color:#6b7280">'+esc(card.counterparty||'')+'</span>';
   if(card.dealSum)h2+='<span style="color:#fbbf24;font-weight:700">'+fmt(card.dealSum)+' ₽</span>';
-  h2+='<span style="color:#64748b">создана '+esc(card.dateCreated||'')+'</span>';
+  h2+='<span style="color:#6b7280">создана '+esc(card.dateCreated||'')+'</span>';
   h2+='</div>';
-  if(ai&&ai.overallVerdict)h2+='<div style="color:#cbd5e1;margin-bottom:3px">'+esc(ai.overallVerdict)+'</div>';
+  if(ai&&ai.overallVerdict)h2+='<div style="color:#374151;margin-bottom:3px">'+esc(ai.overallVerdict)+'</div>';
   if(ai&&ai.missing&&ai.missing.length)h2+='<div style="color:#f87171"><b>Не хватает:</b> '+esc(ai.missing.join(', '))+'</div>';
   if(ai&&ai.nextStep)h2+='<div style="color:#34d399;margin-top:2px"><b>След.шаг:</b> '+esc(ai.nextStep)+'</div>';
   h2+='</div>';
@@ -3493,14 +3493,14 @@ function renderManager(){
       if(!sec.lines.length&&si>0)continue;
       var st=null;
       for(var sk in secStyles){if(sec.title.indexOf(sk)>=0){st=secStyles[sk];break;}}
-      if(!st)st={icon:'📄',color:'#94a3b8',bg:'rgba(148,163,184,.04)'};
+      if(!st)st={icon:'📄',color:'#6b7280',bg:'rgba(107,114,128,.04)'};
       h+='<div style="background:'+st.bg+';border-left:3px solid '+st.color+';border-radius:8px;padding:14px 18px;margin-bottom:10px">';
       h+='<div style="font-size:14px;font-weight:700;color:'+st.color+';margin-bottom:8px">'+st.icon+' '+esc(sec.title)+'</div>';
-      h+='<div style="font-size:13px;line-height:1.8;color:#cbd5e1">';
+      h+='<div style="font-size:13px;line-height:1.8;color:#374151">';
       for(var li=0;li<sec.lines.length;li++){
         var ln=sec.lines[li];
         // Жирный текст **xxx**
-        ln=ln.replace(/\\*\\*([^*]+)\\*\\*/g,'<strong style="color:#f1f5f9">$1</strong>');
+        ln=ln.replace(/\\*\\*([^*]+)\\*\\*/g,'<strong style="color:#1a1a2e">$1</strong>');
         // Денежные суммы выделяем
         ln=ln.replace(/(\\d[\\d\\s.,]*\\s*(?:₽|руб|Р))/g,'<span style="color:#fbbf24;font-weight:600">$1</span>');
         // Номера сделок #XXXXX → кликабельные с раскрытием
@@ -3511,7 +3511,7 @@ function renderManager(){
         }
         // Вложенные маркеры (    *   текст)
         else if(ln.match(/^\\s{2,}[*•\\-]\\s+/)){
-          ln='<div style="padding:4px 0 4px 34px;position:relative;color:#94a3b8"><span style="position:absolute;left:18px;color:'+st.color+';opacity:.5">◦</span>'+ln.replace(/^\\s*[*•\\-]\\s+/,'')+'</div>';
+          ln='<div style="padding:4px 0 4px 34px;position:relative;color:#6b7280"><span style="position:absolute;left:18px;color:'+st.color+';opacity:.5">◦</span>'+ln.replace(/^\\s*[*•\\-]\\s+/,'')+'</div>';
         }
         // Маркеры * или - (включая "*   текст")
         else if(ln.match(/^[*•\\-]\\s+/)){
@@ -3564,7 +3564,7 @@ function renderManager(){
 
     if(problemDeals.length){
       h+='<div class="sec" style="border-left:3px solid #f87171"><h3>⚠️ Проблемные сделки ('+problemDeals.length+')</h3>';
-      h+='<div style="font-size:11px;color:#64748b;margin-bottom:8px">Низкие баллы или нет звонков. Нажмите для подробностей.</div>';
+      h+='<div style="font-size:11px;color:#6b7280;margin-bottom:8px">Низкие баллы или нет звонков. Нажмите для подробностей.</div>';
       for(var i=0;i<problemDeals.length;i++){
         var pd2=problemDeals[i];
         var cardId='mgr_prob_'+pd2.deal.id;
@@ -3572,20 +3572,20 @@ function renderManager(){
         var scoreCol=pd2.score>=7?'#34d399':pd2.score>=4?'#fbbf24':'#f87171';
         h+='<div style="border:1px solid rgba(248,113,113,.15);border-radius:8px;margin-bottom:4px;overflow:hidden">';
         h+='<div onclick="var b=document.getElementById(&#39;'+cardId+'&#39;);b.style.display=b.style.display===&#39;none&#39;?&#39;block&#39;:&#39;none&#39;" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;background:rgba(248,113,113,.04)">';
-        h+='<span style="color:#64748b;font-size:11px;min-width:50px">#'+pd2.deal.id+'</span>';
-        h+='<span style="flex:1;font-size:13px;color:#e2e8f0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc((pd2.deal.name||'').substring(0,55))+'</span>';
+        h+='<span style="color:#6b7280;font-size:11px;min-width:50px">#'+pd2.deal.id+'</span>';
+        h+='<span style="flex:1;font-size:13px;color:#1a1a2e;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc((pd2.deal.name||'').substring(0,55))+'</span>';
         if(pd2.deal.dealSum)h+='<span style="font-size:12px;font-weight:700;color:#fbbf24;white-space:nowrap">'+fmt(pd2.deal.dealSum)+' ₽</span>';
         h+='<span style="font-size:12px;font-weight:700;color:'+scoreCol+';min-width:40px;text-align:right">'+pd2.score+'/'+pd2.maxScore+'</span>';
-        h+='<span style="color:#64748b;font-size:10px">▼</span>';
+        h+='<span style="color:#6b7280;font-size:10px">▼</span>';
         h+='</div>';
-        h+='<div id="'+cardId+'" style="display:none;padding:8px 12px 10px;border-top:1px solid rgba(248,113,113,.1);background:rgba(15,23,42,.5)">';
+        h+='<div id="'+cardId+'" style="display:none;padding:8px 12px 10px;border-top:1px solid rgba(248,113,113,.1);background:#f9fafb">';
         h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">';
         h+='<span class="bg bg-b">'+esc(pd2.deal.status||'')+'</span>';
-        if(pd2.deal.counterparty)h+='<span style="font-size:11px;color:#94a3b8">'+esc(pd2.deal.counterparty)+'</span>';
-        h+='<span style="font-size:11px;color:#64748b">📞 '+pd2.calls+' зв.</span>';
-        h+='<span style="font-size:11px;color:#64748b">'+pd2.days.length+' дн.</span>';
+        if(pd2.deal.counterparty)h+='<span style="font-size:11px;color:#6b7280">'+esc(pd2.deal.counterparty)+'</span>';
+        h+='<span style="font-size:11px;color:#6b7280">📞 '+pd2.calls+' зв.</span>';
+        h+='<span style="font-size:11px;color:#6b7280">'+pd2.days.length+' дн.</span>';
         h+='</div>';
-        if(ai2.overallVerdict)h+='<div style="font-size:12px;color:#cbd5e1;margin-bottom:4px">'+esc(ai2.overallVerdict)+'</div>';
+        if(ai2.overallVerdict)h+='<div style="font-size:12px;color:#374151;margin-bottom:4px">'+esc(ai2.overallVerdict)+'</div>';
         if(ai2.missing&&ai2.missing.length){
           h+='<div style="font-size:11px;color:#f87171;margin-bottom:4px"><b>Не хватает:</b> '+esc(ai2.missing.join(', '))+'</div>';
         }
@@ -3604,19 +3604,19 @@ function renderManager(){
         var scoreCol2=gd.score>=7?'#34d399':gd.score>=4?'#fbbf24':'#f87171';
         h+='<div style="border:1px solid rgba(52,211,153,.12);border-radius:8px;margin-bottom:4px;overflow:hidden">';
         h+='<div onclick="var b=document.getElementById(&#39;'+cardId2+'&#39;);b.style.display=b.style.display===&#39;none&#39;?&#39;block&#39;:&#39;none&#39;" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;background:rgba(52,211,153,.04)">';
-        h+='<span style="color:#64748b;font-size:11px;min-width:50px">#'+gd.deal.id+'</span>';
-        h+='<span style="flex:1;font-size:13px;color:#e2e8f0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc((gd.deal.name||'').substring(0,55))+'</span>';
+        h+='<span style="color:#6b7280;font-size:11px;min-width:50px">#'+gd.deal.id+'</span>';
+        h+='<span style="flex:1;font-size:13px;color:#1a1a2e;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc((gd.deal.name||'').substring(0,55))+'</span>';
         if(gd.deal.dealSum)h+='<span style="font-size:12px;font-weight:700;color:#fbbf24;white-space:nowrap">'+fmt(gd.deal.dealSum)+' ₽</span>';
         h+='<span style="font-size:12px;font-weight:700;color:'+scoreCol2+';min-width:40px;text-align:right">'+gd.score+'/'+gd.maxScore+'</span>';
-        h+='<span style="color:#64748b;font-size:10px">▼</span>';
+        h+='<span style="color:#6b7280;font-size:10px">▼</span>';
         h+='</div>';
-        h+='<div id="'+cardId2+'" style="display:none;padding:8px 12px 10px;border-top:1px solid rgba(52,211,153,.1);background:rgba(15,23,42,.5)">';
+        h+='<div id="'+cardId2+'" style="display:none;padding:8px 12px 10px;border-top:1px solid rgba(52,211,153,.1);background:#f9fafb">';
         h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">';
         h+='<span class="bg bg-b">'+esc(gd.deal.status||'')+'</span>';
-        if(gd.deal.counterparty)h+='<span style="font-size:11px;color:#94a3b8">'+esc(gd.deal.counterparty)+'</span>';
-        h+='<span style="font-size:11px;color:#64748b">📞 '+gd.calls+' зв.</span>';
+        if(gd.deal.counterparty)h+='<span style="font-size:11px;color:#6b7280">'+esc(gd.deal.counterparty)+'</span>';
+        h+='<span style="font-size:11px;color:#6b7280">📞 '+gd.calls+' зв.</span>';
         h+='</div>';
-        if(ai3.overallVerdict)h+='<div style="font-size:12px;color:#cbd5e1;margin-bottom:4px">'+esc(ai3.overallVerdict)+'</div>';
+        if(ai3.overallVerdict)h+='<div style="font-size:12px;color:#374151;margin-bottom:4px">'+esc(ai3.overallVerdict)+'</div>';
         if(ai3.nextStep)h+='<div style="font-size:11px;color:#34d399"><b>След.шаг:</b> '+esc(ai3.nextStep)+'</div>';
         h+='</div></div>';
       }
@@ -3661,7 +3661,7 @@ function renderManager(){
       var d=nearPayment[i];
       var ai=findLatestAiForDeal(d.id);
       h+='<tr>';
-      h+='<td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc((d.name||'').substring(0,50))+'<br><span style="font-size:10px;color:#64748b">'+esc(d.counterparty||'')+'</span></td>';
+      h+='<td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc((d.name||'').substring(0,50))+'<br><span style="font-size:10px;color:#6b7280">'+esc(d.counterparty||'')+'</span></td>';
       h+='<td><span class="bg bg-g">'+esc(d.status)+'</span></td>';
       h+='<td style="text-align:right;font-weight:700;color:#fbbf24">'+(d.dealSum?fmt(d.dealSum)+' ₽':'—')+'</td>';
       h+='<td style="font-size:11px;color:#93c5fd">'+(ai&&ai.nextStep?esc(ai.nextStep).substring(0,80):'—')+'</td>';
@@ -3685,7 +3685,7 @@ function renderManager(){
     var s=fOrder[i];
     var f=funnelMoney[s]||{count:0,sum:0};
     var pct=Math.round(f.sum/maxFSum*100);
-    var barCol=i>=5?'#34d399':i>=3?'#60a5fa':'#94a3b8';
+    var barCol=i>=5?'#16a34a':i>=3?'#2563eb':'#9ca3af';
     h+='<tr><td style="font-weight:600;white-space:nowrap">'+esc(s)+'</td>';
     h+='<td style="text-align:center">'+f.count+'</td>';
     h+='<td style="text-align:right;font-weight:700;color:#fbbf24">'+(f.sum?fmt(f.sum)+' ₽':'—')+'</td>';
@@ -3715,20 +3715,20 @@ function renderManager(){
   staleDeals.sort(function(a,b){return (b.dealSum||0)-(a.dealSum||0);});
   if(staleDeals.length){
     h+='<div class="sec" style="margin-top:18px"><h3 style="color:#f59e0b">🔔 Требуют дожима ('+staleDeals.length+')</h3>';
-    h+='<div style="font-size:12px;color:#64748b;margin-bottom:10px">Сделки в статусе КП/Дожим без звонка 3+ дней</div>';
-    h+='<table style="width:100%;font-size:13px"><tr style="color:#64748b;font-size:11px"><th style="text-align:left">Сделка</th><th>Статус</th><th>Сумма</th><th>Дней без звонка</th><th>Посл. звонок</th></tr>';
+    h+='<div style="font-size:12px;color:#6b7280;margin-bottom:10px">Сделки в статусе КП/Дожим без звонка 3+ дней</div>';
+    h+='<table style="width:100%;font-size:13px"><tr style="color:#6b7280;font-size:11px"><th style="text-align:left">Сделка</th><th>Статус</th><th>Сумма</th><th>Дней без звонка</th><th>Посл. звонок</th></tr>';
     for(var si=0;si<Math.min(staleDeals.length,30);si++){
       var sd=staleDeals[si];
-      var urgColor=sd.daysSince>=14?'#f87171':sd.daysSince>=7?'#fbbf24':'#94a3b8';
+      var urgColor=sd.daysSince>=14?'#dc2626':sd.daysSince>=7?'#b45309':'#9ca3af';
       h+='<tr>';
-      h+='<td style="font-weight:600;color:#e2e8f0;padding:6px 0">#'+sd.id+' '+esc(sd.name.substring(0,40))+'</td>';
+      h+='<td style="font-weight:600;color:#1a1a2e;padding:6px 0">#'+sd.id+' '+esc(sd.name.substring(0,40))+'</td>';
       h+='<td style="text-align:center"><span class="tag">'+esc(sd.status)+'</span></td>';
       h+='<td style="text-align:right;font-weight:700;color:#fbbf24">'+(sd.dealSum?fmt(sd.dealSum)+' ₽':'—')+'</td>';
       h+='<td style="text-align:center;font-weight:700;color:'+urgColor+'">'+sd.daysSince+'</td>';
-      h+='<td style="text-align:center;color:#94a3b8;font-size:12px">'+sd.lastCall+'</td>';
+      h+='<td style="text-align:center;color:#6b7280;font-size:12px">'+sd.lastCall+'</td>';
       h+='</tr>';
     }
-    if(staleDeals.length>30) h+='<tr><td colspan="5" style="color:#64748b;font-size:12px">...ещё '+(staleDeals.length-30)+'</td></tr>';
+    if(staleDeals.length>30) h+='<tr><td colspan="5" style="color:#6b7280;font-size:12px">...ещё '+(staleDeals.length-30)+'</td></tr>';
     h+='</table></div>';
   }
 
@@ -3736,11 +3736,11 @@ function renderManager(){
   var inc=D.dailyActivity.incomingDeals||[];
   if(inc.length){
     h+='<div class="sec" style="margin-top:18px"><h3 style="color:#93c5fd">📨 Входящие обращения ('+inc.length+')</h3>';
-    h+='<div style="font-size:12px;color:#64748b;margin-bottom:10px">Сделки где написал клиент или другой сотрудник, но менеджер не взаимодействовал</div>';
+    h+='<div style="font-size:12px;color:#6b7280;margin-bottom:10px">Сделки где написал клиент или другой сотрудник, но менеджер не взаимодействовал</div>';
     for(var ii=0;ii<inc.length;ii++){
       var dd=inc[ii];
       h+='<div style="background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.15);border-radius:8px;padding:10px 14px;margin-bottom:6px">';
-      h+='<div style="font-weight:700;color:#e2e8f0">#'+dd.id+' '+esc(dd.name)+'</div>';
+      h+='<div style="font-weight:700;color:#1a1a2e">#'+dd.id+' '+esc(dd.name)+'</div>';
       h+='<div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">';
       if(dd.status) h+='<span class="tag">'+esc(dd.status)+'</span>';
       if(dd.dealSum) h+='<span class="tag" style="background:#854d0e;color:#fbbf24">'+fmt(dd.dealSum)+' ₽</span>';
@@ -3748,7 +3748,7 @@ function renderManager(){
       var acts=dd.actions||[];
       for(var ai=0;ai<acts.length;ai++){
         var a=acts[ai];
-        h+='<div style="font-size:12px;color:#94a3b8;margin-top:4px">'+esc(a.owner||'')+': '+esc(a.text||'')+'</div>';
+        h+='<div style="font-size:12px;color:#6b7280;margin-top:4px">'+esc(a.owner||'')+': '+esc(a.text||'')+'</div>';
       }
       h+='</div>';
     }
@@ -3904,23 +3904,23 @@ function generateDashboard(date) {
 <title>ТрансКом — Обзор менеджеров</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0f172a;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:20px}
+body{background:#f5f5f5;color:#1a1a2e;font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:20px}
 .header{text-align:center;padding:20px 0 30px}
-.header h1{font-size:24px;color:#fff}
-.header .date{color:#94a3b8;font-size:14px;margin-top:4px}
+.header h1{font-size:24px;color:#1a1a2e}
+.header .date{color:#6b7280;font-size:14px;margin-top:4px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;max-width:1200px;margin:0 auto}
-.card{background:#1e293b;border-radius:12px;padding:20px;border:1px solid #334155;transition:transform .2s}
+.card{background:#fff;border-radius:12px;padding:20px;border:1px solid #d1d5db;transition:transform .2s}
 .card:hover{transform:translateY(-2px);border-color:#3b82f6}
-.card-name{font-size:18px;font-weight:700;color:#fff;margin-bottom:12px}
+.card-name{font-size:18px;font-weight:700;color:#1a1a2e;margin-bottom:12px}
 .card-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.met{background:#0f172a;border-radius:8px;padding:10px;text-align:center}
+.met{background:#f5f5f5;border-radius:8px;padding:10px;text-align:center}
 .met-v{font-size:20px;font-weight:700}
-.met-l{font-size:10px;color:#94a3b8;text-transform:uppercase;margin-top:2px}
+.met-l{font-size:10px;color:#6b7280;text-transform:uppercase;margin-top:2px}
 .green{color:#4ade80}.yellow{color:#fbbf24}.blue{color:#60a5fa}.purple{color:#a78bfa}.cyan{color:#22d3ee}
-.card-summary{margin-top:12px;font-size:12px;color:#94a3b8;line-height:1.4}
-.card-link{display:block;text-align:center;margin-top:16px;padding:10px;background:#3b82f6;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px}
+.card-summary{margin-top:12px;font-size:12px;color:#6b7280;line-height:1.4}
+.card-link{display:block;text-align:center;margin-top:16px;padding:10px;background:#d97706;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px}
 .card-link:hover{background:#2563eb}
-.footer{text-align:center;margin-top:30px;color:#475569;font-size:12px}
+.footer{text-align:center;margin-top:30px;color:#6b7280;font-size:12px}
 </style></head><body>
 <div class="header"><h1>ТрансКом — Обзор менеджеров</h1><div class="date">${date}</div></div>
 <div class="grid">`;
@@ -3943,22 +3943,22 @@ ${c.aiSummary ? `<div class="card-summary">${c.aiSummary}...</div>` : ''}
 
   // Кнопка "+ Менеджер"
   html += `<div style="text-align:center;margin-top:20px">
-<button onclick="document.getElementById('addModal').style.display='flex'" style="padding:12px 24px;background:#1e293b;color:#4ade80;border:2px dashed #334155;border-radius:12px;font-size:16px;cursor:pointer;font-weight:600">+ Добавить менеджера</button>
+<button onclick="document.getElementById('addModal').style.display='flex'" style="padding:12px 24px;background:#fff;color:#d97706;border:2px dashed #d1d5db;border-radius:12px;font-size:16px;cursor:pointer;font-weight:600">+ Добавить менеджера</button>
 </div>`;
 
   // Модалка добавления менеджера
   html += `<div id="addModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center">
-<div style="background:#1e293b;border-radius:16px;padding:30px;max-width:450px;width:90%;border:1px solid #334155">
-<h2 style="color:#fff;margin-bottom:20px;font-size:20px">Добавить менеджера</h2>
-<p style="color:#94a3b8;font-size:13px;margin-bottom:16px">Введите данные нового менеджера. userId можно найти в Planfix: Сотрудники → Профиль → число в URL.</p>
-<div style="margin-bottom:12px"><label style="color:#94a3b8;font-size:12px">Имя и Фамилия</label><br>
-<input id="mgrName" placeholder="Иван Иванов" style="width:100%;padding:10px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#fff;font-size:14px;margin-top:4px"></div>
-<div style="margin-bottom:12px"><label style="color:#94a3b8;font-size:12px">userId из Planfix</label><br>
-<input id="mgrId" type="number" placeholder="55" style="width:100%;padding:10px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#fff;font-size:14px;margin-top:4px"></div>
+<div style="background:#fff;border-radius:16px;padding:30px;max-width:450px;width:90%;border:1px solid #d1d5db">
+<h2 style="color:#1a1a2e;margin-bottom:20px;font-size:20px">Добавить менеджера</h2>
+<p style="color:#6b7280;font-size:13px;margin-bottom:16px">Введите данные нового менеджера. userId можно найти в Planfix: Сотрудники → Профиль → число в URL.</p>
+<div style="margin-bottom:12px"><label style="color:#6b7280;font-size:12px">Имя и Фамилия</label><br>
+<input id="mgrName" placeholder="Иван Иванов" style="width:100%;padding:10px;background:#f5f5f5;border:1px solid #d1d5db;border-radius:8px;color:#1a1a2e;font-size:14px;margin-top:4px"></div>
+<div style="margin-bottom:12px"><label style="color:#6b7280;font-size:12px">userId из Planfix</label><br>
+<input id="mgrId" type="number" placeholder="55" style="width:100%;padding:10px;background:#f5f5f5;border:1px solid #d1d5db;border-radius:8px;color:#1a1a2e;font-size:14px;margin-top:4px"></div>
 <div id="addResult" style="display:none;margin-bottom:12px;padding:12px;border-radius:8px;font-size:12px"></div>
 <div style="display:flex;gap:10px;margin-top:16px">
-<button onclick="addManager()" style="flex:1;padding:10px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Добавить</button>
-<button onclick="document.getElementById('addModal').style.display='none'" style="flex:1;padding:10px;background:#334155;color:#94a3b8;border:none;border-radius:8px;font-size:14px;cursor:pointer">Отмена</button>
+<button onclick="addManager()" style="flex:1;padding:10px;background:#d97706;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Добавить</button>
+<button onclick="document.getElementById('addModal').style.display='none'" style="flex:1;padding:10px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:14px;cursor:pointer">Отмена</button>
 </div>
 </div></div>
 
@@ -3978,8 +3978,8 @@ function addManager(){
   // Показываем JSON для managers.json
   var res=document.getElementById('addResult');
   res.style.display='block';
-  res.style.background='#0f172a';
-  res.style.color='#4ade80';
+  res.style.background='#f0fdf4';
+  res.style.color='#16a34a';
   res.innerHTML='<b>Добавлено!</b> Чтобы отчёт генерировался автоматически, добавьте в <code>managers.json</code>:<br><br>'
     +'<code style="color:#fbbf24;word-break:break-all">'+JSON.stringify(entry)+'</code>'
     +'<br><br>После коммита и пуша — отчёт появится при следующем запуске в 19:00.';
@@ -3988,8 +3988,8 @@ function addManager(){
   var div=document.createElement('div');
   div.className='card';
   div.innerHTML='<div class="card-name">'+name+'</div>'
-    +'<div style="color:#94a3b8;font-size:13px;padding:20px 0">Отчёт будет сгенерирован при следующем запуске после добавления в managers.json</div>'
-    +'<div style="padding:8px 12px;background:#0f172a;border-radius:8px;font-size:11px;color:#fbbf24">userId: '+id+' | alias: '+alias+'</div>';
+    +'<div style="color:#6b7280;font-size:13px;padding:20px 0">Отчёт будет сгенерирован при следующем запуске после добавления в managers.json</div>'
+    +'<div style="padding:8px 12px;background:#f5f5f5;border-radius:8px;font-size:11px;color:#fbbf24">userId: '+id+' | alias: '+alias+'</div>';
   grid.appendChild(div);
 }
 </script>`;
