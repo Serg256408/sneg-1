@@ -709,3 +709,171 @@ warning: in the working copy of 'reports/borovaya.html', LF will be replaced by 
 warning: in the working copy of 'transcriptions_cache.json', LF will be replaced by CRLF the next time Git touches it
 The process cannot access the file because it is being used by another process.
 [19.03.2026 18:36:45,08] Ошибка deploy, код 1 
+[20.03.2026 18:00:02,33] Запуск отчета за 20-03-2026 
+
+============================================================
+🚀 Ия Боровая — 20-03-2026
+
+  Сделки offset=0... 100
+  Сделки offset=100... 100
+  Сделки offset=200... 100
+  Сделки offset=300... 100
+  Сделки offset=400... 100
+  Сделки offset=500... 36
+  ✅ Сделок: 536
+
+  📎 Подзадачи: 106 шт → данные мёржатся в родителя
+  📋 Сделок: 412, активных: 396 (исключены: Выполнение Работы и завершённые)
+  🔑 Ключей: 643 звонков, 298 анализов
+  📞 Звонки за 60 дней...
+    ✅ 1277
+  🔍 Анализы за 60 дней...
+    ✅ 385
+  💬 Комментарии 396 сделок (135 приоритетных)...
+  💬 Комментарии 396 сделок + 86 подзадач...
+    [10/482]    [20/482]    [30/482]    [40/482]    [50/482]    [60/482]    [70/482]    [80/482]    [90/482]    [100/482]    [110/482]    [120/482]    [130/482]    [140/482]    [150/482]    [160/482]    [170/482]    [180/482]    [190/482]    [200/482]    [210/482]    [220/482]    [230/482]    [240/482]    [250/482]    [260/482]    [270/482]    [280/482]    [290/482]    [300/482]    [310/482]    [320/482]    [330/482]    [340/482]    [350/482]    [360/482]    [370/482]    [380/482]    [390/482]    [400/482]    [410/482]    [420/482]    [430/482]    [440/482]    [450/482]    [460/482]    [470/482]    [480/482]    [482/482]
+  🎤 Whisper транскрибировал: 120 звонков
+  👤 Звонки из 369 контактов...
+    [10/369]    [20/369]    [30/369]    [40/369]    [50/369]    [60/369]    [70/369]    [80/369]    [90/369]    [100/369]    [110/369]    [120/369]    [130/369]    [140/369]    [150/369]    [160/369]    [170/369]    [180/369]    [190/369]    [200/369]    [210/369]    [220/369]    [230/369]    [240/369]    [250/369]    [260/369]    [270/369]    [280/369]    [290/369]    [300/369]    [310/369]    [320/369]    [330/369]    [340/369]    [350/369]    [360/369]    [369/369]
+    ✅ 209 звонков из контактов
+  🤖 Всего дней с активностью: 32
+  🤖 ИИ-оценка 17 сделок за 20-03-2026 (0 из кэша)...
+    [1/17]    [2/17]    [3/17]    [4/17]    [5/17]    [6/17]    [7/17]    [8/17]    [9/17]    [10/17]    [11/17]    [12/17]    [13/17]    [14/17]    [15/17]    [16/17]    [17/17]
+    ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 19-03-2026: 16 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 18-03-2026: 11 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 17-03-2026: 5 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 16-03-2026: 9 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 13-03-2026: 4 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 12-03-2026: 19 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 11-03-2026: 15 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 10-03-2026: 19 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 06-03-2026: 20 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 05-03-2026: 20 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 04-03-2026: 10 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 03-03-2026: 16 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 02-03-2026: 15 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 28-02-2026: 2 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 27-02-2026: 28 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 26-02-2026: 14 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 25-02-2026: 18 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 24-02-2026: 10 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 22-02-2026: 1 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 20-02-2026: 17 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 19-02-2026: 23 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 18-02-2026: 12 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 17-02-2026: 28 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 16-02-2026: 12 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 13-02-2026: 10 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 12-02-2026: 16 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  🤖 11-02-2026: 16 сделок (кэш) ✅
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+    ⚠️ API error: Incorrect API key provided: sk-proj-********************************************************************************************************************************************************SlMA. You can find your API key at https://platform.openai.com/account/api-keys.
+  📊 Дневная активность: 8 новых, 9 обработано
+  🔄 Изменения воронки: 2
+  📝 Скрипт новых: 1 анализов
+
+👔 Генерация отчёта для руководителя...
+  ✅ День ✅ Неделя ✅ Месяц
+
+  📊 Сделок с звонками: 136
+  📞 Всего звонков: 415
+  🔍 Всего анализов: 277
+  📅 Ежедневных отчётов: 18
+  🆕 Новых сделок за день: 8
+  ⚡ Обработано за день: 9
+  🔄 Изменений воронки: 2
+  📝 Анализов новых сделок: 1
+  🤖 ИИ-сделок за день: 17
+
+🌐 C:\Users\speza\.cursor\sneg-1\reports\borovaya.html
+
+📤 Автоотправка ИИ-рекомендаций в Planfix (17 сделок за 20-03-2026)...
+  ✅ #29542   ✅ #29597   ✅ #29839   ✅ #30028   ✅ #31755   ✅ #31766   ✅ #31771   ✅ #31815   ✅ #31819   ✅ #31822   ✅ #31824   ✅ #31825   ✅ #31827   ✅ #31829   ✅ #31831   ✅ #31832   ✅ #31837 
+  📤 Отправлено: 17, ошибок: 0
+✅ Ия Боровая — готово!
+
+📊 Дашборд: deploy/index.html (1 менеджеров)
+[20.03.2026 18:26:27,54] Отчет собран 

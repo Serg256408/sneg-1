@@ -3522,7 +3522,48 @@ function renderManager(){
         }
         h+=ln;
       }
-      h+='</div></div>';
+      h+='</div>';
+      // Собираем все #ID из текста секции и показываем карточки сделок
+      var secText=sec.lines.join(' ');
+      var idMatches=secText.match(/#(\d{4,6})/g);
+      if(idMatches&&idMatches.length){
+        var uniqueIds=[...new Set(idMatches.map(function(m){return parseInt(m.substring(1))}))];
+        var secDeals=uniqueIds.map(function(id){return D.dealCards.find(function(c){return c.id===id})}).filter(Boolean);
+        if(secDeals.length){
+          var secSum=secDeals.reduce(function(s,d){return s+(d.dealSum||0)},0);
+          h+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(0,0,0,.06)">';
+          h+='<div style="font-size:11px;color:#6b7280;margin-bottom:6px">📊 Сделки в блоке: <b>'+secDeals.length+'</b>'+(secSum?' · Сумма: <b style="color:#b45309">'+fmt(secSum)+' ₽</b>':'')+'</div>';
+          for(var sdi=0;sdi<secDeals.length;sdi++){
+            var sd2=secDeals[sdi];
+            var ai4=findLatestAiForDeal(sd2.id);
+            var ss4=ai4&&ai4.salaryScore?ai4.salaryScore:{};
+            var sc4=ss4.total||0;
+            var mx4=ss4.max||12;
+            var scCol4=sc4>=7?'#16a34a':sc4>=4?'#b45309':'#dc2626';
+            var secCardId='mgr_sec_'+si+'_'+sd2.id;
+            h+='<div style="border:1px solid rgba(0,0,0,.06);border-radius:6px;margin-bottom:3px;overflow:hidden">';
+            h+='<div onclick="var b=document.getElementById(&#39;'+secCardId+'&#39;);b.style.display=b.style.display===&#39;none&#39;?&#39;block&#39;:&#39;none&#39;" style="display:flex;align-items:center;gap:6px;padding:6px 10px;cursor:pointer;background:rgba(0,0,0,.01)">';
+            h+='<span style="color:#6b7280;font-size:11px;min-width:46px">#'+sd2.id+'</span>';
+            h+='<span style="flex:1;font-size:12px;color:#1a1a2e;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc((sd2.name||'').substring(0,50))+'</span>';
+            if(sd2.dealSum)h+='<span style="font-size:11px;font-weight:700;color:#b45309">'+fmt(sd2.dealSum)+' ₽</span>';
+            h+='<span style="font-size:11px;font-weight:700;color:'+scCol4+'">'+sc4+'/'+mx4+'</span>';
+            h+='<span style="color:#9ca3af;font-size:9px">▼</span>';
+            h+='</div>';
+            h+='<div id="'+secCardId+'" style="display:none;padding:6px 10px 8px;border-top:1px solid rgba(0,0,0,.04);background:#f9fafb;font-size:12px">';
+            h+='<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">';
+            h+='<span class="bg bg-b">'+esc(sd2.status||'')+'</span>';
+            if(sd2.counterparty)h+='<span style="color:#6b7280;font-size:11px">'+esc(sd2.counterparty)+'</span>';
+            h+='<span style="color:#6b7280;font-size:11px">создана '+esc(sd2.dateCreated||'')+'</span>';
+            h+='</div>';
+            if(ai4&&ai4.overallVerdict)h+='<div style="color:#374151;margin-bottom:3px">'+esc(ai4.overallVerdict)+'</div>';
+            if(ai4&&ai4.missing&&ai4.missing.length)h+='<div style="color:#dc2626"><b>Не хватает:</b> '+esc(ai4.missing.join(', '))+'</div>';
+            if(ai4&&ai4.nextStep)h+='<div style="color:#16a34a;margin-top:2px"><b>След.шаг:</b> '+esc(ai4.nextStep)+'</div>';
+            h+='</div></div>';
+          }
+          h+='</div>';
+        }
+      }
+      h+='</div>';
     }
   }else{
     h+='<div class="sec" style="border-left:3px solid #a78bfa;min-height:100px"><h3>👔 Отчёт для руководителя за '+periodLabel+'</h3>';

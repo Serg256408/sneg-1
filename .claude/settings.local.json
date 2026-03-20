@@ -30,7 +30,11 @@
       "Skill(html)",
       "Skill(html:*)",
       "Skill(run)",
-      "Skill(run:*)"
+      "Skill(run:*)",
+      "Skill(check)",
+      "Skill(check:*)",
+      "Skill(open)",
+      "Skill(open:*)"
     ]
   }
 }
