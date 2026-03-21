@@ -1704,7 +1704,8 @@ function generateHtml(managerName, data, allManagers) {
   // Безопасная сериализация JSON для встраивания в <script>
   const json = JSON.stringify(data)
     .replace(/<\/script/gi, '<\\/script')
-    .replace(/<!--/g, '<\\!--');
+    .replace(/<!--/g, '<\\!--')
+    .replace(/`/g, '\\u0060');
   return `<!DOCTYPE html>
 <html lang="ru"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
