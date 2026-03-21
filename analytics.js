@@ -1196,6 +1196,14 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
       else if (descLow.includes('входящий звонок') || descLow.includes('исходящий звонок')) {
         type = descLow.includes('исходящий звонок') ? 'outCall' : 'inCall';
       }
+      // Транскрибация в тексте (----------  🔴/🔵) или mp3 "Запись звонка" = звонок
+      if (type === 'note') {
+        const hasCallTranscription = desc.includes('----------') && (/[🔴🔵]/.test(desc) || /\bA:.*\bB:/s.test(desc));
+        const hasCallRecording = (c.files || []).some(f => (f.name || '').toLowerCase().includes('запись звонка'));
+        if (hasCallTranscription || hasCallRecording) {
+          type = 'inCall'; // по умолчанию входящий, если направление неизвестно
+        }
+      }
 
       let transcription = null;
       if (type === 'outCall' || type === 'inCall') {
