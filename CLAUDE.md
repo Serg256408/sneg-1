@@ -63,7 +63,7 @@ Node.js портативный: `.tools/node-v24.14.0-win-x64/node.exe` (не в
 
 ## GitHub Actions
 - Workflow: `.github/workflows/daily-report.yml`
-- Расписание: ежедневно в 15:00 UTC (18:00 МСК)
+- Расписание: ежедневно в 16:00 UTC (19:00 МСК)
 - Секреты: PLANFIX_URL, PLANFIX_TOKEN, OPENAI_API_KEY, DEEPSEEK_API_KEY, GROK_API_KEY
 - После генерации коммитит данные и деплоит на GitHub Pages
 

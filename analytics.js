@@ -12,8 +12,8 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const API_URL = (process.env.PLANFIX_URL || '').replace(/\/+$/, '');
-const TOKEN = process.env.PLANFIX_TOKEN;
+const API_URL = (process.env.PLANFIX_URL || '').trim().replace(/\/+$/, '');
+const TOKEN = (process.env.PLANFIX_TOKEN || '').trim();
 const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
 const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY || '';
 const TRANSCRIPTION_CACHE_FILE = path.join(__dirname, 'transcriptions_cache.json');
@@ -1477,10 +1477,14 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
     for (const card of dealCards) {
       if (!card.isActive) continue;
       const createdOnDate = isSameDay(card.dateCreated, dateObj);
+      // ПРАВИЛО: сделка попадает в день ТОЛЬКО если МЕНЕДЖЕР имел активность (не робот)
       const isManagerAction = c => c.owner && c.owner.includes(mgrPfName);
-      const dayComments = card.comments.filter(c => c.date === dateDMY && isManagerAction(c));
+      const dayMgrComments = card.comments.filter(c => c.date === dateDMY && isManagerAction(c));
       const dayCalls = card.calls.filter(c => c.date === dateDMY);
-      if (!dayComments.length && !dayCalls.length && !createdOnDate) continue;
+      const hasMgrActivity = dayMgrComments.length > 0 || dayCalls.length > 0;
+      if (!hasMgrActivity && !createdOnDate) continue;
+      // Если менеджер активен — берём ВСЕ комментарии за день (включая от контактов/роботов для контекста)
+      const dayComments = hasMgrActivity ? card.comments.filter(c => c.date === dateDMY) : [];
 
       const actions = dayComments.map(c => ({
         type: c.type, time: c.time, text: c.text,
@@ -1563,7 +1567,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
 
     // ИИ-оценка каждой сделки за этот день
     if (OPENAI_KEY) {
-      const cached = dayDeals.filter(da => aiCache[`assess_${da.deal.id}_${dayDMY}_v18`] || aiCache[`assess_${da.deal.id}_${dayDMY}_v18a`]).length;
+      const cached = dayDeals.filter(da => aiCache[`assess_${da.deal.id}_${dayDMY}_v19`] || aiCache[`assess_${da.deal.id}_${dayDMY}_v19a`]).length;
       const needAi = dayDeals.length - cached;
       if (needAi > 0) {
         console.log(`  🤖 ИИ-оценка ${dayDeals.length} сделок за ${dayDMY} (${cached} из кэша)...`);
@@ -1917,8 +1921,8 @@ tr:hover td{background:rgba(217,119,6,.03)}
 </div>
 <script>
 const D=${json};
-const PF_URL='${API_URL}';
-const PF_TOKEN='${TOKEN}';
+const PF_URL='${API_URL.replace(/[\r\n]/g, '')}';
+const PF_TOKEN='${TOKEN.replace(/[\r\n]/g, '')}';
 const PERIODS=[{l:'Сегодня',d:0},{l:'3 дня',d:3},{l:'7 дн',d:7},{l:'14 дн',d:14},{l:'30 дн',d:30},{l:'Всё',d:9999}];
 
 function buildRecommendationText(taskId){
@@ -2132,7 +2136,11 @@ function buildDayActivity(dateStr){
   const result=[];
   for(const card of D.dealCards){
     if(!card.isActive)continue;
-    const dayComments=(card.comments||[]).filter(c=>c.date===dateStr);
+    // ПРАВИЛО: сделка попадает в день ТОЛЬКО если МЕНЕДЖЕР имел активность (не робот)
+    var mgrLow=(D.managerPfName||D.manager||'').toLowerCase();
+    var isManagerComment=function(c){return c.date===dateStr&&c.owner&&c.owner.toLowerCase().indexOf(mgrLow)>=0};
+    var isRobotOnly=function(c){return c.date===dateStr&&(!c.owner||c.owner.toLowerCase().indexOf('robot')>=0||c.owner.toLowerCase().indexOf('робот')>=0)};
+    const dayMgrComments=(card.comments||[]).filter(isManagerComment);
     const dayCalls=(card.calls||[]).filter(c=>c.date===dateStr);
     // dateCreated может быть в формате YYYY-MM-DD или DD-MM-YYYY
     const dc=card.dateCreated||'';
@@ -2140,7 +2148,11 @@ function buildDayActivity(dateStr){
     if(dc.match(/^\\d{4}-/)){const p=dc.split(/[-T ]/);createdDMY=p[2]+'-'+p[1]+'-'+p[0]}
     else if(dc.match(/^\\d{2}-\\d{2}-\\d{4}/)){createdDMY=dc.substring(0,10)}
     const isCreatedToday=createdDMY===dateStr;
-    if(!dayComments.length&&!dayCalls.length&&!isCreatedToday)continue;
+    // Менеджер должен иметь хоть одно действие за день (комментарий или звонок из dataTags)
+    const hasMgrActivity=dayMgrComments.length>0||dayCalls.length>0;
+    if(!hasMgrActivity&&!isCreatedToday)continue;
+    // Если менеджер активен — берём ВСЕ комментарии за день (включая от роботов/контактов)
+    const dayComments=hasMgrActivity?(card.comments||[]).filter(c=>c.date===dateStr):[];
     const actions=dayComments.map(c=>({type:c.type,time:c.time,text:c.text,owner:c.owner,transcription:c.transcription,source:c.source||'deal',files:c.files||[]}));
     for(const call of dayCalls){
       const isDupe=actions.some(a=>(a.type==='outCall'||a.type==='inCall')&&Math.abs(timeToMin(a.time)-timeToMin(call.time))<5);
@@ -3908,6 +3920,7 @@ async function runForManager(mgr, reportDate) {
   const outData = {
     generated: new Date().toISOString(),
     manager: mgr.name,
+    managerPfName: mgr.pfName,
     managerAlias: mgr.alias,
     reportDate,
     dealCards, dailyReports, dailyActivity, funnelChanges, scriptCompliance,
