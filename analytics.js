@@ -175,7 +175,16 @@ async function whisperTranscribe(audioPath) {
       '-F', 'language=ru',
       '-F', 'response_format=text',
     ], { encoding: 'utf8', timeout: 120000 });
-    return result.trim() || null;
+    const trimmed = result.trim();
+    if (!trimmed) return null;
+    // Polza.ai может вернуть JSON вместо текста — извлекаем text
+    if (trimmed.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return parsed.text || parsed.transcription || null;
+      } catch {}
+    }
+    return trimmed;
   } catch { return null; }
 }
 
@@ -287,7 +296,7 @@ async function openaiChat(prompt, systemPrompt, maxTokens, model) {
 async function aiDealFullAssessment(dealActivity, reportDate, aiCache) {
   const deal = dealActivity.deal;
   const isSnow = (deal.name || '').toLowerCase().startsWith('вывоз снега');
-  const cacheKey = `assess_${deal.id}_${reportDate}_${isSnow ? 'v18' : 'v18a'}`;
+  const cacheKey = `assess_${deal.id}_${reportDate}_${isSnow ? 'v19' : 'v19a'}`;
   if (aiCache[cacheKey]) return aiCache[cacheKey];
 
   // Собираем данные, ЧЁТКО разделяя ЗВОНКИ и ПЕРЕПИСКУ
@@ -520,7 +529,8 @@ ${isSnow ? `ПРАВИЛА ОЦЕНКИ:
   "missing": ["что НЕ выполнено из скрипта"],
   "recommendations": ["конкретные рекомендации менеджеру"],
   "nextStep": "ОДИН конкретный следующий шаг менеджеру — что именно сделать прямо сейчас, основываясь на всей истории сделки и текущем статусе",
-  "overallVerdict": "краткий вердикт 1-2 предложения"
+  "overallVerdict": "краткий вердикт 1-2 предложения",
+  "workSummary": "КРАТКОЕ описание работы: тип работ + объём + адрес. Пример: 'Асфальтирование 500 м², ул. Ленина 5' или 'Укладка бордюров 40 шт, Истринский р-н'. Извлеки из ВСЕХ данных (название, звонки, комментарии). Если не удалось определить — пустая строка."
 }` : `ПРАВИЛА ОЦЕНКИ (шаблон "Сделка" — асфальтирование):
 1. УСТНАЯ ПРЕЗЕНТАЦИЯ — 5 подпунктов компании ТрансКом для асфальта:
    - since2014: работаем с 2014 года / более 10 лет на рынке — любое упоминание длительного опыта
@@ -569,7 +579,8 @@ ${isSnow ? `ПРАВИЛА ОЦЕНКИ:
   "missing": ["что НЕ выполнено из скрипта"],
   "recommendations": ["конкретные рекомендации менеджеру"],
   "nextStep": "ОДИН конкретный следующий шаг менеджеру — что именно сделать прямо сейчас, основываясь на всей истории сделки и текущем статусе",
-  "overallVerdict": "краткий вердикт 1-2 предложения"
+  "overallVerdict": "краткий вердикт 1-2 предложения",
+  "workSummary": "КРАТКОЕ описание работы: тип работ + объём + адрес. Пример: 'Асфальтирование 500 м², ул. Ленина 5' или 'Вывоз снега, ТСЖ Андреевская'. Извлеки из ВСЕХ данных (название, звонки, комментарии). Если не удалось определить — пустая строка."
 }`}`;
 
   const systemMsg = isSnow
@@ -770,7 +781,7 @@ ${dealsText}
 
 КРИТИЧЕСКОЕ ПРАВИЛО: При каждом упоминании сделки ОБЯЗАТЕЛЬНО пиши "#ID название" (например: #31766 "Асфальтирование/4200м2"). НИКОГДА не упоминай сделку без #ID. Пиши конкретно, без воды.`;
 
-  const result = await openaiChat(prompt);
+  const result = await openaiChat(prompt, 'Ты аналитик отдела продаж компании ТрансКом. Пиши кратко, по-русски, с номерами сделок.', 1500, 'deepseek-chat');
   if (result) {
     aiCache[cacheKey] = result;
     saveAiCache(aiCache);
@@ -2337,7 +2348,8 @@ function renderDay(){
     h+='<div class="card-tags">';
     h+='<span style="font-size:11px;color:#6b7280">'+esc(d.counterparty)+'</span>';
     h+='<span class="bg bg-b">'+esc(d.status)+'</span>';
-    if(d.workDesc)h+='<span class="bg" style="background:rgba(147,197,253,.1);color:#93c5fd">'+esc(d.workDesc)+'</span>';
+    var ws=(aa&&aa.workSummary)||d.workDesc||'';
+    if(ws)h+='<span class="bg" style="background:rgba(147,197,253,.1);color:#93c5fd">'+esc(ws)+'</span>';
     if(d.dealSum)h+='<span class="bg" style="background:rgba(251,191,36,.12);color:#fbbf24">'+fmt(d.dealSum)+' ₽</span>';
     if(da.isNew)h+='<span class="bg bg-p">Новая</span>';
     else h+='<span class="bg bg-y">Старая</span>';
