@@ -168,10 +168,10 @@ async function whisperTranscribe(audioPath) {
   try {
     const result = execFileSync('curl', [
       '-s', '-L', '--ssl-no-revoke',
-      'https://api.openai.com/v1/audio/transcriptions',
+      'https://polza.ai/api/v1/audio/transcriptions',
       '-H', `Authorization: Bearer ${OPENAI_KEY}`,
       '-F', `file=@${audioPath}`,
-      '-F', 'model=whisper-1',
+      '-F', 'model=openai/whisper-1',
       '-F', 'language=ru',
       '-F', 'response_format=text',
     ], { encoding: 'utf8', timeout: 120000 });
