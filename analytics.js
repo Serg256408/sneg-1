@@ -216,10 +216,16 @@ function saveAiCache(cache) {
 }
 
 async function openaiChat(prompt, systemPrompt, maxTokens, model) {
-  // Определяем провайдера по модели
+  // Определяем провайдера по модели (с fallback на Polza.ai)
   const isDeepSeek = model && model.startsWith('deepseek');
-  const apiKey = isDeepSeek ? DEEPSEEK_KEY : OPENAI_KEY;
-  const apiUrl = isDeepSeek ? 'https://api.deepseek.com/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
+  let apiKey = isDeepSeek ? DEEPSEEK_KEY : OPENAI_KEY;
+  let apiUrl = isDeepSeek ? 'https://api.deepseek.com/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
+  const polzaFallback = isDeepSeek && OPENAI_KEY; // Polza.ai через OPENAI_KEY
+  if (!apiKey && polzaFallback) {
+    apiKey = OPENAI_KEY;
+    apiUrl = 'https://polza.ai/api/v1/chat/completions';
+    model = 'deepseek/deepseek-chat';
+  }
   if (!apiKey) return null;
   const { execFileSync } = require('child_process');
   const body = JSON.stringify({
@@ -247,6 +253,16 @@ async function openaiChat(prompt, systemPrompt, maxTokens, model) {
         const parsed = JSON.parse(r);
         if (parsed.error) {
           console.error(`    ⚠️ API error: ${parsed.error.message}`);
+          // Fallback на Polza.ai при ошибке DeepSeek (auth failed, rate limit и т.д.)
+          if (isDeepSeek && OPENAI_KEY && apiUrl.includes('deepseek.com')) {
+            console.log('    🔄 DeepSeek недоступен, переключаюсь на Polza.ai...');
+            apiKey = OPENAI_KEY;
+            apiUrl = 'https://polza.ai/api/v1/chat/completions';
+            model = 'deepseek/deepseek-chat';
+            const newBody = JSON.stringify({ ...JSON.parse(body), model });
+            fs.writeFileSync(tmp, newBody);
+            continue;
+          }
           if (attempt < maxRetries) { await new Promise(r => setTimeout(r, 2000 * attempt)); continue; }
           return null;
         }
