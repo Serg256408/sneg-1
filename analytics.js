@@ -16,6 +16,7 @@ const API_URL = (process.env.PLANFIX_URL || '').trim().replace(/\/+$/, '');
 const TOKEN = (process.env.PLANFIX_TOKEN || '').trim();
 const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
 const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY || '';
+const POLZA_KEY = process.env.POLZA_API_KEY || OPENAI_KEY; // Polza.ai ключ (pza_...) для Whisper и fallback
 const TRANSCRIPTION_CACHE_FILE = path.join(__dirname, 'transcriptions_cache.json');
 const AI_CACHE_FILE = path.join(__dirname, 'ai_cache.json');
 // Загрузка менеджеров из managers.json (фоллбэк на хардкод)
@@ -169,13 +170,13 @@ function downloadPlanfixFile(fileId) {
 }
 
 async function whisperTranscribe(audioPath) {
-  if (!OPENAI_KEY) return null;
+  if (!POLZA_KEY) return null;
   const { execFileSync } = require('child_process');
   try {
     const result = execFileSync('curl', [
       '-s', '-L', '--ssl-no-revoke',
       'https://polza.ai/api/v1/audio/transcriptions',
-      '-H', `Authorization: Bearer ${OPENAI_KEY}`,
+      '-H', `Authorization: Bearer ${POLZA_KEY}`,
       '-F', `file=@${audioPath}`,
       '-F', 'model=openai/whisper-1',
       '-F', 'language=ru',
@@ -240,9 +241,9 @@ async function openaiChat(prompt, systemPrompt, maxTokens, model) {
   const isDeepSeek = model && model.startsWith('deepseek');
   let apiKey = isDeepSeek ? DEEPSEEK_KEY : OPENAI_KEY;
   let apiUrl = isDeepSeek ? 'https://api.deepseek.com/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
-  const polzaFallback = isDeepSeek && OPENAI_KEY; // Polza.ai через OPENAI_KEY
+  const polzaFallback = isDeepSeek && POLZA_KEY; // Polza.ai через POLZA_KEY
   if (!apiKey && polzaFallback) {
-    apiKey = OPENAI_KEY;
+    apiKey = POLZA_KEY;
     apiUrl = 'https://polza.ai/api/v1/chat/completions';
     model = 'deepseek/deepseek-chat';
   }
@@ -278,9 +279,9 @@ async function openaiChat(prompt, systemPrompt, maxTokens, model) {
           // Невалидный ключ — ретрай бессмысленен
           if (errCode === 'invalid_api_key' || errMsg.includes('Incorrect API key')) return null;
           // Fallback на Polza.ai при ошибке DeepSeek (rate limit и т.д.)
-          if (isDeepSeek && OPENAI_KEY && apiUrl.includes('deepseek.com')) {
+          if (isDeepSeek && POLZA_KEY && apiUrl.includes('deepseek.com')) {
             console.log('    🔄 DeepSeek недоступен, переключаюсь на Polza.ai...');
-            apiKey = OPENAI_KEY;
+            apiKey = POLZA_KEY;
             apiUrl = 'https://polza.ai/api/v1/chat/completions';
             model = 'deepseek/deepseek-chat';
             const newBody = JSON.stringify({ ...JSON.parse(body), model });
@@ -1234,7 +1235,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
       let transcription = null;
       if (type === 'outCall' || type === 'inCall') {
         transcription = extractTranscription(c.description);
-        if (!transcription && OPENAI_KEY) {
+        if (!transcription && POLZA_KEY) {
           transcription = await transcribeCallIfNeeded({ transcription, files: c.files || [] }, transcriptionCache);
           if (transcription) whisperCount++;
         }
@@ -1344,7 +1345,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
       if (!type) continue;
 
       let transcription = extractTranscription(c.description);
-      if (!transcription && OPENAI_KEY) {
+      if (!transcription && POLZA_KEY) {
         transcription = await transcribeCallIfNeeded({ transcription, files: c.files || [] }, transcriptionCache);
         if (transcription) whisperCount++;
       }
@@ -1595,7 +1596,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
     if (!dayDeals.length) continue;
 
     // ИИ-оценка каждой сделки за этот день
-    if (OPENAI_KEY) {
+    if (DEEPSEEK_KEY || POLZA_KEY) {
       const cached = dayDeals.filter(da => aiCache[`assess_${da.deal.id}_${dayDMY}_v19`] || aiCache[`assess_${da.deal.id}_${dayDMY}_v19a`]).length;
       const needAi = dayDeals.length - cached;
       if (needAi > 0) {
@@ -1690,7 +1691,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
 
   // === Итоги для руководителя (день / неделя / месяц) ===
   const managerSummaries = { day: null, week: null, month: null };
-  if (OPENAI_KEY) {
+  if (DEEPSEEK_KEY || POLZA_KEY) {
     console.log(`\n👔 Генерация отчёта для руководителя...`);
     managerSummaries.day = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 1, reportDMY, aiCache, mgrAlias);
     if (managerSummaries.day) process.stdout.write('  ✅ День ');
