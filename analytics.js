@@ -63,7 +63,7 @@ const CONCURRENCY = 10; // параллельных запросов к API
 const START_TIME = Date.now();
 const isCI = !!process.env.CI || !!process.env.GITHUB_ACTIONS;
 const TIME_LIMIT_MS = isCI ? 150 * 60 * 1000 : Infinity; // 150 мин на CI (из 180 таймаута)
-const MAX_DAYS_CI = 14; // макс дней для ИИ-оценки на CI
+const MAX_DAYS_CI = 7; // макс дней для ИИ-оценки на CI (7 чтобы влезть в таймаут)
 function timeLeft() { return TIME_LIMIT_MS - (Date.now() - START_TIME); }
 function isTimeUp() { return timeLeft() < 5 * 60 * 1000; } // стоп за 5 мин до лимита
 async function parallelMap(items, fn, concurrency = CONCURRENCY) {
@@ -183,13 +183,16 @@ async function whisperTranscribe(audioPath) {
     ], { encoding: 'utf8', timeout: 120000 });
     const trimmed = result.trim();
     if (!trimmed) return null;
-    // Polza.ai может вернуть JSON вместо текста — извлекаем text
+    // Polza.ai может вернуть JSON вместо текста — извлекаем text или детектим ошибку
     if (trimmed.startsWith('{')) {
       try {
         const parsed = JSON.parse(trimmed);
+        if (parsed.error) { console.log(`    ⚠️ Whisper error: ${(parsed.error.message || '').substring(0, 80)}`); return null; }
         return parsed.text || parsed.transcription || null;
       } catch {}
     }
+    // Если ответ содержит ошибку API — не считаем транскрибацией
+    if (trimmed.includes('"error"') || trimmed.includes('invalid_api_key') || trimmed.includes('Incorrect API key')) return null;
     return trimmed;
   } catch { return null; }
 }
@@ -197,6 +200,8 @@ async function whisperTranscribe(audioPath) {
 async function transcribeCallIfNeeded(comment, cache) {
   // Already has transcription
   if (comment.transcription) return comment.transcription;
+  // На CI пропускаем транскрибацию если время на исходе
+  if (isTimeUp()) return null;
   // No audio files
   const files = comment.files || [];
   const audioFile = files.find(f => (f.name || '').toLowerCase().endsWith('.mp3'));
@@ -267,8 +272,12 @@ async function openaiChat(prompt, systemPrompt, maxTokens, model) {
         ], { encoding: 'utf8', timeout: 120000 });
         const parsed = JSON.parse(r);
         if (parsed.error) {
-          console.error(`    ⚠️ API error: ${parsed.error.message}`);
-          // Fallback на Polza.ai при ошибке DeepSeek (auth failed, rate limit и т.д.)
+          const errCode = parsed.error.code || '';
+          const errMsg = parsed.error.message || '';
+          console.error(`    ⚠️ API error: ${errMsg}`);
+          // Невалидный ключ — ретрай бессмысленен
+          if (errCode === 'invalid_api_key' || errMsg.includes('Incorrect API key')) return null;
+          // Fallback на Polza.ai при ошибке DeepSeek (rate limit и т.д.)
           if (isDeepSeek && OPENAI_KEY && apiUrl.includes('deepseek.com')) {
             console.log('    🔄 DeepSeek недоступен, переключаюсь на Polza.ai...');
             apiKey = OPENAI_KEY;
@@ -1596,7 +1605,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
       }
       let aiIdx = 0;
       await parallelMap(dayDeals, async (da) => {
-        da.aiAssessment = await aiDealFullAssessment(da, dayDMY, aiCache);
+        if (!isTimeUp()) da.aiAssessment = await aiDealFullAssessment(da, dayDMY, aiCache);
         aiIdx++;
         if (needAi > 0) process.stdout.write(`\r    [${aiIdx}/${dayDeals.length}]`);
       }, CONCURRENCY);

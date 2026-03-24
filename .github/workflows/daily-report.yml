@@ -45,7 +45,7 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add ai_cache.json latest_data.json funnel_snapshot.json daily_log.txt report.html data/ reports/ deploy/ managers.json
+          git add ai_cache.json latest_data.json funnel_snapshot.json daily_log.txt report.html data/ reports/ deploy/ managers.json transcriptions_cache.json
           git diff --cached --quiet || git commit -m "Report $(TZ=Europe/Moscow date +%d.%m.%Y) $(TZ=Europe/Moscow date +%H:%M)"
           git pull --rebase || true
           git push
