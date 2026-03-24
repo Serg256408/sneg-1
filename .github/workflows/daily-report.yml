@@ -14,7 +14,7 @@ permissions:
 jobs:
   report:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 180
 
     steps:
       - name: Checkout
@@ -41,6 +41,7 @@ jobs:
           node analytics.js --all "$TODAY"
 
       - name: Commit data files
+        if: always()
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
@@ -50,6 +51,7 @@ jobs:
           git push
 
       - name: Deploy to GitHub Pages
+        if: always()
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

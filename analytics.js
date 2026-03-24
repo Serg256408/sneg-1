@@ -60,6 +60,12 @@ const pf = (ep, body) => httpPost(API_URL + ep, body, AUTH);
 const pfGet = (ep) => httpGet(API_URL + ep, AUTH);
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const CONCURRENCY = 10; // параллельных запросов к API
+const START_TIME = Date.now();
+const isCI = !!process.env.CI || !!process.env.GITHUB_ACTIONS;
+const TIME_LIMIT_MS = isCI ? 150 * 60 * 1000 : Infinity; // 150 мин на CI (из 180 таймаута)
+const MAX_DAYS_CI = 14; // макс дней для ИИ-оценки на CI
+function timeLeft() { return TIME_LIMIT_MS - (Date.now() - START_TIME); }
+function isTimeUp() { return timeLeft() < 5 * 60 * 1000; } // стоп за 5 мин до лимита
 async function parallelMap(items, fn, concurrency = CONCURRENCY) {
   const results = new Array(items.length);
   let idx = 0;
@@ -1561,7 +1567,21 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
   });
   console.log(`  🤖 Всего дней с активностью: ${daysList.length}`);
 
-  for (const dayDMY of daysList) {
+  // На CI ограничиваем количество дней для ИИ-оценки
+  const daysToProcess = isCI ? daysList.slice(0, MAX_DAYS_CI) : daysList;
+  if (isCI && daysList.length > MAX_DAYS_CI) {
+    console.log(`  ⏱️ CI: обрабатываем ${MAX_DAYS_CI} из ${daysList.length} дней (остальные — из кэша)`);
+  }
+
+  let daysProcessed = 0;
+  for (const dayDMY of daysToProcess) {
+    // Проверка лимита времени
+    if (isTimeUp()) {
+      console.log(`\n  ⏱️ Лимит времени! Обработано ${daysProcessed} дней, сохраняю кэш...`);
+      saveAiCache(aiCache);
+      break;
+    }
+
     const dayDeals = buildDayActivityServer(dayDMY);
     if (!dayDeals.length) continue;
 
@@ -1585,7 +1605,11 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
 
       // ИИ итог дня
       multiDaySummary[dayDMY] = await aiDaySummary(dayDeals, dayDMY, aiCache, mgrAlias);
+
+      // Сохраняем кэш после каждого дня (защита от таймаута)
+      if (needAi > 0) saveAiCache(aiCache);
     }
+    daysProcessed++;
 
     // Не сохраняем allComments/allCalls/allAnalyses в multiDay (экономим размер)
     multiDayActivity[dayDMY] = dayDeals.map(da => ({
