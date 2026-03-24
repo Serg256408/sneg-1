@@ -64,7 +64,7 @@ const CONCURRENCY = 10; // параллельных запросов к API
 const START_TIME = Date.now();
 const isCI = !!process.env.CI || !!process.env.GITHUB_ACTIONS;
 const TIME_LIMIT_MS = isCI ? 150 * 60 * 1000 : Infinity; // 150 мин на CI (из 180 таймаута)
-const MAX_DAYS_CI = 7; // макс дней для ИИ-оценки на CI (7 чтобы влезть в таймаут)
+const MAX_DAYS_CI = 14; // макс дней для ИИ-оценки на CI
 function timeLeft() { return TIME_LIMIT_MS - (Date.now() - START_TIME); }
 function isTimeUp() { return timeLeft() < 5 * 60 * 1000; } // стоп за 5 мин до лимита
 async function parallelMap(items, fn, concurrency = CONCURRENCY) {
@@ -1056,16 +1056,21 @@ async function getTaskComments(taskId) {
 }
 
 async function getContactComments(contactId) {
-  try {
-    const id = String(contactId).replace('contact:', '');
-    const d = await pf(`/contact/${id}/comments/list`, {
-      offset: 0, pageSize: 100, fields: 'id,description,type,dateTime,owner,files',
-    });
-    return d.comments || [];
-  } catch (e) {
-    console.error(`    ⚠️ Contact ${contactId} error: ${e.message}`);
-    return [];
+  const id = String(contactId).replace('contact:', '');
+  const body = { offset: 0, pageSize: 100, fields: 'id,description,type,dateTime,owner,files' };
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const d = useAxios
+        ? (await axios.post(API_URL + `/contact/${id}/comments/list`, body, { headers: AUTH, timeout: 15000, maxRedirects: 10 })).data
+        : await pf(`/contact/${id}/comments/list`, body);
+      return d.comments || [];
+    } catch (e) {
+      if (attempt < 2) { await sleep(1000); continue; }
+      console.error(`    ⚠️ Contact ${contactId} error: ${e.message}`);
+      return [];
+    }
   }
+  return [];
 }
 
 // ============ ОБРАБОТКА ============
@@ -1321,6 +1326,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
   let contactIdx = 0;
   await parallelMap(uniqueContacts, async (cpId) => {
     const comments = await getContactComments(cpId);
+
     for (const c of comments) {
       const desc = stripHtml(c.description);
       const descLow = desc.toLowerCase();
@@ -1373,7 +1379,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
     }
     contactIdx++;
     if (contactIdx % 10 === 0) process.stdout.write(`\r    [${contactIdx}/${uniqueContacts.length}]`);
-  }, CONCURRENCY);
+  }, 5); // меньше параллельных запросов к контактам — Planfix не справляется с 10
   console.log(`\r    [${uniqueContacts.length}/${uniqueContacts.length}]`);
   console.log(`    ✅ ${contactCallsTotal} звонков из контактов`);
 
