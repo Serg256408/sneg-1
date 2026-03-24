@@ -48,8 +48,9 @@ jobs:
           git config user.email "actions@github.com"
           git add ai_cache.json latest_data.json funnel_snapshot.json daily_log.txt report.html data/ reports/ deploy/ managers.json transcriptions_cache.json
           git diff --cached --quiet || git commit -m "Report $(TZ=Europe/Moscow date +%d.%m.%Y) $(TZ=Europe/Moscow date +%H:%M)"
-          git pull --rebase || true
-          git push
+          # При конфликте — приоритет CI-версии данных
+          git pull --no-rebase -X theirs || true
+          git push || { git push --force-with-lease; }
 
       - name: Deploy to GitHub Pages
         if: always()
