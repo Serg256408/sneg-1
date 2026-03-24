@@ -19,6 +19,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Pull latest cache files
+        run: git pull origin main || true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
