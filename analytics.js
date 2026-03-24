@@ -1058,14 +1058,15 @@ async function getTaskComments(taskId) {
 async function getContactComments(contactId) {
   const id = String(contactId).replace('contact:', '');
   const body = { offset: 0, pageSize: 100, fields: 'id,description,type,dateTime,owner,files' };
-  for (let attempt = 1; attempt <= 2; attempt++) {
+  for (let attempt = 1; attempt <= 3; attempt++) {
     try {
+      const tm = attempt === 1 ? 15000 : attempt === 2 ? 25000 : 40000;
       const d = useAxios
-        ? (await axios.post(API_URL + `/contact/${id}/comments/list`, body, { headers: AUTH, timeout: 15000, maxRedirects: 10 })).data
+        ? (await axios.post(API_URL + `/contact/${id}/comments/list`, body, { headers: AUTH, timeout: tm, maxRedirects: 10 })).data
         : await pf(`/contact/${id}/comments/list`, body);
       return d.comments || [];
     } catch (e) {
-      if (attempt < 2) { await sleep(1000); continue; }
+      if (attempt < 3) { await sleep(2000 * attempt); continue; }
       console.error(`    ⚠️ Contact ${contactId} error: ${e.message}`);
       return [];
     }
