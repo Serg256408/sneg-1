@@ -2500,8 +2500,11 @@ function renderDay(){
         }
         if(a.transcription){
           const tid='tr_day_'+d.id+'_'+ai;
-          h+='<button class="toggle-btn" style="margin-top:6px" onclick="toggleTr(&#39;'+tid+'&#39;)">🎙 Транскрибация</button>';
-          h+='<div id="'+tid+'" class="transcript" style="display:none">'+esc(a.transcription)+'</div>';
+          h+='<div style="margin-top:6px"><span style="font-size:10px;color:#16a34a;font-weight:600">✅ ИИ учёл этот звонок</span> ';
+          h+='<button class="toggle-btn" onclick="toggleTr(&#39;'+tid+'&#39;)">🎙 Показать транскрибацию</button></div>';
+          h+='<div id="'+tid+'" class="transcript" style="display:none;max-height:300px;overflow-y:auto;margin-top:4px;padding:8px 12px;background:rgba(96,165,250,.04);border-left:3px solid #60a5fa;border-radius:0 8px 8px 0;font-size:11px;color:#374151;line-height:1.5">'+esc(a.transcription)+'</div>';
+        } else if(isCall && a.duration && parseInt(a.duration)>0){
+          h+='<div style="margin-top:4px"><span style="font-size:10px;color:#f87171;font-weight:600">⚠️ Транскрибация отсутствует — ИИ не видел содержание звонка</span></div>';
         }
         h+='</div>';
       }
@@ -2523,8 +2526,10 @@ function renderDay(){
         h+='<span style="font-size:11px;color:#6b7280">'+esc(c.text.substring(0,150))+'</span>';
         if(c.transcription){
           const tid='tr_hist_'+d.id+'_'+c.id;
-          h+=' <button class="toggle-btn" onclick="toggleTr(&#39;'+tid+'&#39;)" style="font-size:9px">транскр.</button>';
+          h+=' <span style="font-size:9px;color:#16a34a">✅</span> <button class="toggle-btn" onclick="toggleTr(&#39;'+tid+'&#39;)" style="font-size:9px">транскр.</button>';
           h+='<div id="'+tid+'" class="transcript" style="display:none;max-height:150px">'+esc(c.transcription)+'</div>';
+        } else if((c.type==='outCall'||c.type==='inCall')&&c.text.length<30){
+          h+=' <span style="font-size:9px;color:#f87171">⚠️ нет транскр.</span>';
         }
         h+='</div>';
       }
