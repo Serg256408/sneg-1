@@ -1238,7 +1238,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
       }
       // Транскрибация в тексте (----------  🔴/🔵) или mp3 "Запись звонка" = звонок
       if (type === 'note') {
-        const hasCallTranscription = desc.includes('----------') && (/[🔴🔵]/.test(desc) || /\bA:.*\bB:/s.test(desc));
+        const hasCallTranscription = desc.includes('----------') && (/[🔴🔵●]/.test(desc) || /A:.*B:/s.test(desc));
         const hasCallRecording = (c.files || []).some(f => (f.name || '').toLowerCase().includes('запись звонка'));
         if (hasCallTranscription || hasCallRecording) {
           type = 'inCall'; // по умолчанию входящий, если направление неизвестно
