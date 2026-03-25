@@ -146,8 +146,14 @@ function extractTranscription(description) {
 // ============ ТРАНСКРИБАЦИЯ ЧЕРЕЗ WHISPER ============
 
 function loadTranscriptionCache() {
-  try { return JSON.parse(fs.readFileSync(TRANSCRIPTION_CACHE_FILE, 'utf8')); }
-  catch { return {}; }
+  try {
+    const data = JSON.parse(fs.readFileSync(TRANSCRIPTION_CACHE_FILE, 'utf8'));
+    console.log(`  📝 Кэш транскрибаций: ${Object.keys(data).length} записей (${TRANSCRIPTION_CACHE_FILE})`);
+    return data;
+  } catch {
+    console.log(`  📝 Кэш транскрибаций: пустой (файл не найден)`);
+    return {};
+  }
 }
 
 function saveTranscriptionCache(cache) {
@@ -212,9 +218,13 @@ async function transcribeCallIfNeeded(comment, cache) {
   const files = comment.files || [];
   const audioFile = files.find(f => (f.name || '').toLowerCase().endsWith('.mp3'));
   if (!audioFile) return null;
-  // Check cache
+  // Check cache (transcriptions_cache.json И ai_cache.json)
   const cacheKey = String(audioFile.id);
   if (cache[cacheKey]) return cache[cacheKey];
+  // Fallback: проверяем ai_cache (надёжнее — он всегда коммитится)
+  const aiCacheTmp = loadAiCache();
+  const aiKey = `whisper_${audioFile.id}`;
+  if (aiCacheTmp[aiKey]) { cache[cacheKey] = aiCacheTmp[aiKey]; return aiCacheTmp[aiKey]; }
   // Download and transcribe
   whisperCallsThisRun++;
   if (whisperCallsThisRun === 1) console.log(`    🎤 Whisper: новых транскрибаций (лимит ${MAX_WHISPER_PER_RUN})...`);
@@ -225,6 +235,10 @@ async function transcribeCallIfNeeded(comment, cache) {
     if (text) {
       cache[cacheKey] = text;
       saveTranscriptionCache(cache);
+      // Дублируем в ai_cache — он надёжно коммитится
+      const aiC = loadAiCache();
+      aiC[`whisper_${audioFile.id}`] = text;
+      saveAiCache(aiC);
     }
     return text;
   } finally {
