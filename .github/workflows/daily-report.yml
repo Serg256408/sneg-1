@@ -4,7 +4,12 @@ on:
   schedule:
     # 19:00 Moscow (UTC+3) = 16:00 UTC
     - cron: '0 16 * * *'
-  workflow_dispatch: # ручной запуск из GitHub UI
+  workflow_dispatch:
+    inputs:
+      manager:
+        description: 'Менеджер (alias или --all для всех)'
+        required: false
+        default: '--all'
 
 permissions:
   contents: write
@@ -44,8 +49,13 @@ jobs:
           POLZA_API_KEY: ${{ secrets.POLZA_API_KEY }}
         run: |
           TODAY=$(TZ=Europe/Moscow date +%d-%m-%Y)
-          echo "Generating reports for $TODAY"
-          node analytics.js --all "$TODAY"
+          MANAGER="${{ github.event.inputs.manager || '--all' }}"
+          echo "Generating reports for $TODAY (manager: $MANAGER)"
+          if [ "$MANAGER" = "--all" ]; then
+            node analytics.js --all "$TODAY"
+          else
+            node analytics.js "$MANAGER" "$TODAY"
+          fi
 
       - name: Commit data files
         if: always()
