@@ -333,7 +333,7 @@ async function openaiChat(prompt, systemPrompt, maxTokens, model) {
 async function aiDealFullAssessment(dealActivity, reportDate, aiCache) {
   const deal = dealActivity.deal;
   const isSnow = (deal.name || '').toLowerCase().startsWith('вывоз снега');
-  const cacheKey = `assess_${deal.id}_${reportDate}_${isSnow ? 'v19' : 'v19a'}`;
+  const cacheKey = `assess_${deal.id}_${reportDate}_${isSnow ? 'v20' : 'v20a'}`;
   if (aiCache[cacheKey]) return aiCache[cacheKey];
 
   // Собираем данные, ЧЁТКО разделяя ЗВОНКИ и ПЕРЕПИСКУ
@@ -1631,7 +1631,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
 
     // ИИ-оценка каждой сделки за этот день
     if (DEEPSEEK_KEY || POLZA_KEY) {
-      const cached = dayDeals.filter(da => aiCache[`assess_${da.deal.id}_${dayDMY}_v19`] || aiCache[`assess_${da.deal.id}_${dayDMY}_v19a`]).length;
+      const cached = dayDeals.filter(da => aiCache[`assess_${da.deal.id}_${dayDMY}_v20`] || aiCache[`assess_${da.deal.id}_${dayDMY}_v20a`]).length;
       const needAi = dayDeals.length - cached;
       if (needAi > 0) {
         console.log(`  🤖 ИИ-оценка ${dayDeals.length} сделок за ${dayDMY} (${cached} из кэша)...`);
