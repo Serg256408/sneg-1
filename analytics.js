@@ -3599,7 +3599,13 @@ function renderManager(){
   h+='</div>';
 
   // === AI ВЫЖИМКА ===
-  var text=ms[mgrPeriod]||null;
+  // Для режима "День" — показываем итог за выбранную дату из multiDaySummary
+  var text;
+  if(mgrPeriod==='day' && D.multiDaySummary && D.multiDaySummary[selectedDate]){
+    text=D.multiDaySummary[selectedDate];
+  } else {
+    text=ms[mgrPeriod]||null;
+  }
   var periodLabel=mgrPeriod==='day'?'день':mgrPeriod==='week'?'неделю':'месяц';
   if(text){
     // Иконки и цвета для секций
@@ -3615,7 +3621,8 @@ function renderManager(){
     // Разбиваем на секции по заголовкам (1. ТЕКСТ, 2. ТЕКСТ, **ТЕКСТ**)
     var lines=text.split('\\n');
     var sections=[];
-    var curSec={title:'Отчёт для руководителя за '+periodLabel,lines:[]};
+    var dateLabel=mgrPeriod==='day'?selectedDate:(mgrPeriod==='week'?'неделю':'месяц');
+    var curSec={title:'Отчёт для руководителя за '+dateLabel,lines:[]};
     for(var i=0;i<lines.length;i++){
       var line=lines[i].trim();
       if(!line)continue;
