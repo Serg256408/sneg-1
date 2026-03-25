@@ -3278,33 +3278,78 @@ function renderStats(){
       if(!movedTo[newStatus].deals.some(function(d){return d.id==card.id;})){
         movedTo[newStatus].count++;
         movedTo[newStatus].sum+=(card.dealSum||0);
-        movedTo[newStatus].deals.push({id:card.id,name:card.name,sum:card.dealSum||0});
+        movedTo[newStatus].deals.push({id:card.id,name:card.name,sum:card.dealSum||0,counterparty:card.counterparty||''});
       }
     });
   });
-  var mvStatuses=statusOrder2.filter(function(s){return movedTo[s]&&movedTo[s].count>0;});
-  // Также добавляем статусы не в основном списке
-  Object.keys(movedTo).forEach(function(s){if(mvStatuses.indexOf(s)<0&&movedTo[s].count>0)mvStatuses.push(s);});
-  if(mvStatuses.length){
-    h+='<div style="margin-top:14px"><h4 style="color:#a78bfa">🔄 Переходы по воронке за выбранный период</h4>';
-    h+='<table><tr><th>Перешли в статус</th><th style="text-align:center">Сделок</th><th style="text-align:right">Сумма</th></tr>';
-    for(var mi=0;mi<mvStatuses.length;mi++){
-      var ms=mvStatuses[mi];
-      var mv=movedTo[ms];
-      var isW=ms==='Выполнение Работы';
-      var isDn=['Договор и оплата','Выполнение Работы','Сделанная','Сделка завершена'].indexOf(ms)>=0;
-      h+='<tr style="'+(isW?'background:rgba(52,211,153,.12);':'')+'"><td style="font-weight:700;color:'+(isW?'#16a34a':isDn?'#16a34a':'#1a1a2e')+'">'+(isW?'🏗 ':'')+esc(ms)+'</td>';
-      h+='<td style="text-align:center;font-weight:700">'+mv.count+'</td>';
-      h+='<td style="text-align:right;color:#fbbf24">'+(mv.sum?fmt(mv.sum)+' ₽':'—')+'</td></tr>';
-      mv.deals.sort(function(a,b){return(b.sum||0)-(a.sum||0);});
-      for(var di3=0;di3<mv.deals.length;di3++){
-        var dd=mv.deals[di3];
-        h+='<tr style="background:rgba(0,0,0,.02)"><td style="padding-left:24px;font-size:11px;color:#6b7280">↳ #'+dd.id+' '+esc((dd.name||'').substring(0,45))+'</td>';
-        h+='<td></td><td style="text-align:right;font-size:11px;color:#fbbf24">'+(dd.sum?fmt(dd.sum)+' ₽':'—')+'</td></tr>';
-      }
+
+  // === ПРОДУКТИВНОСТЬ МЕНЕДЖЕРА ===
+  var prodStatuses=[
+    {key:'Обработка',icon:'📥',color:'#60a5fa',label:'Попало в обработку'},
+    {key:'Коммерческое предложение',icon:'📋',color:'#818cf8',label:'Передвинуто в КП'},
+    {key:'Клиент принимает решение',icon:'🤔',color:'#a78bfa',label:'Клиент принимает решение'},
+    {key:'Дожим',icon:'💪',color:'#f59e0b',label:'Дожим'},
+    {key:'Договор и оплата',icon:'💰',color:'#16a34a',label:'Договор и оплата'},
+    {key:'Выполнение Работы',icon:'🏗',color:'#059669',label:'Выполнение работы'},
+    {key:'Сделанная',icon:'✅',color:'#10b981',label:'Успешно завершены'},
+    {key:'Сделка завершена',icon:'❌',color:'#ef4444',label:'Неуспешные (закрыты)'}
+  ];
+  var totalToPayment=0,totalToPaymentCount=0;
+  prodStatuses.forEach(function(ps){
+    if(['Договор и оплата','Выполнение Работы','Сделанная'].indexOf(ps.key)>=0 && movedTo[ps.key]){
+      totalToPayment+=movedTo[ps.key].sum;
+      totalToPaymentCount+=movedTo[ps.key].count;
     }
-    h+='</table></div>';
+  });
+
+  h+='<div style="margin-top:18px"><h4 style="color:#60a5fa;margin-bottom:10px">📈 Продуктивность менеджера за период</h4>';
+  h+='<table><tr><th>Движение по воронке</th><th style="text-align:center">Сделок</th><th style="text-align:right">Сумма</th></tr>';
+  for(var pi=0;pi<prodStatuses.length;pi++){
+    var ps=prodStatuses[pi];
+    var mv=movedTo[ps.key];
+    if(!mv||mv.count===0){
+      h+='<tr style="opacity:.4"><td>'+ps.icon+' '+ps.label+'</td><td style="text-align:center">0</td><td style="text-align:right">—</td></tr>';
+      continue;
+    }
+    var isMoney=['Договор и оплата','Выполнение Работы','Сделанная'].indexOf(ps.key)>=0;
+    var bgStyle=isMoney?'background:rgba(16,185,129,.08);':'';
+    h+='<tr style="'+bgStyle+'"><td style="font-weight:700;color:'+ps.color+'">'+ps.icon+' '+ps.label+'</td>';
+    h+='<td style="text-align:center;font-weight:700;font-size:16px">'+mv.count+'</td>';
+    h+='<td style="text-align:right;font-weight:700;color:'+(isMoney?'#16a34a':'#fbbf24')+'">'+(mv.sum?fmt(mv.sum)+' ₽':'—')+'</td></tr>';
+    // Раскрывающийся список сделок
+    mv.deals.sort(function(a,b){return(b.sum||0)-(a.sum||0);});
+    for(var di3=0;di3<mv.deals.length;di3++){
+      var dd=mv.deals[di3];
+      h+='<tr style="background:rgba(0,0,0,.02)"><td style="padding-left:28px;font-size:11px;color:#6b7280">';
+      h+='↳ <span style="color:#60a5fa;font-weight:600">#'+dd.id+'</span> '+esc((dd.name||'').substring(0,50));
+      if(dd.counterparty) h+=' <span style="color:#9ca3af">— '+esc(dd.counterparty.substring(0,25))+'</span>';
+      h+='</td><td></td>';
+      h+='<td style="text-align:right;font-size:11px;color:#fbbf24">'+(dd.sum?fmt(dd.sum)+' ₽':'—')+'</td></tr>';
+    }
   }
+  // Также показываем статусы не в основном списке
+  Object.keys(movedTo).forEach(function(s){
+    if(prodStatuses.some(function(ps){return ps.key===s;}))return;
+    if(!movedTo[s]||movedTo[s].count===0)return;
+    var mv=movedTo[s];
+    h+='<tr><td style="font-weight:600;color:#6b7280">↪ '+esc(s)+'</td>';
+    h+='<td style="text-align:center;font-weight:700">'+mv.count+'</td>';
+    h+='<td style="text-align:right;color:#fbbf24">'+(mv.sum?fmt(mv.sum)+' ₽':'—')+'</td></tr>';
+    mv.deals.sort(function(a,b){return(b.sum||0)-(a.sum||0);});
+    for(var di4=0;di4<mv.deals.length;di4++){
+      var dd2=mv.deals[di4];
+      h+='<tr style="background:rgba(0,0,0,.02)"><td style="padding-left:28px;font-size:11px;color:#6b7280">';
+      h+='↳ <span style="color:#60a5fa;font-weight:600">#'+dd2.id+'</span> '+esc((dd2.name||'').substring(0,50))+'</td>';
+      h+='<td></td><td style="text-align:right;font-size:11px;color:#fbbf24">'+(dd2.sum?fmt(dd2.sum)+' ₽':'—')+'</td></tr>';
+    }
+  });
+  // ИТОГО к оплате
+  h+='<tr style="border-top:2px solid rgba(16,185,129,.3);background:rgba(16,185,129,.06)">';
+  h+='<td style="font-weight:800;color:#059669">💵 ИТОГО к оплате/в работе</td>';
+  h+='<td style="text-align:center;font-weight:800;color:#059669">'+totalToPaymentCount+'</td>';
+  h+='<td style="text-align:right;font-weight:800;color:#16a34a;font-size:15px">'+(totalToPayment?fmt(totalToPayment)+' ₽':'—')+'</td></tr>';
+  h+='</table></div>';
+
   h+='</div>';
 
   // === АКТИВНОСТЬ ПО ДНЯМ — большая таблица ===
