@@ -198,11 +198,16 @@ async function whisperTranscribe(audioPath) {
   } catch { return null; }
 }
 
+const MAX_WHISPER_PER_RUN = 50; // лимит транскрибаций за один запуск (~$2-3)
+let whisperCallsThisRun = 0;
+
 async function transcribeCallIfNeeded(comment, cache) {
   // Already has transcription
   if (comment.transcription) return comment.transcription;
   // На CI пропускаем транскрибацию если время на исходе
   if (isTimeUp()) return null;
+  // Лимит транскрибаций за запуск
+  if (whisperCallsThisRun >= MAX_WHISPER_PER_RUN) return null;
   // No audio files
   const files = comment.files || [];
   const audioFile = files.find(f => (f.name || '').toLowerCase().endsWith('.mp3'));
@@ -211,6 +216,8 @@ async function transcribeCallIfNeeded(comment, cache) {
   const cacheKey = String(audioFile.id);
   if (cache[cacheKey]) return cache[cacheKey];
   // Download and transcribe
+  whisperCallsThisRun++;
+  if (whisperCallsThisRun === 1) console.log(`    🎤 Whisper: новых транскрибаций (лимит ${MAX_WHISPER_PER_RUN})...`);
   const audioPath = downloadPlanfixFile(audioFile.id);
   if (!audioPath) return null;
   try {
