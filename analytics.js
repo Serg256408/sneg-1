@@ -1072,6 +1072,17 @@ async function getTaskComments(taskId) {
     const d = await pf(`/task/${taskId}/comments/list`, {
       offset: 0, pageSize: 100, fields: 'id,description,type,dateTime,owner,files',
     });
+    // Диагностика: логируем звонки сделки 31811
+    if (String(taskId) === '31811' && d.comments) {
+      const calls = d.comments.filter(c => {
+        const desc = (c.description || '').toLowerCase();
+        return desc.includes('звонок') || (c.files || []).some(f => (f.name||'').includes('Запись'));
+      });
+      console.log(`  🔍 Диагностика #31811: ${calls.length} звонков из ${d.comments.length} комментариев`);
+      calls.slice(0, 3).forEach(c => {
+        console.log(`    comment ${c.id}: desc=${(c.description||'').length}б type=${c.type} files=${(c.files||[]).map(f=>f.name).join(',')} desc_preview="${(c.description||'').substring(0,100)}"`);
+      });
+    }
     return d.comments || [];
   } catch { return []; }
 }
