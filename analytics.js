@@ -1248,6 +1248,12 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
       let transcription = null;
       if (type === 'outCall' || type === 'inCall') {
         transcription = extractTranscription(c.description);
+        if (!transcription) {
+          const hasFiles = (c.files || []).length > 0;
+          const descLen = (c.description || '').length;
+          const hasSep = (c.description || '').includes('----------') || (c.description || '').includes('<hr');
+          if (hasFiles || descLen > 200) console.log(`    ⚠️ Звонок без транскрибации: comment ${c.id}, desc=${descLen}б, sep=${hasSep}, files=${hasFiles}`);
+        }
         if (!transcription && POLZA_KEY) {
           transcription = await transcribeCallIfNeeded({ transcription, files: c.files || [] }, transcriptionCache);
           if (transcription) whisperCount++;
