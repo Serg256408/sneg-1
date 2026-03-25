@@ -1048,11 +1048,12 @@ async function discoverEmployees() {
   });
 }
 
-async function getAllTasks(userId) {
+async function getAllTasks(userId, role) {
   const all = [];
+  // Загружаем сделки где менеджер ответственный (type 97)
   let offset = 0;
   while (true) {
-    process.stdout.write(`  Сделки offset=${offset}...`);
+    process.stdout.write(`  Сделки (исполнитель) offset=${offset}...`);
     const d = await pf('/task/list', { offset, pageSize: 100,
       filters: [{ type: 97, operator: 'equal', value: `user:${userId}` }],
       fields: DEAL_FIELDS,
@@ -1061,6 +1062,24 @@ async function getAllTasks(userId) {
     console.log(` ${tasks.length}`);
     if (!tasks.length) break;
     all.push(...tasks);
+    if (tasks.length < 100) break;
+    offset += 100;
+  }
+  // Также загружаем сделки где менеджер участник (type 51)
+  const seenIds = new Set(all.map(t => t.id));
+  offset = 0;
+  while (true) {
+    process.stdout.write(`  Сделки (участник) offset=${offset}...`);
+    const d = await pf('/task/list', { offset, pageSize: 100,
+      filters: [{ type: 51, operator: 'equal', value: `user:${userId}` }],
+      fields: DEAL_FIELDS,
+    });
+    const tasks = d.tasks || [];
+    console.log(` ${tasks.length}`);
+    if (!tasks.length) break;
+    for (const t of tasks) {
+      if (!seenIds.has(t.id)) { all.push(t); seenIds.add(t.id); }
+    }
     if (tasks.length < 100) break;
     offset += 100;
   }
@@ -1108,7 +1127,7 @@ async function getContactComments(contactId) {
 
 // ============ ОБРАБОТКА ============
 
-async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
+async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias, mgr) {
   if (mgrAlias) setSnapshotFile(mgrAlias);
   const reportTasks = tasks.filter(t => (t.name || '').startsWith('Отчет'));
   // Разделяем: родительские сделки и подзадачи
@@ -1117,8 +1136,10 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias) {
   // Карта: subtaskId -> parentId
   const subtaskToParent = {};
   for (const st of subtasks) subtaskToParent[st.id] = st.parent.id;
-  // Активные = от "Новая" до "Договор и оплата" (без "Выполнение Работы" и далее)
-  const activeTasks = dealTasks.filter(t => !SKIP_STATUSES.includes(t.status?.name || ''));
+  // Для реаниматора — все сделки, для обычного менеджера — без завершённых
+  const activeTasks = mgr.role === 'reanimator'
+    ? dealTasks
+    : dealTasks.filter(t => !SKIP_STATUSES.includes(t.status?.name || ''));
   if (subtasks.length) console.log(`  📎 Подзадачи: ${subtasks.length} шт → данные мёржатся в родителя`);
   console.log(`  📋 Сделок: ${dealTasks.length}, активных: ${activeTasks.length} (исключены: Выполнение Работы и завершённые)`);
 
@@ -4037,10 +4058,10 @@ async function runForManager(mgr, reportDate) {
   for (const d of [path.join(__dirname, 'data'), path.join(__dirname, 'reports'), mgrDeployDir(mgr.alias)])
     if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 
-  const tasks = await getAllTasks(mgr.userId);
+  const tasks = await getAllTasks(mgr.userId, mgr.role);
   console.log(`  ✅ Сделок: ${tasks.length}\n`);
 
-  const result = await buildDealCards(tasks, mgr.pfName, reportDate, mgr.alias);
+  const result = await buildDealCards(tasks, mgr.pfName, reportDate, mgr.alias, mgr);
   const { dealCards, dailyReports, allCalls, allAnalyses, dailyActivity, funnelChanges, scriptCompliance, dailyDealActivity, aiDaySummaryText, multiDayActivity, multiDaySummary } = result;
 
   console.log(`\n  📊 Сделок с звонками: ${dealCards.filter(d => d.totalCalls > 0).length}`);
