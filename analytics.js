@@ -3993,7 +3993,13 @@ async function runForManager(mgr, reportDate) {
 
   // === Автоотправка ИИ-рекомендаций в Planfix за текущий день ===
   if (dailyDealActivity.length && !process.argv.includes('--no-send')) {
-    const toSend = dailyDealActivity.filter(da => da.aiAssessment && da.aiAssessment.missing && da.aiAssessment.missing.length > 0);
+    const aiCache = loadAiCache();
+    const toSend = dailyDealActivity.filter(da => {
+      if (!da.aiAssessment || !da.aiAssessment.missing || !da.aiAssessment.missing.length) return false;
+      const sentKey = `sent_${da.deal.id}_${reportDate}`;
+      if (aiCache[sentKey]) return false; // уже отправляли за эту дату
+      return true;
+    });
     if (toSend.length) {
       console.log(`\n📤 Автоотправка ИИ-рекомендаций в Planfix (${toSend.length} сделок за ${reportDate})...`);
       let sent = 0, failed = 0;
@@ -4022,6 +4028,7 @@ async function runForManager(mgr, reportDate) {
         try {
           await pf(`/task/${da.deal.id}/comments/`, { description: h });
           sent++;
+          aiCache[`sent_${da.deal.id}_${reportDate}`] = true;
           process.stdout.write(`  ✅ #${da.deal.id} `);
         } catch (e) {
           failed++;
@@ -4029,6 +4036,7 @@ async function runForManager(mgr, reportDate) {
         }
         await sleep(300);
       }
+      saveAiCache(aiCache);
       console.log(`\n  📤 Отправлено: ${sent}, ошибок: ${failed}`);
     }
   }
