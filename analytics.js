@@ -198,7 +198,7 @@ async function whisperTranscribe(audioPath) {
   } catch { return null; }
 }
 
-const MAX_WHISPER_PER_RUN = 50; // лимит транскрибаций за один запуск (~$2-3)
+const MAX_WHISPER_PER_RUN = 150; // лимит транскрибаций за один запуск (~$5-6)
 let whisperCallsThisRun = 0;
 
 async function transcribeCallIfNeeded(comment, cache) {
