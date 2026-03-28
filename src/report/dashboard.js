@@ -1,4 +1,43 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+// ============================================================
+// dashboard.js — Мульти-менеджерский дашборд
+// ============================================================
+
+const { fs, path, ROOT_DIR, MANAGERS_LIST } = require('../utils/config');
+const { pad2 } = require('../utils/helpers');
+
+// ============ Дашборд для всех менеджеров ============
+function generateDashboard(date, mgrDataFile) {
+  const deployDir = path.join(ROOT_DIR, 'deploy');
+  if (!fs.existsSync(deployDir)) fs.mkdirSync(deployDir, { recursive: true });
+
+  const cards = [];
+  for (const mgr of MANAGERS_LIST) {
+    const dataPath = mgrDataFile(mgr.alias);
+    if (!fs.existsSync(dataPath)) continue;
+    try {
+      const d = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+      const active = (d.dealCards || []).filter(c => c.isActive);
+      const pipeline = active.reduce((s, c) => s + (c.dealSum || 0), 0);
+      const dda = d.dailyDealActivity || [];
+      const totalCalls = dda.reduce((s, dd) => s + (dd.actions || []).filter(a => a.type === 'outCall' || a.type === 'inCall').length, 0);
+      const scores = dda.filter(dd => dd.ai?.salaryScore?.total).map(dd => dd.ai.salaryScore.total);
+      const avgScore = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : '—';
+      const closing = active.filter(c => ['Дожим', 'Договор и оплата'].includes(c.status));
+      const closingSum = closing.reduce((s, c) => s + (c.dealSum || 0), 0);
+      cards.push({
+        name: mgr.name, alias: mgr.alias,
+        activeDealCount: active.length, pipeline,
+        todayDeals: dda.length, totalCalls, avgScore,
+        closingCount: closing.length, closingSum,
+        reportDate: d.reportDate || date,
+        aiSummary: (d.aiDaySummaryText || '').substring(0, 200),
+      });
+    } catch {}
+  }
+
+  const fmtMoney = n => { if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M'; if (n >= 1e3) return Math.round(n / 1e3) + 'K'; return String(n); };
+
+  let html = `<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ТрансКом — Обзор менеджеров</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -20,35 +59,32 @@ body{background:#f5f5f5;color:#1a1a2e;font-family:-apple-system,BlinkMacSystemFo
 .card-link:hover{background:#2563eb}
 .footer{text-align:center;margin-top:30px;color:#6b7280;font-size:12px}
 </style></head><body>
-<div class="header"><h1>ТрансКом — Обзор менеджеров</h1><div class="date">28-03-2026</div></div>
-<div class="grid"><div class="card">
-<div class="card-name">Ия Боровая</div>
-<div class="card-metrics">
-<div class="met"><div class="met-v blue">388</div><div class="met-l">Активных сделок</div></div>
-<div class="met"><div class="met-v green">1312.7M ₽</div><div class="met-l">Пайплайн</div></div>
-<div class="met"><div class="met-v cyan">33</div><div class="met-l">Сделок за день</div></div>
-<div class="met"><div class="met-v purple">44</div><div class="met-l">Звонков за день</div></div>
-<div class="met"><div class="met-v yellow">—/12</div><div class="met-l">Ср. балл</div></div>
-<div class="met"><div class="met-v green">5 / 69K ₽</div><div class="met-l">К оплате</div></div>
-</div>
-<div class="card-summary">1. Менеджер обработал 33 сделки, совершил 44 звонка, отправил несколько КП (#23020, #25555, #27243, #28515, #31946) и активно общался с клиентами (#26154, #26190, #31946).  
-2. Ключевые сделки дня: #2...</div>
-<a class="card-link" href="borovaya/index.html">Открыть полный отчёт →</a>
-</div><div class="card">
-<div class="card-name">Михаил</div>
-<div class="card-metrics">
-<div class="met"><div class="met-v blue">4</div><div class="met-l">Активных сделок</div></div>
-<div class="met"><div class="met-v green">0 ₽</div><div class="met-l">Пайплайн</div></div>
-<div class="met"><div class="met-v cyan">0</div><div class="met-l">Сделок за день</div></div>
-<div class="met"><div class="met-v purple">0</div><div class="met-l">Звонков за день</div></div>
-<div class="met"><div class="met-v yellow">—/12</div><div class="met-l">Ср. балл</div></div>
-<div class="met"><div class="met-v green">0 / 0 ₽</div><div class="met-l">К оплате</div></div>
-</div>
+<div class="header"><h1>ТрансКом — Обзор менеджеров</h1><div class="date">${date}</div></div>
+<div class="grid">`;
 
-<a class="card-link" href="mikhail/index.html">Открыть полный отчёт →</a>
-</div><div style="text-align:center;margin-top:20px">
+  for (const c of cards) {
+    html += `<div class="card">
+<div class="card-name">${c.name}</div>
+<div class="card-metrics">
+<div class="met"><div class="met-v blue">${c.activeDealCount}</div><div class="met-l">Активных сделок</div></div>
+<div class="met"><div class="met-v green">${fmtMoney(c.pipeline)} ₽</div><div class="met-l">Пайплайн</div></div>
+<div class="met"><div class="met-v cyan">${c.todayDeals}</div><div class="met-l">Сделок за день</div></div>
+<div class="met"><div class="met-v purple">${c.totalCalls}</div><div class="met-l">Звонков за день</div></div>
+<div class="met"><div class="met-v yellow">${c.avgScore}/12</div><div class="met-l">Ср. балл</div></div>
+<div class="met"><div class="met-v green">${c.closingCount} / ${fmtMoney(c.closingSum)} ₽</div><div class="met-l">К оплате</div></div>
+</div>
+${c.aiSummary ? `<div class="card-summary">${c.aiSummary}...</div>` : ''}
+<a class="card-link" href="${c.alias}/index.html">Открыть полный отчёт →</a>
+</div>`;
+  }
+
+  // Кнопка "+ Менеджер"
+  html += `<div style="text-align:center;margin-top:20px">
 <button onclick="document.getElementById('addModal').style.display='flex'" style="padding:12px 24px;background:#fff;color:#d97706;border:2px dashed #d1d5db;border-radius:12px;font-size:16px;cursor:pointer;font-weight:600">+ Добавить менеджера</button>
-</div><div id="addModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center">
+</div>`;
+
+  // Модалка добавления менеджера
+  html += `<div id="addModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center">
 <div style="background:#fff;border-radius:16px;padding:30px;max-width:450px;width:90%;border:1px solid #d1d5db">
 <h2 style="color:#1a1a2e;margin-bottom:20px;font-size:20px">Добавить менеджера</h2>
 <p style="color:#6b7280;font-size:13px;margin-bottom:16px">Введите данные нового менеджера. userId можно найти в Planfix: Сотрудники → Профиль → число в URL.</p>
@@ -93,4 +129,12 @@ function addManager(){
     +'<div style="padding:8px 12px;background:#f5f5f5;border-radius:8px;font-size:11px;color:#fbbf24">userId: '+id+' | alias: '+alias+'</div>';
   grid.appendChild(div);
 }
-</script><div class="footer">Обновлено: 28.03.2026, 15:55:45 МСК</div></body></html>
+</script>`;
+
+  html += `<div class="footer">Обновлено: ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК</div></body></html>`;
+
+  fs.writeFileSync(path.join(deployDir, 'index.html'), html, 'utf8');
+  console.log(`\n📊 Дашборд: deploy/index.html (${cards.length} менеджеров)`);
+}
+
+module.exports = { generateDashboard };

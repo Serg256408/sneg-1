@@ -1,7 +1,109 @@
-<!DOCTYPE html>
+// ============================================================
+// html.js — Генерация HTML-отчёта
+// ============================================================
+
+const { API_URL, TOKEN } = require('../utils/config');
+const { loadAiCache } = require('../core/cache');
+
+function buildStatsFromCache() {
+  const cache = loadAiCache();
+  const stats = {}; // { "DD-MM-YYYY": { deals: N, totalScore: N, maxScore: N, calls: N, texts: N, vpDone: N, hwDone: N, ctaDone: N, cpDone: N, invDone: N, presDone: N } }
+  for (const [key, val] of Object.entries(cache)) {
+    const m = key.match(/^assess_(\d+)_(\d{2}-\d{2}-\d{4})_v18a?$/);
+    if (!m) continue;
+    const date = m[2];
+    if (!stats[date]) stats[date] = { deals: 0, totalScore: 0, maxScore: 0, scores: [], callSources: 0, textSources: 0, vpDone: 0, hwDone: 0, ctaDone: 0, cpDone: 0, invDone: 0, presDone: 0, objDone: 0 };
+    const s = stats[date];
+    s.deals++;
+    const ss = val.salaryScore || {};
+    s.totalScore += (ss.total || 0);
+    s.maxScore += (ss.max || 12);
+    s.scores.push(ss.total || 0);
+    // VP
+    if (val.verbalPresentation && val.verbalPresentation.overall) {
+      s.vpDone++;
+      if (val.verbalPresentation.source === 'call') s.callSources++; else s.textSources++;
+    }
+    if (val.howWeWork && val.howWeWork.done) {
+      s.hwDone++;
+      if (val.howWeWork.source === 'call') s.callSources++; else s.textSources++;
+    }
+    if (val.callToAction && val.callToAction.done) s.ctaDone++;
+    if (val.cp && val.cp.done) s.cpDone++;
+    if (val.invoice && val.invoice.done) s.invDone++;
+    if (val.writtenPresentation && val.writtenPresentation.done) s.presDone++;
+    if (val.objectionHandling && val.objectionHandling.done) s.objDone++;
+  }
+  // Сортируем по дате
+  const sorted = Object.entries(stats).sort((a, b) => {
+    const pa = a[0].split('-'), pb = b[0].split('-');
+    return new Date(pa[2]+'-'+pa[1]+'-'+pa[0]) - new Date(pb[2]+'-'+pb[1]+'-'+pb[0]);
+  });
+  return sorted.map(([date, s]) => ({
+    date, deals: s.deals,
+    totalScore: s.totalScore, maxScore: s.maxScore,
+    avgScore: s.deals ? Math.round(s.totalScore / s.deals * 10) / 10 : 0,
+    scores: s.scores,
+    callSources: s.callSources, textSources: s.textSources,
+    vpDone: s.vpDone, hwDone: s.hwDone, ctaDone: s.ctaDone,
+    cpDone: s.cpDone, invDone: s.invDone, presDone: s.presDone, objDone: s.objDone,
+  }));
+}
+
+function generateHtml(managerName, data, allManagers) {
+  // Статистика из кэша ИИ + операционные данные из dealCards
+  const statsData = buildStatsFromCache();
+  // Операционная статистика по дням из dealCards
+  const opsStats = {};
+  const mgrNameLow = (managerName || '').toLowerCase();
+  for (const card of (data.dealCards || [])) {
+    // Звонки по дням (уже фильтрованы по менеджеру из dataTags)
+    for (const c of (card.calls || [])) {
+      if (!c.date) continue;
+      if (!opsStats[c.date]) opsStats[c.date] = { outCalls: 0, inCalls: 0, callDuration: 0, dealsWorked: new Set(), newDeals: new Set(), oldDeals: new Set(), statuses: {} };
+      const os = opsStats[c.date];
+      if (c.type === 'Исходящий') os.outCalls++; else os.inCalls++;
+      os.callDuration += (c.duration || 0);
+      os.dealsWorked.add(card.id);
+      // isNew по дате дня, а не reportDate
+      const isNewOnDay = card.dateCreated === c.date;
+      if (isNewOnDay) os.newDeals.add(card.id); else os.oldDeals.add(card.id);
+    }
+    // Комментарии по дням — ТОЛЬКО от менеджера (не роботы, не клиенты)
+    for (const c of (card.comments || [])) {
+      if (!c.date) continue;
+      const ownerLow = (c.owner || '').toLowerCase();
+      if (!ownerLow || !mgrNameLow || !ownerLow.includes(mgrNameLow)) continue;
+      if (!opsStats[c.date]) opsStats[c.date] = { outCalls: 0, inCalls: 0, callDuration: 0, dealsWorked: new Set(), newDeals: new Set(), oldDeals: new Set(), statuses: {} };
+      opsStats[c.date].dealsWorked.add(card.id);
+      const isNewOnDay = card.dateCreated === c.date;
+      if (isNewOnDay) opsStats[c.date].newDeals.add(card.id); else opsStats[c.date].oldDeals.add(card.id);
+    }
+  }
+  // Конвертируем Set в числа + мёржим с AI stats
+  const opsArray = Object.entries(opsStats).map(([date, o]) => ({
+    date, outCalls: o.outCalls, inCalls: o.inCalls,
+    callDuration: o.callDuration, callMinutes: Math.round(o.callDuration / 60),
+    dealsWorked: o.dealsWorked.size, newDeals: o.newDeals.size, oldDeals: o.oldDeals.size,
+  })).sort((a, b) => {
+    const pa = a.date.split('-'), pb = b.date.split('-');
+    return new Date(pa[2]+'-'+pa[1]+'-'+pa[0]) - new Date(pb[2]+'-'+pb[1]+'-'+pb[0]);
+  });
+  data.statsData = statsData;
+  data.opsStats = opsArray;
+  // Статусы воронки для статистики
+  const statusCounts = {};
+  for (const card of (data.dealCards || [])) { statusCounts[card.status] = (statusCounts[card.status] || 0) + 1; }
+  data.statusCounts = statusCounts;
+  // Безопасная сериализация JSON для встраивания в <script>
+  const json = JSON.stringify(data)
+    .replace(/<\/script/gi, '<\\/script')
+    .replace(/<!--/g, '<\\!--')
+    .replace(/`/g, '\\u0060');
+  return `<!DOCTYPE html>
 <html lang="ru"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ТрансКом — Михаил</title>
+<title>ТрансКом — ${managerName}</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f172a'/%3E%3Cpath d='M16 18h32v8H36v20h-8V26H16z' fill='%2360a5fa'/%3E%3C/svg%3E">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
@@ -129,8 +231,12 @@ tr:hover td{background:rgba(217,119,6,.03)}
 </head><body>
 <div class="hdr"><div class="hdr-in">
   <div class="logo">T</div>
-  <div><div style="font-size:17px;font-weight:800;color:#1a1a2e">Михаил</div><div style="font-size:12px;color:#6b7280" id="upd"></div></div>
-  <div style="display:flex;gap:6px;margin-left:auto;margin-right:12px;flex-wrap:wrap"><a href="../borovaya/index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#6b7280;text-decoration:none;border:1px solid #d1d5db">Ия Боровая</a><span style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#3b82f6;color:#1a1a2e">Михаил</span><a href="../index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#fbbf24;text-decoration:none;border:1px solid #d1d5db">Обзор</a></div>
+  <div><div style="font-size:17px;font-weight:800;color:#1a1a2e">${managerName}</div><div style="font-size:12px;color:#6b7280" id="upd"></div></div>
+  ${allManagers ? `<div style="display:flex;gap:6px;margin-left:auto;margin-right:12px;flex-wrap:wrap">${allManagers.map(m =>
+    m.name === managerName
+      ? `<span style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#3b82f6;color:#1a1a2e">${m.name}</span>`
+      : `<a href="../${m.alias}/index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#6b7280;text-decoration:none;border:1px solid #d1d5db">${m.name}</a>`
+  ).join('')}<a href="../index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#fbbf24;text-decoration:none;border:1px solid #d1d5db">Обзор</a></div>` : ''}
   <div class="pbar" id="pbar"></div>
 </div></div>
 <div class="cnt">
@@ -139,9 +245,9 @@ tr:hover td{background:rgba(217,119,6,.03)}
   <div id="out"></div>
 </div>
 <script>
-const D={"generated":"2026-03-25T17:24:31.446Z","manager":"Михаил","managerPfName":"Михаил","managerAlias":"mikhail","reportDate":"25-03-2026","dealCards":[{"id":31909,"name":"Знакомство с ПланФиксом","status":"Новая","counterparty":"—","dateCreated":"23-03-2026","dealSum":0,"workDesc":"","isActive":true,"isNew":false,"calls":[],"analyses":[],"comments":[{"id":12247122,"date":"23-03-2026","time":"16:54","type":"note","text":"Это первая задача, которую вам необходимо выполнить в ПланФиксе. Для начала нажмите на Принять ниже этого описания. После этого:\n\n Изучите информацию в каждом из пунктов чек-листа.\n Выполнив указанные в пункте действия, отметьте его галочкой.\n После выполнения всех пунктов переведите статус этой задачи в \"Выполненная\".\n\nP.S. Аналогичное задание получат все ваши коллеги, это поможет быстро пройти обучение и начать работу в системе.","owner":"Сергей Терехов","transcription":null,"files":[]}],"totalCalls":0,"totalDuration":0,"totalAnalyses":0,"avgBalls":null},{"id":31910,"name":"Начало работы в ПланФиксе","status":"Новая","counterparty":"—","dateCreated":"23-03-2026","dealSum":0,"workDesc":"","isActive":true,"isNew":false,"calls":[],"analyses":[],"comments":[{"id":12247126,"date":"23-03-2026","time":"16:54","type":"note","text":"Это первая задача, которую вам необходимо выполнить в ПланФиксе. Для начала нажмите на Принять ниже этого описания. После этого:\n\n Изучите информацию в каждом из пунктов чек-листа.\n Выполнив указанные в пункте действия, отметьте его галочкой.\n После выполнения всех пунктов переведите статус этой задачи в \"Выполненная\".\n\nP.S. Аналогичное задание получат все ваши коллеги, это поможет быстро пройти обучение и начать работу в системе.","owner":"Сергей Терехов","transcription":null,"files":[]}],"totalCalls":0,"totalDuration":0,"totalAnalyses":0,"avgBalls":null},{"id":31917,"name":"Первые шаги в ПланФиксе","status":"Новая","counterparty":"—","dateCreated":"23-03-2026","dealSum":0,"workDesc":"","isActive":true,"isNew":false,"calls":[],"analyses":[],"comments":[{"id":12247148,"date":"23-03-2026","time":"16:54","type":"note","text":"Это первая задача, которую вам необходимо выполнить в ПланФиксе. Для начала нажмите на Принять ниже этого описания. После этого:\n\n Изучите информацию в каждом из пунктов чек-листа.\n Выполнив указанные в пункте действия, отметьте его галочкой.\n После выполнения всех пунктов переведите статус этой задачи в \"Выполненная\".\n\nP.S. Аналогичное задание получат все ваши коллеги, это поможет быстро пройти обучение и начать работу в системе.","owner":"Сергей Терехов","transcription":null,"files":[]}],"totalCalls":0,"totalDuration":0,"totalAnalyses":0,"avgBalls":null},{"id":31919,"name":"Общение в ТГ","status":"В работе","counterparty":"—","dateCreated":"23-03-2026","dealSum":0,"workDesc":"","isActive":true,"isNew":false,"calls":[],"analyses":[],"comments":[{"id":12247180,"date":"23-03-2026","time":"16:54","type":"note","text":"В завершенной задаче https://transkom.planfix.ru/task/ был(и) файл(ы):","owner":"Сергей Терехов","transcription":null,"files":[]},{"id":12247178,"date":"23-03-2026","time":"16:54","type":"note","text":"","owner":"Робот Аргон","transcription":null,"files":[]},{"id":12247162,"date":"23-03-2026","time":"16:54","type":"note","text":"","owner":"Сергей Терехов","transcription":null,"files":[]}],"totalCalls":0,"totalDuration":0,"totalAnalyses":0,"avgBalls":null}],"dailyReports":[],"dailyActivity":{"newDeals":[],"workedDeals":[],"totalActive":4},"funnelChanges":[],"scriptCompliance":{"total":0,"howWeWork":0,"callToAction":0,"sentInvoice":0,"allFour":0,"avgScore":0,"details":[]},"dailyDealActivity":[],"aiDaySummaryText":null,"multiDayActivity":{"23-03-2026":[{"deal":{"id":31909,"name":"Знакомство с ПланФиксом","status":"Новая","counterparty":"—","dealSum":0,"workDesc":""},"isNew":true,"actions":[],"dayCalls":0,"planfixScript":null,"scriptHistory":{"total":0,"everHowWeWork":false,"everCallToAction":false,"everSentInvoice":false,"everAllFour":false,"bestScore":0,"customerKnowsCompany":false},"aiAssessment":{"verbalPresentation":{"since2014":{"done":false,"note":""},"fiveBrigades":{"done":false,"note":""},"fullCycle":{"done":false,"note":""},"bigProjects":{"done":false,"note":""},"guarantee":{"done":false,"note":""},"overall":false,"source":"none","quality":"плохо"},"howWeWork":{"done":false,"source":"none","note":""},"writtenPresentation":{"done":false,"note":""},"cp":{"done":false,"note":""},"invoice":{"done":false,"note":""},"callToAction":{"done":false,"note":""},"objectionHandling":{"done":false,"note":""},"todaySummary":"23-03-2026: Менеджер оставил комментарий с инструкцией по выполнению задачи в ПланФиксе. Никаких других действий не зафиксировано.","missing":["Устная презентация компании","Демонстрация экспертизы в технологии работ","Презентация (файл)","КП","Счёт","Призыв к действию","Отработка возражений"],"recommendations":["Начать устную презентацию компании, используя текстовые комментарии или звонки.","Подготовить и отправить презентацию компании и КП.","Активно призывать клиента к действию, предлагая конкретные шаги."],"nextStep":"Подготовить и отправить презентацию компании и КП клиенту.","overallVerdict":"Работа по сделке не начата, отсутствуют ключевые элементы скрипта продаж.","workSummary":"","dealType":"asphalt","salaryScore":{"total":0,"max":12,"items":[]}}},{"deal":{"id":31910,"name":"Начало работы в ПланФиксе","status":"Новая","counterparty":"—","dealSum":0,"workDesc":""},"isNew":true,"actions":[],"dayCalls":0,"planfixScript":null,"scriptHistory":{"total":0,"everHowWeWork":false,"everCallToAction":false,"everSentInvoice":false,"everAllFour":false,"bestScore":0,"customerKnowsCompany":false},"aiAssessment":{"verbalPresentation":{"since2014":{"done":false,"note":""},"fiveBrigades":{"done":false,"note":""},"fullCycle":{"done":false,"note":""},"bigProjects":{"done":false,"note":""},"guarantee":{"done":false,"note":""},"overall":false,"source":"none","quality":"плохо"},"howWeWork":{"done":false,"source":"none","note":""},"writtenPresentation":{"done":false,"note":""},"cp":{"done":false,"note":""},"invoice":{"done":false,"note":""},"callToAction":{"done":false,"note":""},"objectionHandling":{"done":false,"note":""},"todaySummary":"За 23-03-2026 менеджер не выполнил никаких действий по сделке, кроме оставления комментария с инструкцией по выполнению задачи в ПланФиксе.","missing":["Устная презентация","Описание технологии работ","Презентация (файл)","КП","Счёт","Призыв к действию","Отработка возражений"],"recommendations":["Начать активную работу по сделке, включая устную презентацию и отправку КП.","Ознакомиться с историей сделки и подготовить необходимые документы.","Активно взаимодействовать с клиентом для продвижения сделки."],"nextStep":"Подготовить и отправить клиенту коммерческое предложение с описанием услуг компании ТрансКом.","overallVerdict":"Работа по сделке не начата, требуется срочное выполнение ключевых этапов скрипта продаж.","workSummary":"","dealType":"asphalt","salaryScore":{"total":0,"max":12,"items":[]}}},{"deal":{"id":31917,"name":"Первые шаги в ПланФиксе","status":"Новая","counterparty":"—","dealSum":0,"workDesc":""},"isNew":true,"actions":[],"dayCalls":0,"planfixScript":null,"scriptHistory":{"total":0,"everHowWeWork":false,"everCallToAction":false,"everSentInvoice":false,"everAllFour":false,"bestScore":0,"customerKnowsCompany":false},"aiAssessment":{"verbalPresentation":{"since2014":{"done":false,"note":""},"fiveBrigades":{"done":false,"note":""},"fullCycle":{"done":false,"note":""},"bigProjects":{"done":false,"note":""},"guarantee":{"done":false,"note":""},"overall":false,"source":"none","quality":"плохо"},"howWeWork":{"done":false,"source":"none","note":""},"writtenPresentation":{"done":false,"note":""},"cp":{"done":false,"note":""},"invoice":{"done":false,"note":""},"callToAction":{"done":false,"note":""},"objectionHandling":{"done":false,"note":""},"todaySummary":"За 23-03-2026 не было совершено ни одного действия по сделке. Менеджер оставил только комментарий с инструкцией по выполнению задачи в ПланФиксе.","missing":["Устная презентация","Описание технологии работ","Презентация (файл)","КП","Счёт","Призыв к действию","Отработка возражений"],"recommendations":["Начать активную работу по сделке: провести звонок с клиентом, представить компанию и её услуги.","Подготовить и отправить коммерческое предложение или презентацию.","Обсудить с клиентом технические детали проекта и предложить следующий шаг."],"nextStep":"Связаться с клиентом для обсуждения проекта и представления услуг компании.","overallVerdict":"Работа по сделке не начата. Необходимо срочно активизировать взаимодействие с клиентом.","workSummary":"","dealType":"asphalt","salaryScore":{"total":0,"max":12,"items":[]}}},{"deal":{"id":31919,"name":"Общение в ТГ","status":"В работе","counterparty":"—","dealSum":0,"workDesc":""},"isNew":true,"actions":[],"dayCalls":0,"planfixScript":null,"scriptHistory":{"total":0,"everHowWeWork":false,"everCallToAction":false,"everSentInvoice":false,"everAllFour":false,"bestScore":0,"customerKnowsCompany":false},"aiAssessment":{"verbalPresentation":{"since2014":{"done":false,"note":""},"fiveBrigades":{"done":false,"note":""},"fullCycle":{"done":false,"note":""},"bigProjects":{"done":false,"note":""},"guarantee":{"done":false,"note":""},"overall":false,"source":"none","quality":"плохо"},"howWeWork":{"done":false,"source":"none","note":""},"writtenPresentation":{"done":false,"note":""},"cp":{"done":false,"note":""},"invoice":{"done":false,"note":""},"callToAction":{"done":false,"note":""},"objectionHandling":{"done":false,"note":""},"todaySummary":"23-03-2026: Нет активных действий по сделке. Отсутствуют звонки, транскрибации, комментарии или файлы.","missing":["Устная презентация","Как мы работаем","Презентация","КП","Счёт","Призыв к действию","Отработка возражений"],"recommendations":["Начать активную работу по сделке: провести звонок, отправить презентацию или КП.","Отработать возражения клиента, если они есть.","Сделать призыв к действию: предложить замер или обсуждение проекта."],"nextStep":"Провести звонок клиенту, чтобы обсудить проект и отправить КП или презентацию.","overallVerdict":"Работа по сделке не начата. Требуется активное взаимодействие с клиентом.","workSummary":"","dealType":"asphalt","salaryScore":{"total":0,"max":12,"items":[]}}}]},"multiDaySummary":{"23-03-2026":"1. Менеджер обработал 4 новые сделки, но не совершил звонков и не отправил КП или презентации.  \n2. Ключевые сделки дня: #31909 \"Знакомство с ПланФиксом\", #31910 \"Начало работы в ПланФиксе\", #31917 \"Первые шаги в ПланФиксе\", #31919 \"Общение в ТГ\" — ни одна не продвинулась, взаимодействие с клиентами отсутствует.  \n3. Проблемы: менеджер пассивен во всех сделках, не выполнены ключевые этапы скрипта продаж.  \n4. Завтра необходимо: подготовить и отправить КП и презентации по сделкам #31909, #31910, #31917, провести звонок по сделке #31919."},"managerSummaries":{"day":null,"week":"1. **КРАТКИЙ ИТОГ**  \nЗа неделю менеджер по продажам обработал 4 новые сделки, однако активность была минимальной: звонки не совершались, коммерческие предложения и презентации не отправлялись. Ни одна из сделок не продвинулась по воронке продаж, что свидетельствует о пассивности менеджера и невыполнении ключевых этапов скрипта продаж. Требуется срочное вмешательство для активизации работы с клиентами.  \n\n2. **УСПЕХИ И ПРОГРЕСС**  \nПрогресс отсутствует. Ни одна из сделок (#31909 \"Знакомство с ПланФиксом\", #31910 \"Начало работы в ПланФиксе\", #31917 \"Первые шаги в ПланФиксе\", #31919 \"Общение в ТГ\") не продвинулась по воронке продаж.  \n\n3. **ПРОБЛЕМЫ**  \nОсновная проблема — отсутствие активности менеджера. По всем сделкам не выполнены ключевые этапы: не совершены звонки, не отправлены КП и презентации. Особое внимание требуется к сделкам:  \n- #31909 \"Знакомство с ПланФиксом\" — необходимо подготовить и отправить презентацию компании и КП.  \n- #31910 \"Начало работы в ПланФиксе\" — требуется срочно отправить коммерческое предложение.  \n- #31917 \"Первые шаги в ПланФиксе\" — нужно связаться с клиентом для обсуждения проекта.  \n- #31919 \"Общение в ТГ\" — требуется провести звонок клиенту и отправить КП или презентацию.  \n\n4. **БЛИЖАЙШИЕ ОПЛАТЫ**  \nБлижайшие оплаты отсутствуют. Ни одна из сделок не находится на стадии \"Дожим\" или \"Договор и оплата\".  \n\n5. **РЕКОМЕНДАЦИИ РУКОВОДИТЕЛЮ**  \n- Провести встречу с менеджером для анализа причин пассивности и обсуждения плана действий.  \n- Проконтролировать выполнение следующих шагов по сделкам:  \n  - #31909 \"Знакомство с ПланФиксом\" — подготовка и отправка презентации и КП.  \n  - #31910 \"Начало работы в ПланФиксе\" — отправка коммерческого предложения.  \n  - #31917 \"Первые шаги в ПланФиксе\" — звонок клиенту для обсуждения проекта.  \n  - #31919 \"Общение в ТГ\" — звонок клиенту и отправка КП или презентации.  \n- Установить ежедневный контроль за активностью менеджера и выполнением ключевых этапов скрипта продаж.","month":"### **Отчёт по эффективности менеджера по продажам за 23.03.2026**  \n\n#### **1. Краткий итог**  \nЗа отчётный день менеджер обработал **4 новые сделки**, но не совершил ни одного звонка, не отправил КП или презентации. Активность по сделкам отсутствует, все они остались на начальной стадии. Требуется срочное вмешательство для запуска процесса продаж.  \n\n#### **2. Успехи и прогресс**  \nПрогресс отсутствует. Ни одна из сделок (#31909, #31910, #31917, #31919) не продвинулась по воронке. Нет подготовленных КП, звонков или переговоров с клиентами.  \n\n#### **3. Проблемы**  \n- **Полное отсутствие активности**: менеджер не выполнил базовые этапы работы с клиентами (звонки, отправка КП).  \n- **Критические сделки, требующие внимания**:  \n  - #31909 \"Знакомство с ПланФиксом\" — не отправлена презентация.  \n  - #31910 \"Начало работы в ПланФиксе\" — нет КП.  \n  - #31917 \"Первые шаги в ПланФиксе\" — нет контакта с клиентом.  \n  - #31919 \"Общение в ТГ\" — не проведён звонок.  \n\n#### **4. Ближайшие оплаты**  \nНет сделок, близких к оплате. Все обращения остались на стадии первичного контакта.  \n\n#### **5. Рекомендации руководителю**  \n1. **Провести разбор с менеджером** — выяснить причины пассивности, проверить загрузку.  \n2. **Контроль выполнения скрипта** — обязать менеджера в течение дня:  \n   - Отправить КП по #31910 и презентацию по #31909.  \n   - Провести звонок по #31919.  \n   - Связаться с клиентом #31917.  \n3. **Личное подключение** — если менеджер не выполнит задачи, руководителю стоит взять на себя контакт с клиентами #31909 и #31919.  \n\n**Вывод**: Требуется срочная коррекция работы менеджера, иначе все сделки рискуют быть потеряны."},"snapshotDate":"2026-03-16T17:46:46.840Z","statsData":[{"date":"11-02-2026","deals":78,"totalScore":189.5,"maxScore":936,"avgScore":2.4,"scores":[4.5,4,9,1,2.5,2,2,6.5,2,2,2,2,1,2,2,5,5,7,2,2,2,2,1,2,2,5,5,2,2,1,2,1,1,3,2,2,6,6,0,4,0,3,4,3,0,2,1,2,2,2,2,5,1,1,2,1,1,2,4,4,1,5,2,1,4,1,0,0,0,0,0,0,4,1,1,6,3,2],"callSources":5,"textSources":3,"vpDone":5,"hwDone":3,"ctaDone":16,"cpDone":68,"invDone":11,"presDone":43,"objDone":20},{"date":"12-02-2026","deals":30,"totalScore":79.5,"maxScore":360,"avgScore":2.7,"scores":[1,0,5,4,1,5,6,2,1,1,4,2.5,1,1,0,1,2,5,5,4,1,1,1,4,4,4,1,1,5,6],"callSources":1,"textSources":1,"vpDone":1,"hwDone":1,"ctaDone":12,"cpDone":28,"invDone":4,"presDone":7,"objDone":7},{"date":"13-02-2026","deals":20,"totalScore":48.5,"maxScore":240,"avgScore":2.4,"scores":[2,3.5,1,5,1,3,2,1,2,1,4,4,3,4,1,2,2,1,3,3],"callSources":1,"textSources":1,"vpDone":1,"hwDone":1,"ctaDone":3,"cpDone":20,"invDone":5,"presDone":10,"objDone":9},{"date":"15-02-2026","deals":1,"totalScore":3,"maxScore":12,"avgScore":3,"scores":[3],"callSources":0,"textSources":0,"vpDone":0,"hwDone":0,"ctaDone":1,"cpDone":0,"invDone":0,"presDone":0,"objDone":0},{"date":"16-02-2026","deals":22,"totalScore":44,"maxScore":264,"avgScore":2,"scores":[1,3,2,2,1,1,1,2,1,4,3,1,2,2,2,4,1,1,1,1,6,2],"callSources":0,"textSources":0,"vpDone":0,"hwDone":0,"ctaDone":3,"cpDone":21,"invDone":4,"presDone":10,"objDone":5},{"date":"17-02-2026","deals":39,"totalScore":100,"maxScore":468,"avgScore":2.6,"scores":[2,0,4.5,4,6,1,1,1,2,2,6.5,2,2,2,2,1,2,6,4,2,4,1,0,2,0,4,3,4,3,2,2,0,1,1,2,5,6,2,5],"callSources":1,"textSources":2,"vpDone":2,"hwDone":1,"ctaDone":10,"cpDone":34,"invDone":10,"presDone":20,"objDone":10},{"date":"18-02-2026","deals":20,"totalScore":63,"maxScore":240,"avgScore":3.2,"scores":[1,2,2,4,3,1,4,4,1,4,3,4,2,4,0,5,3,6,5,5],"callSources":0,"textSources":0,"vpDone":0,"hwDone":0,"ctaDone":10,"cpDone":18,"invDone":7,"presDone":8,"objDone":11},{"date":"19-02-2026","deals":41,"totalScore":102.5,"maxScore":492,"avgScore":2.5,"scores":[3,1,1,3.5,2,2,2,5,5.5,2,2,3.5,2,1,5,2,2,2,2,5,4,2,4,1,4,4,0,2,0,2,0,2,1,1,0,1,3,6,5,2,5],"callSources":1,"textSources":3,"vpDone":3,"hwDone":1,"ctaDone":12,"cpDone":34,"invDone":4,"presDone":21,"objDone":13},{"date":"20-02-2026","deals":29,"totalScore":68.5,"maxScore":348,"avgScore":2.4,"scores":[2,2,2,2,2,2,2,2,1,2,1,2,1,4,3,1,2,4,1,4,1,1,2,0,1,3,4.5,2,12],"callSources":2,"textSources":1,"vpDone":2,"hwDone":1,"ctaDone":5,"cpDone":27,"invDone":4,"presDone":15,"objDone":8},{"date":"21-02-2026","deals":1,"totalScore":1,"maxScore":12,"avgScore":1,"scores":[1],"callSources":0,"textSources":0,"vpDone":0,"hwDone":0,"ctaDone":0,"cpDone":0,"invDone":0,"presDone":1,"objDone":0},{"date":"22-02-2026","deals":4,"totalScore":20,"maxScore":48,"avgScore":5,"scores":[2,5,2,11],"callSources":2,"textSources":0,"vpDone":1,"hwDone":1,"ctaDone":2,"cpDone":4,"invDone":3,"presDone":1,"objDone":3},{"date":"24-02-2026","deals":13,"totalScore":23.5,"maxScore":156,"avgScore":1.8,"scores":[3,4,1,2,0,2,2,1,0,1,4.5,2,1],"callSources":0,"textSources":1,"vpDone":1,"hwDone":0,"ctaDone":1,"cpDone":11,"invDone":3,"presDone":5,"objDone":5},{"date":"25-02-2026","deals":27,"totalScore":81.5,"maxScore":324,"avgScore":3,"scores":[2,5,2,1,2,8,1,6,3,4,1,0,4,4,3,4,1,2,0,0,2,2,4,5,7.5,5,3],"callSources":2,"textSources":1,"vpDone":2,"hwDone":1,"ctaDone":10,"cpDone":24,"invDone":7,"presDone":13,"objDone":11},{"date":"26-02-2026","deals":30,"totalScore":80.5,"maxScore":360,"avgScore":2.7,"scores":[4,1,2,2,4,4,2,4,4,1,4,1,2,2,0,2,2,0,1,6,1,3,1,0,6,7.5,2,2,6,4],"callSources":1,"textSources":1,"vpDone":1,"hwDone":1,"ctaDone":10,"cpDone":26,"invDone":8,"presDone":12,"objDone":12},{"date":"27-02-2026","deals":43,"totalScore":105.5,"maxScore":516,"avgScore":2.5,"scores":[4.5,1,2,6.5,1,7,3.5,2,2,1,4,4,3,4,4,4,3,1,1,1,5,2,2,2,1,0,0,2,3.5,2,1,2,4,1,1,0,0,0,0,7.5,2,2,6],"callSources":3,"textSources":5,"vpDone":5,"hwDone":3,"ctaDone":9,"cpDone":37,"invDone":7,"presDone":18,"objDone":18},{"date":"28-02-2026","deals":3,"totalScore":7.5,"maxScore":36,"avgScore":2.5,"scores":[3.5,4,0],"callSources":0,"textSources":1,"vpDone":1,"hwDone":0,"ctaDone":1,"cpDone":2,"invDone":0,"presDone":1,"objDone":1},{"date":"02-03-2026","deals":32,"totalScore":100.5,"maxScore":384,"avgScore":3.1,"scores":[3,7,1,6,4,3,1,4,2,2,2,1,2,3.5,4,0,5.5,5,6,2,5,5,1,1,1,0,3,7.5,3,2,2,6],"callSources":3,"textSources":3,"vpDone":4,"hwDone":2,"ctaDone":10,"cpDone":28,"invDone":10,"presDone":19,"objDone":12},{"date":"03-03-2026","deals":32,"totalScore":92.5,"maxScore":384,"avgScore":2.9,"scores":[4,6.5,2,5,3.5,1,2,6,2,4,3,1,2,2,1,2,3.5,4,0,1,5,6,0,2,5,6,2,1,1,1,6,2],"callSources":0,"textSources":3,"vpDone":3,"hwDone":0,"ctaDone":11,"cpDone":29,"invDone":6,"presDone":20,"objDone":13},{"date":"04-03-2026","deals":18,"totalScore":44,"maxScore":216,"avgScore":2.4,"scores":[2,3,2,2,2,3.5,4,1,5,6,1,1,0,2,1,5,3.5,0],"callSources":0,"textSources":2,"vpDone":2,"hwDone":0,"ctaDone":4,"cpDone":15,"invDone":3,"presDone":11,"objDone":6},{"date":"05-03-2026","deals":22,"totalScore":51,"maxScore":264,"avgScore":2.3,"scores":[4,6.5,3,3,5,2,3.5,0,5,1,1,1,7.5,1,1,1,0,0,0,0,2,3.5],"callSources":0,"textSources":4,"vpDone":4,"hwDone":0,"ctaDone":5,"cpDone":16,"invDone":4,"presDone":10,"objDone":5},{"date":"06-03-2026","deals":22,"totalScore":61,"maxScore":264,"avgScore":2.8,"scores":[7,5,1,3,4,3,4,0,4,2,2,2,3.5,1,1,5,6,1,1,0,2,3.5],"callSources":2,"textSources":2,"vpDone":3,"hwDone":1,"ctaDone":6,"cpDone":20,"invDone":4,"presDone":10,"objDone":10},{"date":"09-03-2026","deals":3,"totalScore":15,"maxScore":36,"avgScore":5,"scores":[5,5,5],"callSources":0,"textSources":0,"vpDone":0,"hwDone":0,"ctaDone":3,"cpDone":3,"invDone":0,"presDone":3,"objDone":2},{"date":"10-03-2026","deals":31,"totalScore":95,"maxScore":372,"avgScore":3.1,"scores":[2,3.5,6,1,3,0,2,1,2,3.5,4,4,5,3,1,1,7.5,2,5,1,5,5,4,1,1,1,5,3,5,3.5,4],"callSources":0,"textSources":4,"vpDone":4,"hwDone":0,"ctaDone":12,"cpDone":30,"invDone":6,"presDone":17,"objDone":11},{"date":"11-03-2026","deals":20,"totalScore":37,"maxScore":240,"avgScore":1.9,"scores":[2,2,2,1,1,2,1,0,2,2,1,2,1,5,2,4,2,1,2,2],"callSources":0,"textSources":0,"vpDone":0,"hwDone":0,"ctaDone":2,"cpDone":19,"invDone":1,"presDone":11,"objDone":5},{"date":"12-03-2026","deals":22,"totalScore":72.5,"maxScore":264,"avgScore":3.3,"scores":[7,2,1,1,5,2,2,2,1,2,3.5,5.5,2,6,4,7.5,5,4,4,0,5,1],"callSources":2,"textSources":3,"vpDone":4,"hwDone":1,"ctaDone":9,"cpDone":21,"invDone":3,"presDone":11,"objDone":8},{"date":"13-03-2026","deals":8,"totalScore":19,"maxScore":96,"avgScore":2.4,"scores":[8,0,3,3,0,0,1,4],"callSources":0,"textSources":2,"vpDone":1,"hwDone":1,"ctaDone":4,"cpDone":3,"invDone":0,"presDone":1,"objDone":1},{"date":"14-03-2026","deals":2,"totalScore":9.5,"maxScore":24,"avgScore":4.8,"scores":[5.5,4],"callSources":0,"textSources":1,"vpDone":1,"hwDone":0,"ctaDone":2,"cpDone":2,"invDone":0,"presDone":0,"objDone":2},{"date":"15-03-2026","deals":2,"totalScore":11,"maxScore":24,"avgScore":5.5,"scores":[5.5,5.5],"callSources":0,"textSources":2,"vpDone":2,"hwDone":0,"ctaDone":2,"cpDone":2,"invDone":0,"presDone":0,"objDone":2},{"date":"16-03-2026","deals":15,"totalScore":48.5,"maxScore":180,"avgScore":3.2,"scores":[5,1,7.5,8,1,4,4,3,0,5,1,0,1,4,4],"callSources":1,"textSources":3,"vpDone":3,"hwDone":1,"ctaDone":8,"cpDone":11,"invDone":1,"presDone":5,"objDone":3},{"date":"17-03-2026","deals":19,"totalScore":42,"maxScore":228,"avgScore":2.2,"scores":[0,1,1,0,0,0,0,5,1,1,4,1,7.5,1,5,7,1,5.5,1],"callSources":1,"textSources":2,"vpDone":2,"hwDone":1,"ctaDone":6,"cpDone":11,"invDone":1,"presDone":6,"objDone":0},{"date":"18-03-2026","deals":20,"totalScore":46.5,"maxScore":240,"avgScore":2.3,"scores":[0,1,0,0,1,0,0,5,2,4,3.5,4,5,5,4,5,1,1,5,0],"callSources":0,"textSources":1,"vpDone":1,"hwDone":0,"ctaDone":8,"cpDone":10,"invDone":1,"presDone":10,"objDone":1},{"date":"19-03-2026","deals":42,"totalScore":142.5,"maxScore":504,"avgScore":3.4,"scores":[5,5,2,2,5,5,2,5,5,2,5,5,5,5,4,5,5,5,2,5,5,5,5,5,3,0,1,1,5,2,5.5,4,1,1,0,4,0,4,0,0,4,3],"callSources":2,"textSources":1,"vpDone":3,"hwDone":0,"ctaDone":25,"cpDone":29,"invDone":1,"presDone":30,"objDone":9},{"date":"20-03-2026","deals":19,"totalScore":30.5,"maxScore":228,"avgScore":1.6,"scores":[0,1,0,0,5.5,5,0,2,3,1,0,4,0,0,3,0,1,1,4],"callSources":3,"textSources":1,"vpDone":3,"hwDone":1,"ctaDone":3,"cpDone":6,"invDone":1,"presDone":4,"objDone":1}],"opsStats":[],"statusCounts":{"Новая":3,"В работе":1}};
-const PF_URL='';
-const PF_TOKEN='';
+const D=${json};
+const PF_URL='${API_URL.replace(/[\r\n]/g, '')}';
+const PF_TOKEN='${TOKEN.replace(/[\r\n]/g, '')}';
 const PERIODS=[{l:'Сегодня',d:0},{l:'3 дня',d:3},{l:'7 дн',d:7},{l:'14 дн',d:14},{l:'30 дн',d:30},{l:'Всё',d:9999}];
 
 function buildRecommendationText(taskId){
@@ -154,25 +260,25 @@ function buildRecommendationText(taskId){
   if(!da||!da.aiAssessment)return null;
   var aa=da.aiAssessment;
   var ss=aa.salaryScore||{};
-  var t='🤖 ИИ-оценка сделки за '+(selectedDate||D.reportDate)+'\n\n';
-  if(aa.todaySummary) t+='📅 Итог дня: '+aa.todaySummary+'\n\n';
-  if(aa.overallVerdict) t+='📊 Вердикт: '+aa.overallVerdict+'\n\n';
-  t+='📋 Скрипт продаж:\n';
+  var t='🤖 ИИ-оценка сделки за '+(selectedDate||D.reportDate)+'\\n\\n';
+  if(aa.todaySummary) t+='📅 Итог дня: '+aa.todaySummary+'\\n\\n';
+  if(aa.overallVerdict) t+='📊 Вердикт: '+aa.overallVerdict+'\\n\\n';
+  t+='📋 Скрипт продаж:\\n';
   var vp=aa.verbalPresentation;
-  if(vp) t+='  Устная презентация: '+(vp.overall?'✅ ('+vp.source+')':'❌')+'\n';
+  if(vp) t+='  Устная презентация: '+(vp.overall?'✅ ('+vp.source+')':'❌')+'\\n';
   var hw=aa.howWeWork;
-  if(hw) t+='  Как мы работаем: '+(hw.done?'✅ ('+hw.source+')':'❌')+'\n';
-  if(aa.writtenPresentation) t+='  Презентация (файл): '+(aa.writtenPresentation.done?'✅':'❌')+'\n';
-  if(aa.cp) t+='  КП: '+(aa.cp.done?'✅':'❌')+(aa.cp.note?' — '+aa.cp.note:'')+'\n';
-  if(aa.invoice) t+='  Счёт: '+(aa.invoice.done?'✅':'❌')+(aa.invoice.note?' — '+aa.invoice.note:'')+'\n';
-  if(aa.callToAction) t+='  Призыв к действию: '+(aa.callToAction.done?'✅':'❌')+'\n';
-  if(aa.objectionHandling) t+='  Отработка возражений: '+(aa.objectionHandling.done?'✅':'❌')+'\n';
-  t+='\n💰 Баллы ЗП: '+ss.total+'/'+ss.max+'\n';
+  if(hw) t+='  Как мы работаем: '+(hw.done?'✅ ('+hw.source+')':'❌')+'\\n';
+  if(aa.writtenPresentation) t+='  Презентация (файл): '+(aa.writtenPresentation.done?'✅':'❌')+'\\n';
+  if(aa.cp) t+='  КП: '+(aa.cp.done?'✅':'❌')+(aa.cp.note?' — '+aa.cp.note:'')+'\\n';
+  if(aa.invoice) t+='  Счёт: '+(aa.invoice.done?'✅':'❌')+(aa.invoice.note?' — '+aa.invoice.note:'')+'\\n';
+  if(aa.callToAction) t+='  Призыв к действию: '+(aa.callToAction.done?'✅':'❌')+'\\n';
+  if(aa.objectionHandling) t+='  Отработка возражений: '+(aa.objectionHandling.done?'✅':'❌')+'\\n';
+  t+='\\n💰 Баллы ЗП: '+ss.total+'/'+ss.max+'\\n';
   var miss=aa.missing||[];
-  if(miss.length){t+='\n❗ Не выполнено:\n';miss.forEach(function(m){t+='  • '+m+'\n'});}
+  if(miss.length){t+='\\n❗ Не выполнено:\\n';miss.forEach(function(m){t+='  • '+m+'\\n'});}
   var recs=aa.recommendations||[];
-  if(recs.length){t+='\n💡 Рекомендации:\n';recs.forEach(function(r){t+='  • '+r+'\n'});}
-  if(aa.nextStep){t+='\n▶ Следующий шаг: '+aa.nextStep+'\n';}
+  if(recs.length){t+='\\n💡 Рекомендации:\\n';recs.forEach(function(r){t+='  • '+r+'\\n'});}
+  if(aa.nextStep){t+='\\n▶ Следующий шаг: '+aa.nextStep+'\\n';}
   return t;
 }
 async function copyRecommendation(taskId){
@@ -195,7 +301,7 @@ async function sendToPlanfix(taskId){
   if(!confirm('Отправить ИИ-рекомендации в Planfix в задачу #'+taskId+'?'))return;
   var btn=document.getElementById('pf_send_'+taskId);
   if(btn){btn.disabled=true;btn.textContent='Отправка...';}
-  var h=text.replace(/\n/g,'<br>').replace(/  /g,'&nbsp;&nbsp;');
+  var h=text.replace(/\\n/g,'<br>').replace(/  /g,'&nbsp;&nbsp;');
   try{
     var resp=await fetch(PF_URL+'/task/'+taskId+'/comments/',{
       method:'POST',
@@ -206,7 +312,7 @@ async function sendToPlanfix(taskId){
     if(btn){btn.textContent='✅ Отправлено!';btn.style.background='rgba(52,211,153,.15)';btn.style.color='#34d399';}
   }catch(e){
     if(btn){btn.disabled=false;btn.textContent='📤 Planfix';}
-    alert('Ошибка: '+e.message+'\n\nТокен не имеет прав на создание комментариев.\nОбновите права токена в Planfix: Управление аккаунтом → API → Токен → Разрешения → Комментарии задач: Добавление.\n\nПока можно скопировать текст кнопкой 📋.');
+    alert('Ошибка: '+e.message+'\\n\\nТокен не имеет прав на создание комментариев.\\nОбновите права токена в Planfix: Управление аккаунтом → API → Токен → Разрешения → Комментарии задач: Добавление.\\n\\nПока можно скопировать текст кнопкой 📋.');
   }
 }
 let selectedDate=D.reportDate||'';
@@ -240,13 +346,13 @@ function timeToMin(t){if(!t)return 0;const p=(t||'').split(':');return(parseInt(
 function dateStamp(dateStr,timeStr){
   if(!dateStr)return 0;
   let year=0,month=0,day=0;
-  const m1=dateStr.match(/(\d{2})-(\d{2})-(\d{4})/);
-  const m2=dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+  const m1=dateStr.match(/(\\d{2})-(\\d{2})-(\\d{4})/);
+  const m2=dateStr.match(/(\\d{4})-(\\d{2})-(\\d{2})/);
   if(m1){day=parseInt(m1[1],10);month=parseInt(m1[2],10)-1;year=parseInt(m1[3],10);}
   else if(m2){year=parseInt(m2[1],10);month=parseInt(m2[2],10)-1;day=parseInt(m2[3],10);}
   else{return 0;}
   const rawTime=(timeStr||'').split('-')[0].trim();
-  const parts=rawTime.match(/(\d{1,2}):(\d{2})/);
+  const parts=rawTime.match(/(\\d{1,2}):(\\d{2})/);
   const hours=parts?parseInt(parts[1],10):0;
   const mins=parts?parseInt(parts[2],10):0;
   return new Date(year,month,day,hours,mins,0,0).getTime()||0;
@@ -364,8 +470,8 @@ function buildDayActivity(dateStr){
     // dateCreated может быть в формате YYYY-MM-DD или DD-MM-YYYY
     const dc=card.dateCreated||'';
     let createdDMY='';
-    if(dc.match(/^\d{4}-/)){const p=dc.split(/[-T ]/);createdDMY=p[2]+'-'+p[1]+'-'+p[0]}
-    else if(dc.match(/^\d{2}-\d{2}-\d{4}/)){createdDMY=dc.substring(0,10)}
+    if(dc.match(/^\\d{4}-/)){const p=dc.split(/[-T ]/);createdDMY=p[2]+'-'+p[1]+'-'+p[0]}
+    else if(dc.match(/^\\d{2}-\\d{2}-\\d{4}/)){createdDMY=dc.substring(0,10)}
     const isCreatedToday=createdDMY===dateStr;
     // Менеджер должен иметь хоть одно действие за день (комментарий или звонок из dataTags)
     const hasMgrActivity=dayMgrComments.length>0||dayCalls.length>0;
@@ -420,8 +526,8 @@ function inPeriod(dateStr){
   const now=new Date();now.setHours(23,59,59);
   const from=new Date(now);from.setDate(from.getDate()-(period||0));from.setHours(0,0,0);
   let d;
-  const m1=dateStr.match(/(\d{2})-(\d{2})-(\d{4})/);
-  const m2=dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+  const m1=dateStr.match(/(\\d{2})-(\\d{2})-(\\d{4})/);
+  const m2=dateStr.match(/(\\d{4})-(\\d{2})-(\\d{2})/);
   if(m2) d=new Date(dateStr);
   else if(m1) d=new Date(m1[3]+'-'+m1[2]+'-'+m1[1]);
   else return true;
@@ -1043,7 +1149,7 @@ function renderDealsV2(cards){
   h+='<input type="date" id="dealFrom" value="'+(dealFrom||'')+'" onchange="dealFrom=this.value;renderDealsV2(currentCards)" style="background:#fff;border:1px solid rgba(0,0,0,.1);color:#1a1a2e;padding:4px 8px;border-radius:6px;font-size:11px;font-family:inherit">';
   h+='<span style="font-size:11px;color:#6b7280">по</span>';
   h+='<input type="date" id="dealTo" value="'+(dealTo||'')+'" onchange="dealTo=this.value;renderDealsV2(currentCards)" style="background:#fff;border:1px solid rgba(0,0,0,.1);color:#1a1a2e;padding:4px 8px;border-radius:6px;font-size:11px;font-family:inherit">';
-  if(dealFrom||dealTo)h+='<button class="toggle-btn" onclick="dealFrom=\'\';dealTo=\'\';renderDealsV2(currentCards)" style="font-size:11px;padding:3px 8px">✕</button>';
+  if(dealFrom||dealTo)h+='<button class="toggle-btn" onclick="dealFrom=\\'\\';dealTo=\\'\\';renderDealsV2(currentCards)" style="font-size:11px;padding:3px 8px">✕</button>';
   h+='</div>';
   h+='<div class="deal-tools-row"><div class="deal-chips">';
   h+='<div class="deal-chip">Показано <strong>'+prepared.length+'</strong> из '+cards.length+'</div>';
@@ -1112,12 +1218,12 @@ function renderDealsV2(cards){
         });
         h+='<tr><td style="white-space:nowrap;font-size:11px">'+esc(c.date)+'</td>';
         h+='<td>'+esc((c.time||'').split('-')[0].trim())+'</td>';
-        h+='<td>'+(c.type==='Входящий'?'📥':'📤')+'</td>';
+        h+='<td>'+(c.type==='\u0412\u0445\u043e\u0434\u044f\u0449\u0438\u0439'?'📥':'📤')+'</td>';
         h+='<td>'+dur+'</td>';
         h+='<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc((c.contact||'').substring(0,26))+'</td>';
         if(matchA){
           h+='<td>'+yn(matchA.howWeWork)+'</td><td>'+yn(matchA.callToAction)+'</td><td>'+yn(matchA.sentInvoice)+'</td>';
-          const vc=matchA.verdict.includes('Эксперт')?'bg-b':matchA.verdict.includes('Хорошо')?'bg-g':matchA.verdict.includes('Средне')?'bg-y':'bg-r';
+          const vc=matchA.verdict.includes('\u042d\u043a\u0441\u043f\u0435\u0440\u0442')?'bg-b':matchA.verdict.includes('\u0425\u043e\u0440\u043e\u0448\u043e')?'bg-g':matchA.verdict.includes('\u0421\u0440\u0435\u0434\u043d\u0435')?'bg-y':'bg-r';
           h+='<td><strong>'+matchA.totalBalls+'</strong></td>';
           h+='<td><span class="bg '+vc+'">'+esc(matchA.verdict.split('(')[0].trim())+'</span></td>';
         } else {
@@ -1816,7 +1922,7 @@ var mgrPeriod='day';
 function setMgrPeriod(p){mgrPeriod=p;renderManager();}
 function parsePfDateClient(s){
   if(!s)return null;
-  var m=s.match(/(d{2})-(d{2})-(d{4})/);
+  var m=s.match(/(\d{2})-(\d{2})-(\d{4})/);
   if(m)return new Date(m[3]+'-'+m[2]+'-'+m[1]);
   return new Date(s);
 }
@@ -1841,7 +1947,7 @@ function mgrDealPopup(id){
   if(btn)btn.insertAdjacentHTML('afterend',h2);
 }
 function linkifyDealIds(text){
-  return text.replace(/#(d{4,6})/g,function(m,id){
+  return text.replace(/#(\d{4,6})/g,function(m,id){
     return '<span id="mgr_btn_'+id+'" onclick="mgrDealPopup('+id+')" style="color:#60a5fa;cursor:pointer;text-decoration:underline;text-decoration-style:dotted">'+m+' ▾</span>';
   });
 }
@@ -1880,7 +1986,7 @@ function renderManager(){
       'РЕКОМЕНДАЦИИ':{icon:'🎯',color:'#a78bfa',bg:'rgba(167,139,250,.06)'},
     };
     // Разбиваем на секции по заголовкам (1. ТЕКСТ, 2. ТЕКСТ, **ТЕКСТ**)
-    var lines=text.split('\n');
+    var lines=text.split('\\n');
     var sections=[];
     var dateLabel=mgrPeriod==='day'?selectedDate:(mgrPeriod==='week'?'неделю':'месяц');
     var curSec={title:'Отчёт для руководителя за '+dateLabel,lines:[]};
@@ -1888,9 +1994,9 @@ function renderManager(){
       var line=lines[i].trim();
       if(!line)continue;
       // Убираем ** и ### обёртку для проверки заголовка
-      var clean=line.replace(/^#{1,4}\s*/, '').replace(/^\*\*/, '').replace(/\*\*$/, '');
+      var clean=line.replace(/^#{1,4}\\s*/, '').replace(/^\\*\\*/, '').replace(/\\*\\*$/, '');
       // Заголовок секции: "1. КРАТКИЙ ИТОГ" или "КРАТКИЙ ИТОГ" (4+ заглавных букв)
-      var secMatch=clean.match(/^(?:\d+\.\s*)([А-ЯЁA-Z][А-ЯЁA-Z\s]{3,})$/);
+      var secMatch=clean.match(/^(?:\\d+\\.\\s*)([А-ЯЁA-Z][А-ЯЁA-Z\\s]{3,})$/);
       if(secMatch){
         if(curSec.lines.length||sections.length===0)sections.push(curSec);
         curSec={title:secMatch[1].trim(),lines:[]};
@@ -1915,22 +2021,22 @@ function renderManager(){
       for(var li=0;li<sec.lines.length;li++){
         var ln=sec.lines[li];
         // Жирный текст **xxx**
-        ln=ln.replace(/\*\*([^*]+)\*\*/g,'<strong style="color:#1a1a2e">$1</strong>');
+        ln=ln.replace(/\\*\\*([^*]+)\\*\\*/g,'<strong style="color:#1a1a2e">$1</strong>');
         // Денежные суммы выделяем
-        ln=ln.replace(/(\d[\d\s.,]*\s*(?:₽|руб|Р))/g,'<span style="color:#fbbf24;font-weight:600">$1</span>');
+        ln=ln.replace(/(\\d[\\d\\s.,]*\\s*(?:₽|руб|Р))/g,'<span style="color:#fbbf24;font-weight:600">$1</span>');
         // Номера сделок #XXXXX → кликабельные с раскрытием
         ln=linkifyDealIds(ln);
         // Нумерованные пункты
-        if(ln.match(/^\d+\./)){
+        if(ln.match(/^\\d+\\./)){
           ln='<div style="padding:6px 0 6px 8px;border-bottom:1px solid rgba(148,163,184,.08)">'+ln+'</div>';
         }
         // Вложенные маркеры (    *   текст)
-        else if(ln.match(/^\s{2,}[*•\-]\s+/)){
-          ln='<div style="padding:4px 0 4px 34px;position:relative;color:#6b7280"><span style="position:absolute;left:18px;color:'+st.color+';opacity:.5">◦</span>'+ln.replace(/^\s*[*•\-]\s+/,'')+'</div>';
+        else if(ln.match(/^\\s{2,}[*•\\-]\\s+/)){
+          ln='<div style="padding:4px 0 4px 34px;position:relative;color:#6b7280"><span style="position:absolute;left:18px;color:'+st.color+';opacity:.5">◦</span>'+ln.replace(/^\\s*[*•\\-]\\s+/,'')+'</div>';
         }
         // Маркеры * или - (включая "*   текст")
-        else if(ln.match(/^[*•\-]\s+/)){
-          ln='<div style="padding:6px 0 6px 18px;position:relative"><span style="position:absolute;left:2px;color:'+st.color+'">•</span>'+ln.replace(/^[*•\-]\s+/,'')+'</div>';
+        else if(ln.match(/^[*•\\-]\\s+/)){
+          ln='<div style="padding:6px 0 6px 18px;position:relative"><span style="position:absolute;left:2px;color:'+st.color+'">•</span>'+ln.replace(/^[*•\\-]\\s+/,'')+'</div>';
         }
         else{
           ln='<div style="margin:3px 0">'+ln+'</div>';
@@ -1940,7 +2046,7 @@ function renderManager(){
       h+='</div>';
       // Собираем все #ID из текста секции и показываем карточки сделок
       var secText=sec.lines.join(' ');
-      var idMatches=secText.match(/#(d{4,6})/g);
+      var idMatches=secText.match(/#(\d{4,6})/g);
       if(idMatches&&idMatches.length){
         var uniqueIds=[...new Set(idMatches.map(function(m){return parseInt(m.substring(1))}))];
         var secDeals=uniqueIds.map(function(id){return D.dealCards.find(function(c){return c.id===id})}).filter(Boolean);
@@ -2217,6 +2323,9 @@ function fmt(n){return n?n.toLocaleString('ru-RU'):'0'}
 function fmtD(iso){if(!iso)return'?';const d=new Date(iso);return isNaN(d)?iso:d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short'})}
 function yn(v){return v==='Да'?'<span class="yes">✓</span>':'<span class="no">✗</span>'}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')}
-function timeToMin(t){const m=(t||'').match(/(\d+):(\d+)/);return m?parseInt(m[1])*60+parseInt(m[2]):0}
+function timeToMin(t){const m=(t||'').match(/(\\d+):(\\d+)/);return m?parseInt(m[1])*60+parseInt(m[2]):0}
 init();
-</script></body></html>
+</script></body></html>`;
+}
+
+module.exports = { buildStatsFromCache, generateHtml };

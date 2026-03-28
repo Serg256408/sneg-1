@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "context7": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@upstash/context7-mcp"]
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "C:\\Users\\User\\.local\\bin\\uvx.exe",
+      "args": [
+        "--from", "git+https://github.com/oraios/serena",
+        "serena", "start-mcp-server",
+        "--context", "claude-code",
+        "--project", "C:\\Users\\User\\Desktop\\Prodavzi\\sneg-1"
+      ]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@playwright/mcp"]
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-sequential-thinking"]
+    }
+  }
+}
