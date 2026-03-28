@@ -5,6 +5,18 @@
 const { API_URL, TOKEN } = require('../utils/config');
 const { loadAiCache } = require('../core/cache');
 
+
+// Загрузка клиентского JS из файлов вкладок
+const __tabsDir = require('path').join(__dirname, 'tabs');
+const __tabOrder = ['shared','day','deals','quality','daily','funnel','stats','incoming','manager'];
+function _loadClientJS() {
+  return __tabOrder.map(t => {
+    const f = require('path').join(__tabsDir, t + '.client.js');
+    return require('fs').readFileSync(f, 'utf8');
+  }).join('\n');
+}
+
+
 function buildStatsFromCache() {
   const cache = loadAiCache();
   const stats = {}; // { "DD-MM-YYYY": { deals: N, totalScore: N, maxScore: N, calls: N, texts: N, vpDone: N, hwDone: N, ctaDone: N, cpDone: N, invDone: N, presDone: N } }
@@ -100,34 +112,7 @@ function generateHtml(managerName, data, allManagers) {
     .replace(/<\/script/gi, '<\\/script')
     .replace(/<!--/g, '<\\!--')
     .replace(/`/g, '\\u0060');
-
-const { get_shared_JS } = require('./tabs/shared');
-const { get_day_JS } = require('./tabs/day');
-const { get_deals_JS } = require('./tabs/deals');
-const { get_quality_JS } = require('./tabs/quality');
-const { get_daily_JS } = require('./tabs/daily');
-const { get_funnel_JS } = require('./tabs/funnel');
-const { get_stats_JS } = require('./tabs/stats');
-const { get_incoming_JS } = require('./tabs/incoming');
-const { get_manager_JS } = require('./tabs/manager');
-
-function getAllClientJS() {
-  return [
-    get_shared_JS(),
-    get_day_JS(),
-    get_deals_JS(),
-    get_quality_JS(),
-    get_daily_JS(),
-    get_funnel_JS(),
-    get_stats_JS(),
-    get_incoming_JS(),
-    get_manager_JS(),
-  ].join('\n');
-}
-
-const clientJS = getAllClientJS();
-
-return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="ru"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ТрансКом — ${managerName}</title>
@@ -277,7 +262,8 @@ const PF_URL='${API_URL.replace(/[\r\n]/g, '')}';
 const PF_TOKEN='${TOKEN.replace(/[\r\n]/g, '')}';
 const PERIODS=[{l:'Сегодня',d:0},{l:'3 дня',d:3},{l:'7 дн',d:7},{l:'14 дн',d:14},{l:'30 дн',d:30},{l:'Всё',d:9999}];
 
-${clientJS}
+` + _loadClientJS() + `
+
 init();
 </script></body></html>`;
 }

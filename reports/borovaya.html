@@ -2218,5 +2218,6 @@ function fmtD(iso){if(!iso)return'?';const d=new Date(iso);return isNaN(d)?iso:d
 function yn(v){return v==='Да'?'<span class="yes">✓</span>':'<span class="no">✗</span>'}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')}
 function timeToMin(t){const m=(t||'').match(/(\d+):(\d+)/);return m?parseInt(m[1])*60+parseInt(m[2]):0}
+
 init();
 </script></body></html>
