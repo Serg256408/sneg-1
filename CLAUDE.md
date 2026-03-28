@@ -114,6 +114,13 @@ Node.js портативный: `.tools/node-v24.14.0-win-x64/node.exe` (не в
 6. **Показать результат** — показать что изменилось, дождаться подтверждения
 7. **Следующая задача** — только после подтверждения пользователя
 
+### Правило компактности кода
+- Максимум **500 строк** на файл. Если файл растёт больше — разбить на модули
+- Новая функциональность = новый файл, НЕ дописывание в существующий большой файл
+- Один файл = одна ответственность (загрузка данных, ИИ-оценка, вкладка отчёта и т.д.)
+- При добавлении вкладки — создать `src/report/tabs/имя.js`, подключить в `html.js`
+- При добавлении ИИ-логики — в `assessment.js` или `manager-report.js`, НЕ в `deals.js`
+
 ### Запреты
 - НЕ менять несколько файлов одновременно без проверки между ними
 - НЕ делать большие рефакторинги без согласования
@@ -127,24 +134,37 @@ Node.js портативный: `.tools/node-v24.14.0-win-x64/node.exe` (не в
 - `watch-test.js` — следит за файлами и запускает тесты из любого чата/IDE
 - Все тесты должны быть зелёными перед показом результата
 
-### Структура проекта (v9.0 модульная)
+### Структура проекта (v10.0 модульная, макс ~500 строк/файл)
 ```
-analytics.js              — обёртка: require('./src/index')
+analytics.js                    — обёртка: require('./src/index')
 src/
-  utils/config.js         — константы, ALLOWED_TEMPLATES, DEAL_FIELDS
-  utils/helpers.js        — утилиты
-  api/planfix.js          — Planfix API, getAllTasks
-  api/whisper.js          — транскрибация
-  api/deepseek.js         — ИИ-оценка
-  core/cache.js           — кэш
-  core/deals.js           — buildDealCards, фильтрация по шаблонам
-  core/scoring.js         — баллы ЗП
-  core/transcription.js   — транскрибация
-  report/html.js          — генерация HTML
-  report/dashboard.js     — дашборд
-  index.js                — CLI, main()
-test.js                   — тесты
-watch-test.js             — file watcher для автотестов
+  utils/config.js         (64)  — константы, ALLOWED_TEMPLATES, DEAL_FIELDS
+  utils/helpers.js        (112) — утилиты, normalizePhone
+  api/planfix.js          (138) — Planfix API, getAllTasks
+  api/whisper.js          (84)  — транскрибация Whisper
+  api/deepseek.js         (76)  — ИИ-чат (DeepSeek/Polza)
+  core/cache.js           (31)  — кэш AI + транскрибаций
+  core/transcription.js   (16)  — extractTranscription
+  core/scoring.js         (62)  — баллы ЗП
+  core/deals.js           (711) — buildDealCards, загрузка, фильтрация
+  core/assessment.js      (399) — ИИ-оценка сделки (промпт, парсинг)
+  core/manager-report.js  (179) — ИИ итог дня + отчёт руководителя
+  core/funnel.js          (50)  — снимки воронки, сравнение
+  report/html.js          (285) — обёртка HTML, CSS, склейка вкладок
+  report/dashboard.js     (140) — мульти-менеджерский дашборд
+  report/tabs/shared.js         — общие клиентские функции
+  report/tabs/day.js            — вкладка "День"
+  report/tabs/deals.js          — вкладка "Все сделки"
+  report/tabs/quality.js        — вкладка "Качество"
+  report/tabs/daily.js          — вкладка "Ежедневные"
+  report/tabs/funnel.js         — вкладка "Воронка"
+  report/tabs/stats.js          — вкладка "Статистика"
+  report/tabs/incoming.js       — вкладка "Входящие"
+  report/tabs/manager.js        — вкладка "Руководитель"
+  index.js                (259) — CLI, main()
+test.js                         — тесты (36 проверок)
+watch-test.js                   — file watcher для автотестов
+TASKS.md                        — план задач (читать перед работой!)
 ```
 
 ### Общие правила
