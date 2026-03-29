@@ -17,36 +17,35 @@ function _loadClientJS() {
 }
 
 
-function buildStatsFromCache() {
-  const cache = loadAiCache();
-  const stats = {}; // { "DD-MM-YYYY": { deals: N, totalScore: N, maxScore: N, calls: N, texts: N, vpDone: N, hwDone: N, ctaDone: N, cpDone: N, invDone: N, presDone: N } }
-  for (const [key, val] of Object.entries(cache)) {
-    const m = key.match(/^assess_(\d+)_(\d{2}-\d{2}-\d{4})_v18a?$/);
-    if (!m) continue;
-    const date = m[2];
+function buildStatsFromMultiDay(multiDayActivity) {
+  const stats = {};
+  for (const [date, deals] of Object.entries(multiDayActivity || {})) {
+    if (!deals || !deals.length) continue;
     if (!stats[date]) stats[date] = { deals: 0, totalScore: 0, maxScore: 0, scores: [], callSources: 0, textSources: 0, vpDone: 0, hwDone: 0, ctaDone: 0, cpDone: 0, invDone: 0, presDone: 0, objDone: 0 };
     const s = stats[date];
-    s.deals++;
-    const ss = val.salaryScore || {};
-    s.totalScore += (ss.total || 0);
-    s.maxScore += (ss.max || 12);
-    s.scores.push(ss.total || 0);
-    // VP
-    if (val.verbalPresentation && val.verbalPresentation.overall) {
-      s.vpDone++;
-      if (val.verbalPresentation.source === 'call') s.callSources++; else s.textSources++;
+    for (const da of deals) {
+      const val = da.aiAssessment;
+      if (!val) continue;
+      s.deals++;
+      const ss = val.salaryScore || {};
+      s.totalScore += (ss.total || 0);
+      s.maxScore += (ss.max || 12);
+      s.scores.push(ss.total || 0);
+      if (val.verbalPresentation && val.verbalPresentation.overall) {
+        s.vpDone++;
+        if (val.verbalPresentation.source === 'call') s.callSources++; else s.textSources++;
+      }
+      if (val.howWeWork && val.howWeWork.done) {
+        s.hwDone++;
+        if (val.howWeWork.source === 'call') s.callSources++; else s.textSources++;
+      }
+      if (val.callToAction && val.callToAction.done) s.ctaDone++;
+      if (val.cp && val.cp.done) s.cpDone++;
+      if (val.invoice && val.invoice.done) s.invDone++;
+      if (val.writtenPresentation && val.writtenPresentation.done) s.presDone++;
+      if (val.objectionHandling && val.objectionHandling.done) s.objDone++;
     }
-    if (val.howWeWork && val.howWeWork.done) {
-      s.hwDone++;
-      if (val.howWeWork.source === 'call') s.callSources++; else s.textSources++;
-    }
-    if (val.callToAction && val.callToAction.done) s.ctaDone++;
-    if (val.cp && val.cp.done) s.cpDone++;
-    if (val.invoice && val.invoice.done) s.invDone++;
-    if (val.writtenPresentation && val.writtenPresentation.done) s.presDone++;
-    if (val.objectionHandling && val.objectionHandling.done) s.objDone++;
   }
-  // Сортируем по дате
   const sorted = Object.entries(stats).sort((a, b) => {
     const pa = a[0].split('-'), pb = b[0].split('-');
     return new Date(pa[2]+'-'+pa[1]+'-'+pa[0]) - new Date(pb[2]+'-'+pb[1]+'-'+pb[0]);
@@ -63,8 +62,8 @@ function buildStatsFromCache() {
 }
 
 function generateHtml(managerName, data, allManagers) {
-  // Статистика из кэша ИИ + операционные данные из dealCards
-  const statsData = buildStatsFromCache();
+  // Статистика из multiDayActivity (ИИ-оценки) + операционные данные
+  const statsData = buildStatsFromMultiDay(data.multiDayActivity);
   // Операционная статистика по дням из dealCards
   const opsStats = {};
   const mgrNameLow = (managerName || '').toLowerCase();
@@ -90,6 +89,22 @@ function generateHtml(managerName, data, allManagers) {
       opsStats[c.date].dealsWorked.add(card.id);
       const isNewOnDay = card.dateCreated === c.date;
       if (isNewOnDay) opsStats[c.date].newDeals.add(card.id); else opsStats[c.date].oldDeals.add(card.id);
+    }
+  }
+  // Дополняем из multiDayActivity (прошлые дни из истории)
+  for (const [date, deals] of Object.entries(data.multiDayActivity || {})) {
+    if (!deals || !deals.length) continue;
+    if (!opsStats[date]) opsStats[date] = { outCalls: 0, inCalls: 0, callDuration: 0, dealsWorked: new Set(), newDeals: new Set(), oldDeals: new Set(), statuses: {} };
+    const os = opsStats[date];
+    for (const da of deals) {
+      const dealId = da.deal ? da.deal.id : 0;
+      if (os.dealsWorked.has(dealId)) continue; // уже из dealCards
+      os.dealsWorked.add(dealId);
+      os.oldDeals.add(dealId);
+      for (const a of (da.actions || [])) {
+        if (a.type === 'outCall') os.outCalls++;
+        else if (a.type === 'inCall') os.inCalls++;
+      }
     }
   }
   // Конвертируем Set в числа + мёржим с AI stats
@@ -268,4 +283,4 @@ init();
 </script></body></html>`;
 }
 
-module.exports = { buildStatsFromCache, generateHtml };
+module.exports = { buildStatsFromMultiDay, generateHtml };
