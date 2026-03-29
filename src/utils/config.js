@@ -3,6 +3,7 @@
 // ============================================================
 
 require('dotenv').config({ quiet: true });
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Planfix TLS workaround
 const fs = require('fs');
 const path = require('path');
 const os = require('os');

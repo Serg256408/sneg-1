@@ -3,9 +3,9 @@
 // ============================================================
 
 const { fs, path, os, API_URL, TOKEN, POLZA_KEY, isTimeUp } = require('../utils/config');
-const { loadAiCache, saveAiCache, loadTranscriptionCache, saveTranscriptionCache } = require('../core/cache');
+const { saveAiCache, loadAiCache } = require('../core/cache');
 
-const MAX_WHISPER_PER_RUN = 150;
+const MAX_WHISPER_PER_RUN = 70;
 let whisperCallsThisRun = 0;
 
 function downloadPlanfixFile(fileId) {
@@ -50,27 +50,25 @@ async function whisperTranscribe(audioPath) {
   } catch { return null; }
 }
 
-async function transcribeCallIfNeeded(comment, cache) {
+async function transcribeCallIfNeeded(comment, cache, allowNew) {
   if (comment.transcription) return comment.transcription;
-  if (isTimeUp()) return null;
-  if (whisperCallsThisRun >= MAX_WHISPER_PER_RUN) return null;
   const files = comment.files || [];
   const audioFile = files.find(f => (f.name || '').toLowerCase().endsWith('.mp3'));
   if (!audioFile) return null;
   const cacheKey = String(audioFile.id);
-  if (cache[cacheKey]) return cache[cacheKey];
-  const aiCacheTmp = loadAiCache();
-  const aiKey = `whisper_${audioFile.id}`;
-  if (aiCacheTmp[aiKey]) { cache[cacheKey] = aiCacheTmp[aiKey]; return aiCacheTmp[aiKey]; }
+  if (cache[cacheKey]) return cache[cacheKey]; // из кэша
+  // Новые транскрибации — только если явно разрешено (звонки за день отчёта)
+  if (!allowNew) return null;
+  if (isTimeUp()) return null;
+  if (whisperCallsThisRun >= MAX_WHISPER_PER_RUN) return null;
   whisperCallsThisRun++;
   if (whisperCallsThisRun === 1) console.log(`    🎤 Whisper: новых транскрибаций (лимит ${MAX_WHISPER_PER_RUN})...`);
   const audioPath = downloadPlanfixFile(audioFile.id);
-  if (!audioPath) return null;
+  if (!audioPath) { console.log(`    ⚠️ Whisper: не удалось скачать файл ${audioFile.id} (${audioFile.name})`); return null; }
   try {
     const text = await whisperTranscribe(audioPath);
     if (text) {
       cache[cacheKey] = text;
-      saveTranscriptionCache(cache);
       const aiC = loadAiCache();
       aiC[`whisper_${audioFile.id}`] = text;
       saveAiCache(aiC);

@@ -91,13 +91,41 @@ function renderDay(){
 
     h+='<div class="card-body" id="cbody_'+cardId+'">';
 
-    // === РЕЗУЛЬТАТ ЗА ДЕНЬ ===
-    if(aa.todaySummary){
+    // === СИТУАЦИЯ + РЕЗУЛЬТАТ + СЛЕДУЮЩИЙ ШАГ ===
+    const hasSituation=aa.dealSituation||aa.todaySummary||aa.nextStep;
+    if(hasSituation){
       h+='<div class="result-block">';
-      h+='<div class="res-title">📊 Результат за день</div>';
-      h+='<div class="res-text">'+esc(aa.todaySummary)+'</div>';
+      // Ситуация по сделке (соль)
+      if(aa.dealSituation){
+        h+='<div style="font-size:12px;font-weight:700;color:#1a1a2e;margin-bottom:4px">📋 Ситуация</div>';
+        h+='<div style="font-size:12px;color:#374151;margin-bottom:8px;line-height:1.5">'+esc(aa.dealSituation)+'</div>';
+      }
+      // Что сделано сегодня
+      if(aa.todaySummary){
+        h+='<div style="font-size:12px;font-weight:700;color:#1a1a2e;margin-bottom:4px">📊 Сегодня</div>';
+        h+='<div style="font-size:12px;color:#374151;margin-bottom:8px;line-height:1.5">'+esc(aa.todaySummary)+'</div>';
+      }
+      // Вердикт
       if(aa.overallVerdict){
         h+='<div class="res-verdict">→ '+esc(aa.overallVerdict)+'</div>';
+      }
+      // Следующий шаг — сразу здесь, не внизу
+      if(aa.nextStep){
+        h+='<div style="margin-top:6px;padding:8px 10px;background:rgba(59,130,246,.06);border-radius:8px;border-left:3px solid #3b82f6">';
+        h+='<span style="font-size:11px;font-weight:700;color:#2563eb">▶ СЛЕДУЮЩИЙ ШАГ:</span> ';
+        h+='<span style="font-size:12px;color:#1e40af">'+esc(aa.nextStep)+'</span></div>';
+      }
+      h+='</div>';
+    }
+
+    // === RED-ФЛАГИ ===
+    const cardData=D.dealCards.find(c=>c.id===d.id);
+    const rf=cardData&&cardData.redFlags||[];
+    if(rf.length){
+      h+='<div style="margin:6px 0 8px;display:flex;flex-wrap:wrap;gap:6px">';
+      for(const f of rf){
+        if(f.type==='warning') h+='<span style="font-size:11px;padding:3px 8px;border-radius:6px;background:rgba(251,146,60,.12);color:#ea580c;font-weight:600">⚠️ '+esc(f.label)+'</span>';
+        else if(f.type==='priority') h+='<span style="font-size:11px;padding:3px 8px;border-radius:6px;background:rgba(59,130,246,.08);color:#2563eb;font-weight:600">💰 '+esc(f.label)+'</span>';
       }
       h+='</div>';
     }
@@ -334,13 +362,6 @@ function renderDay(){
         for(const r of recs){
           h+='<div style="font-size:11px;color:#6ee7b7;padding:3px 0;padding-left:8px;border-left:2px solid rgba(52,211,153,.3)">• '+esc(r)+'</div>';
         }
-        h+='</div>';
-      }
-
-      if(aa.nextStep){
-        h+='<div style="margin-top:8px;padding:8px 12px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:8px">';
-        h+='<div style="font-size:10px;font-weight:700;color:#60a5fa;margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">▶ Следующий шаг</div>';
-        h+='<div style="font-size:12px;color:#93c5fd;font-weight:600">'+esc(aa.nextStep)+'</div>';
         h+='</div>';
       }
 

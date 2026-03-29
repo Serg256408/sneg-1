@@ -61,6 +61,8 @@ async function discoverEmployees() {
   });
 }
 
+const MAX_PARTICIPANT_TASKS = 2000; // лимит задач-участника (старые не нужны)
+
 async function getAllTasks(userId, role) {
   const all = [];
   let offset = 0;
@@ -93,6 +95,10 @@ async function getAllTasks(userId, role) {
     }
     if (tasks.length < 100) break;
     offset += 100;
+    if (offset >= MAX_PARTICIPANT_TASKS) {
+      console.log(`  ⚠️ Лимит участника: ${MAX_PARTICIPANT_TASKS}, остальные пропущены`);
+      break;
+    }
   }
   return all;
 }
@@ -135,4 +141,58 @@ async function getContactComments(contactId) {
   return [];
 }
 
-module.exports = { httpPost, httpGet, pf, pfGet, discoverEmployees, getAllTasks, getTaskComments, getContactComments };
+// Сделки с комментариями/изменениями за день (исполнитель + участник)
+async function getActiveTasks(userId, reportDate) {
+  const dateFilter = { type: 21, operator: 'equal', value: { dateType: 'otherRange', dateFrom: reportDate, dateTo: reportDate } };
+  const seenIds = new Set();
+  const all = [];
+
+  for (const userFilter of [
+    { type: 97, operator: 'equal', value: `user:${userId}` },
+    { type: 39, operator: 'equal', value: `user:${userId}` },
+  ]) {
+    let offset = 0;
+    const role = userFilter.type === 97 ? 'исполнитель' : 'участник';
+    while (true) {
+      process.stdout.write(`  Активные (${role}) offset=${offset}...`);
+      const d = await pf('/task/list', { offset, pageSize: 100,
+        filters: [userFilter, dateFilter],
+        fields: DEAL_FIELDS,
+      });
+      const tasks = d.tasks || [];
+      console.log(` ${tasks.length}`);
+      for (const t of tasks) {
+        if (!seenIds.has(t.id)) { all.push(t); seenIds.add(t.id); }
+      }
+      if (tasks.length < 100) break;
+      offset += 100;
+    }
+  }
+  console.log(`  ✅ Активных сделок за ${reportDate}: ${all.length}`);
+  return all;
+}
+
+// Лёгкий список всех сделок (id, name, status, counterparty, template, dataTags) для воронки
+const LIGHT_FIELDS = 'id,name,status,counterparty,template,dateTime,dataTags,parent';
+
+async function getLightTasks(userId) {
+  const all = [];
+  let offset = 0;
+  // Только исполнитель — участник может вернуть тысячи задач всей компании
+  while (true) {
+    process.stdout.write(`  Воронка offset=${offset}...`);
+    const d = await pf('/task/list', { offset, pageSize: 100,
+      filters: [{ type: 97, operator: 'equal', value: `user:${userId}` }],
+      fields: LIGHT_FIELDS,
+    });
+    const tasks = d.tasks || [];
+    console.log(` ${tasks.length}`);
+    if (!tasks.length) break;
+    all.push(...tasks);
+    if (tasks.length < 100) break;
+    offset += 100;
+  }
+  return all;
+}
+
+module.exports = { httpPost, httpGet, pf, pfGet, discoverEmployees, getAllTasks, getActiveTasks, getLightTasks, getTaskComments, getContactComments };

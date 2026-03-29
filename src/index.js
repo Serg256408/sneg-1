@@ -6,7 +6,7 @@ const { fs, path, ROOT_DIR, TOKEN, MANAGERS, MANAGERS_LIST } = require('./utils/
 const { sleep, pad2 } = require('./utils/helpers');
 const { loadAiCache, saveAiCache } = require('./core/cache');
 const { buildDealCards } = require('./core/deals');
-const { getAllTasks } = require('./api/planfix');
+const { getAllTasks, getActiveTasks, getLightTasks } = require('./api/planfix');
 const { pf } = require('./api/planfix');
 const { generateHtml } = require('./report/html');
 const { generateDashboard } = require('./report/dashboard');
@@ -26,10 +26,7 @@ async function runForManager(mgr, reportDate) {
   for (const d of [path.join(ROOT_DIR, 'data'), path.join(ROOT_DIR, 'reports'), mgrDeployDir(mgr.alias)])
     if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 
-  const tasks = await getAllTasks(mgr.userId, mgr.role);
-  console.log(`  ✅ Сделок: ${tasks.length}\n`);
-
-  const result = await buildDealCards(tasks, mgr.pfName, reportDate, mgr.alias, mgr);
+  const result = await buildDealCards(mgr.userId, reportDate, mgr.pfName);
   const { dealCards, dailyReports, allCalls, allAnalyses, dailyActivity, funnelChanges, scriptCompliance, dailyDealActivity, aiDaySummaryText, multiDayActivity, multiDaySummary } = result;
 
   console.log(`\n  📊 Сделок с звонками: ${dealCards.filter(d => d.totalCalls > 0).length}`);

@@ -1,0 +1,37 @@
+Перед началом работы прочитай CONVENTIONS.md и CLAUDE.md.
+
+# Железные правила
+
+## Planfix API
+- Домен: transkom.planfix.ru
+- Авторизация: Bearer token (из .env PLANFIX_TOKEN)
+- Пагинация: pageSize=100, offset+=100
+- Между запросами: sleep(100-300) — не перегружать API
+- TLS: NODE_TLS_REJECT_UNAUTHORIZED=0 (workaround)
+
+## Node.js
+- Портативный: .tools/node-v24.14.0-win-x64/node.exe (НЕ в PATH)
+- Запуск: .tools/node-v24.14.0-win-x64/node.exe analytics.js borovaya 26-03-2026
+- Тесты: .tools/node-v24.14.0-win-x64/node.exe test.js
+
+## Код
+- Максимум 500 строк на файл
+- Один файл = одна ответственность
+- Не менять несколько файлов без проверки между ними
+- После изменений — запустить тесты
+- Не удалять функциональность без согласования
+
+## Кэширование
+- deal_history.json — единственный источник истории сделок
+- ai_cache.json — только day_*, mgr_*, sent_* ключи (НЕ assess_*, НЕ whisper_*)
+- ИИ-оценки хранятся в deal_history.json → deals[id].assessments
+- Транскрибации: whisper_* ключи в ai_cache.json
+
+## Менеджеры
+- Боровая (userId:41) — основной менеджер, исполнитель сделок
+- Михаил (userId:42) — работает с завершёнными сделками, участник в 16000+ задачах
+- Для Михаила: getActiveTasks (по дате комментариев), НЕ getAllTasks (слишком много)
+
+## MCP Planfix
+- Доступен через @popstas/planfix-mcp-server
+- Аккаунт: transkom, токен в .env

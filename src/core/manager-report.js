@@ -7,9 +7,9 @@ const { loadAiCache, saveAiCache } = require('./cache');
 const { openaiChat } = require('../api/deepseek');
 const { FUNNEL_ORDER } = require('../utils/config');
 
-async function aiDaySummary(dailyDeals, reportDate, aiCache, mgrAlias) {
+async function aiDaySummary(dailyDeals, reportDate, aiCache, mgrAlias, forceRefresh) {
   const cacheKey = `day_${mgrAlias || 'default'}_${reportDate}_${dailyDeals.length}_v4`;
-  if (aiCache[cacheKey]) return aiCache[cacheKey];
+  if (!forceRefresh && aiCache[cacheKey]) return aiCache[cacheKey];
 
   const totalCalls = dailyDeals.reduce((s, d) => s + (d.dayCalls || 0), 0);
   const totalScore = dailyDeals.reduce((s, d) => { const ss = (d.aiAssessment || {}).salaryScore; return s + (ss ? ss.total : 0); }, 0);
@@ -60,9 +60,9 @@ ${dealsText}
 // ============ ИТОГ ДЛЯ РУКОВОДИТЕЛЯ ============
 
 // Итог для руководителя за период (день/неделя/месяц)
-async function aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, periodDays, reportDate, aiCache, mgrAlias) {
+async function aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, periodDays, reportDate, aiCache, mgrAlias, forceRefresh) {
   const cacheKey = `mgr_${mgrAlias || 'default'}_${periodDays}d_${reportDate}_v3`;
-  if (aiCache[cacheKey]) return aiCache[cacheKey];
+  if (!forceRefresh && aiCache[cacheKey]) return aiCache[cacheKey];
 
   // Собираем даты за период
   const refDate = parsePfDate(reportDate);
@@ -115,16 +115,19 @@ async function aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, fu
   // Дневные итоги
   const daySummaries = allDates.map(d => `${d}: ${(multiDaySummary || {})[d] || 'нет итога'}`).join('\n');
 
-  // Детали по ключевым сделкам — с номерами
+  // Детали по ключевым сделкам — с номерами и red-флагами
   const dealDetails = Object.values(dealMap)
     .sort((a, b) => (b.deal.dealSum || 0) - (a.deal.dealSum || 0))
     .slice(0, 20)
     .map(d => {
+      const card = dealCards.find(c => c.id === d.deal.id);
+      const rf = (card && card.redFlags || []).map(f => f.label).join(', ');
       let line = `- #${d.deal.id} "${d.deal.name}" (${d.deal.status}, ${d.deal.dealSum ? d.deal.dealSum + '₽' : 'без суммы'})`;
       line += ` — работали ${d.days.length} дн.`;
+      if (rf) line += ` | ⚠️ ${rf}`;
       if (d.ai) {
+        if (d.ai.dealSituation) line += ` | Ситуация: ${d.ai.dealSituation}`;
         if (d.ai.nextStep) line += ` | След.шаг: ${d.ai.nextStep}`;
-        if (d.ai.overallVerdict) line += ` | ${d.ai.overallVerdict}`;
       }
       return line;
     }).join('\n');
@@ -159,11 +162,19 @@ ${closing.length ? closing.map(d => `- #${d.id} "${d.name}" — ${d.dealSum || 0
 
 Напиши отчёт для руководителя в формате:
 
-1. **КРАТКИЙ ИТОГ** (3-4 предложения): главные результаты менеджера за ${periodName}, тон деловой
-2. **УСПЕХИ И ПРОГРЕСС**: какие сделки продвинулись, кто может заплатить, конкретные достижения
-3. **ПРОБЛЕМЫ**: где застряли, что буксует, какие сделки требуют внимания руководителя
-4. **БЛИЖАЙШИЕ ОПЛАТЫ**: какие сделки ближе всего к оплате, суммы, что нужно дожать
-5. **РЕКОМЕНДАЦИИ РУКОВОДИТЕЛЮ**: конкретные действия — кому позвонить, куда подключиться, что проконтролировать
+1. **КРАТКИЙ ИТОГ** (3-4 предложения): главные результаты менеджера за ${periodName}, сколько денег в пайплайне, сколько реально может закрыться
+
+2. **🔥 СРОЧНО ДОЖАТЬ** — сделки где клиент почти согласен, КП отправлено, большая сумма. Конкретно: что сделать чтобы закрыть. По каждой сделке — #ID, сумма, что мешает, следующий шаг
+
+3. **⚠️ ЗАБЫТЫЕ СДЕЛКИ** — нет активности давно, а сделка живая. Кто забыл, сколько дней молчат, сумма
+
+4. **📋 НЕ ХВАТАЕТ ДОКУМЕНТОВ** — где нет КП, счёта, презентации. Что конкретно отправить
+
+5. **✅ ХОРОШО ИДУТ** — сделки где всё по скрипту, менеджер работает правильно. Коротко
+
+6. **💰 ДЕНЬГИ** — общая сумма пайплайна, сколько реально закроется в ближайшие 2 недели, какие сделки принесут деньги
+
+7. **📌 ПЛАН ДЕЙСТВИЙ НА ЗАВТРА** — топ-5 конкретных действий: кому позвонить, что отправить, куда подключиться руководителю
 
 КРИТИЧЕСКОЕ ПРАВИЛО: При КАЖДОМ упоминании сделки ОБЯЗАТЕЛЬНО пиши "#ID название" (например: #31766 "Асфальтирование/4200м2"). НИКОГДА не упоминай сделку без #ID. Пиши конкретно с именами, номерами и суммами.`;
 

@@ -1,4 +1,4 @@
 [
   { "alias": "borovaya", "userId": 41, "name": "Ия Боровая", "pfName": "Боровая" },
-  { "alias": "mikhail", "userId": 42, "name": "Михаил", "pfName": "Михаил", "role": "reanimator" }
+  { "alias": "mikhail", "userId": 42, "name": "Михаил", "pfName": "Михаил" }
 ]

@@ -2,15 +2,19 @@
 // assessment.js — ИИ-оценка отдельной сделки (скрипт продаж)
 // ============================================================
 
-const { loadAiCache, saveAiCache } = require('./cache');
 const { calculateSalaryScore } = require('./scoring');
 const { openaiChat } = require('../api/deepseek');
+const { ensureDeal } = require('./history');
 
-async function aiDealFullAssessment(dealActivity, reportDate, aiCache) {
+async function aiDealFullAssessment(dealActivity, reportDate, history, forceRefresh) {
   const deal = dealActivity.deal;
   const isSnow = (deal.name || '').toLowerCase().startsWith('вывоз снега');
   const cacheKey = `assess_${deal.id}_${reportDate}_${isSnow ? 'v20' : 'v20a'}`;
-  if (aiCache[cacheKey]) return aiCache[cacheKey];
+  // Проверяем в истории сделки (для reportDate — всегда пересчёт)
+  if (!forceRefresh) {
+    const dealHist = history.deals[String(deal.id)];
+    if (dealHist && dealHist.assessments && dealHist.assessments[cacheKey]) return dealHist.assessments[cacheKey];
+  }
 
   // Собираем данные, ЧЁТКО разделяя ЗВОНКИ и ПЕРЕПИСКУ
   const allC = dealActivity.allComments || [];
@@ -238,6 +242,7 @@ ${isSnow ? `ПРАВИЛА ОЦЕНКИ:
   "invoice": {"done": true/false, "note": "когда отправлен, название документа"},
   "callToAction": {"done": true/false, "note": "ЦИТАТА призыва к действию"},
   "objectionHandling": {"done": true/false, "note": "какие возражения, как отработаны"},
+  "dealSituation": "1-2 предложения СОЛЬ: что клиент хочет, на каком этапе сделка, что мешает закрыть. Пример: 'Клиент хочет заасфальтировать 500м2 парковки, КП отправлено, ждём решение. Цена устраивает, вопрос по срокам.'",
   "todaySummary": "2-3 предложения: что произошло за ${reportDate}, результат",
   "missing": ["что НЕ выполнено из скрипта"],
   "recommendations": ["конкретные рекомендации менеджеру"],
@@ -288,6 +293,7 @@ ${isSnow ? `ПРАВИЛА ОЦЕНКИ:
   "invoice": {"done": true/false, "note": "когда отправлен, название документа"},
   "callToAction": {"done": true/false, "note": "ЦИТАТА призыва к действию"},
   "objectionHandling": {"done": true/false, "note": "какие возражения, как отработаны"},
+  "dealSituation": "1-2 предложения СОЛЬ: что клиент хочет, на каком этапе сделка, что мешает закрыть. Пример: 'Клиент хочет заасфальтировать 500м2 парковки, КП отправлено, ждём решение. Цена устраивает, вопрос по срокам.'",
   "todaySummary": "2-3 предложения: что произошло за ${reportDate}, результат",
   "missing": ["что НЕ выполнено из скрипта"],
   "recommendations": ["конкретные рекомендации менеджеру"],
@@ -382,14 +388,14 @@ ${isSnow ? `ПРАВИЛА ОЦЕНКИ:
     // Рассчитываем баллы для ЗП (ПОСЛЕ всех валидаций)
     result.dealType = isSnow ? 'snow' : 'asphalt';
     result.salaryScore = calculateSalaryScore(result);
-    aiCache[cacheKey] = result;
-    saveAiCache(aiCache);
+    // Сохраняем в историю сделки
+    const dh = ensureDeal(history, deal.id);
+    dh.assessments[cacheKey] = result;
     return result;
   } catch {
-    // Если не удалось разобрать JSON — сохраняем как текст
     const fallback = { overallVerdict: raw.substring(0, 500), missing: [], recommendations: [], nextStep: '', salaryScore: { total: 0, items: [] } };
-    aiCache[cacheKey] = fallback;
-    saveAiCache(aiCache);
+    const dh = ensureDeal(history, deal.id);
+    dh.assessments[cacheKey] = fallback;
     return fallback;
   }
 }
