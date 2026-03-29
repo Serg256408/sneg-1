@@ -127,9 +127,10 @@ async function parseComment(c, reportDate, transcriptionCache) {
   let transcription = null;
   if (type === 'outCall' || type === 'inCall') {
     transcription = extractTranscription(c.description);
-    // Whisper: транскрибируем если нет текста и есть mp3
+    // Whisper: транскрибируем если нет текста и есть mp3, ТОЛЬКО за день отчёта
     if (!transcription && (POLZA_KEY || OPENAI_KEY) && transcriptionCache) {
-      transcription = await transcribeCallIfNeeded({ transcription, files: c.files || [] }, transcriptionCache, true);
+      const allowNew = dt.date === reportDate;
+      transcription = await transcribeCallIfNeeded({ transcription, files: c.files || [] }, transcriptionCache, allowNew);
     }
   }
   // note с mp3 "Запись звонка" — тоже транскрибируем
@@ -141,7 +142,8 @@ async function parseComment(c, reportDate, transcriptionCache) {
     });
     if (hasCallRecording) {
       type = 'inCall';
-      transcription = await transcribeCallIfNeeded({ transcription: null, files: cFiles }, transcriptionCache, true);
+      const allowNew = dt.date === reportDate;
+      transcription = await transcribeCallIfNeeded({ transcription: null, files: cFiles }, transcriptionCache, allowNew);
     }
   }
 
