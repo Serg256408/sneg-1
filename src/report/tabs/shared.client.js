@@ -83,6 +83,7 @@ function getAllDates(){
     for(const x of (c.comments||[]))if(x.date)ds.add(x.date);
     for(const x of (c.calls||[]))if(x.date)ds.add(x.date);
   }
+  if(D.multiDayActivity)for(const dt of Object.keys(D.multiDayActivity))ds.add(dt);
   return [...ds].sort((a,b)=>{
     const pa=a.split('-'),pb=b.split('-');
     const da=new Date(pa[2]+'-'+pa[1]+'-'+pa[0]),db=new Date(pb[2]+'-'+pb[1]+'-'+pb[0]);
