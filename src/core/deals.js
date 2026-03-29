@@ -105,7 +105,8 @@ async function getDealComments(taskId) {
 
 // ============ Парсинг комментариев ============
 
-async function parseComment(c, reportDate, transcriptionCache) {
+// allowWhisper: true = сделка активна за день, транскрибируем все звонки (даже старые)
+async function parseComment(c, reportDate, transcriptionCache, allowWhisper) {
   const desc = stripHtml(c.description);
   const dt = utcToMsk(c.dateTime?.date, c.dateTime?.time);
   let type = 'note';
@@ -127,10 +128,9 @@ async function parseComment(c, reportDate, transcriptionCache) {
   let transcription = null;
   if (type === 'outCall' || type === 'inCall') {
     transcription = extractTranscription(c.description);
-    // Whisper: транскрибируем если нет текста и есть mp3, ТОЛЬКО за день отчёта
+    // Whisper: сделка активна за день → транскрибируем любой звонок (и старый тоже)
     if (!transcription && (POLZA_KEY || OPENAI_KEY) && transcriptionCache) {
-      const allowNew = dt.date === reportDate;
-      transcription = await transcribeCallIfNeeded({ transcription, files: c.files || [] }, transcriptionCache, allowNew);
+      transcription = await transcribeCallIfNeeded({ transcription, files: c.files || [] }, transcriptionCache, !!allowWhisper);
     }
   }
   // note с mp3 "Запись звонка" — тоже транскрибируем
@@ -142,8 +142,7 @@ async function parseComment(c, reportDate, transcriptionCache) {
     });
     if (hasCallRecording) {
       type = 'inCall';
-      const allowNew = dt.date === reportDate;
-      transcription = await transcribeCallIfNeeded({ transcription: null, files: cFiles }, transcriptionCache, allowNew);
+      transcription = await transcribeCallIfNeeded({ transcription: null, files: cFiles }, transcriptionCache, !!allowWhisper);
     }
   }
 
@@ -310,7 +309,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
   async function parseAll(rawComments) {
     const parsed = [];
     for (const c of rawComments) {
-      const p = await parseComment(c, reportDate, transcriptionCache);
+      const p = await parseComment(c, reportDate, transcriptionCache, true); // активная сделка → Whisper для всех звонков
       if (!isAiComment(p.text)) parsed.push(p);
     }
     return parsed;
@@ -404,7 +403,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
         fields: 'id,description,dateTime,owner,files',
       });
       for (const c of (d.comments || [])) {
-        const parsed = await parseComment(c, reportDate, transcriptionCache);
+        const parsed = await parseComment(c, reportDate, transcriptionCache, true); // активная сделка → Whisper
         if (parsed.type !== 'outCall' && parsed.type !== 'inCall') continue;
         parsed.source = 'contact';
         const existing = [...(commentsByTask[taskId] || []), ...(contactCallsByTask[taskId] || [])];
