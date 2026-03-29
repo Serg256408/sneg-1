@@ -24,6 +24,16 @@
       "type": "stdio",
       "command": "cmd",
       "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "planfix": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["node_modules/@popstas/planfix-mcp-server/dist/index.js"],
+      "env": {
+        "PLANFIX_ACCOUNT": "transkom",
+        "PLANFIX_TOKEN": "e3aa0b55524001dc030b633a6ba9f13a",
+        "PLANFIX_BASE_URL": "https://transkom.planfix.ru/rest/"
+      }
     }
   }
 }

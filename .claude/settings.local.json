@@ -1,4 +1,19 @@
 {
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash c:/Users/User/Desktop/Prodavzi/sneg-1/.claude/hooks/post-edit-test.sh",
+            "timeout": 30,
+            "statusMessage": "Running tests..."
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "allow": [
       "Bash(*)",
@@ -37,7 +52,8 @@
       "Skill(open:*)",
       "mcp__playwright__browser_navigate",
       "mcp__playwright__browser_click",
-      "mcp__playwright__browser_select_option"
+      "mcp__playwright__browser_select_option",
+      "mcp__serena__get_symbols_overview"
     ]
   }
 }
