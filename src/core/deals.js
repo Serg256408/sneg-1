@@ -570,6 +570,62 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
 
   console.log(`  ✅ Карточек: ${dealCards.length}, за день: ${dailyDealActivity.length}`);
 
+  // Шаг 12: Прошлые дни из deal_history.json
+  const multiDayActivity = { [reportDate]: dailyDealActivity };
+  const multiDaySummary = aiDaySummaryText ? { [reportDate]: aiDaySummaryText } : {};
+
+  const reportDateObj = new Date(reportDate.split('-').reverse().join('-'));
+  const historyDatesSet = new Set();
+  for (const [, dealHist] of Object.entries(history.deals || {})) {
+    for (const c of (dealHist.comments || [])) {
+      if (!c.date || c.date === reportDate) continue;
+      const p = c.date.split('-');
+      const d = new Date(p[2] + '-' + p[1] + '-' + p[0]);
+      const daysAgo = (reportDateObj - d) / 86400000;
+      if (daysAgo > 0 && daysAgo <= 30) historyDatesSet.add(c.date);
+    }
+  }
+  const pastDays = [...historyDatesSet].sort((a, b) => {
+    const pa = a.split('-'), pb = b.split('-');
+    return new Date(pb[2]+'-'+pb[1]+'-'+pb[0]) - new Date(pa[2]+'-'+pa[1]+'-'+pa[0]);
+  });
+  console.log(`  📚 Прошлые дни из истории: ${pastDays.length}`);
+
+  for (const dayDMY of pastDays) {
+    const dayDeals = [];
+    for (const [dealId, dealHist] of Object.entries(history.deals || {})) {
+      const comments = (dealHist.comments || []).filter(c => c.date === dayDMY);
+      if (!comments.length) continue;
+      const hasMgr = comments.some(c => c.owner && c.owner.includes(mgrPfName));
+      if (!hasMgr) continue;
+      const actions = comments.map(c => ({
+        type: c.type, time: c.time, text: c.text,
+        owner: c.owner, transcription: c.transcription,
+        source: c.source || 'deal', files: c.files || [],
+      }));
+      actions.sort((a, b) => timeToMinNode(a.time) - timeToMinNode(b.time));
+      const isSnow = (dealHist.name || '').toLowerCase().startsWith('вывоз снега');
+      const assessKey = `assess_${dealId}_${dayDMY}_${isSnow ? 'v20' : 'v20a'}`;
+      const aiAssessment = dealHist.assessments?.[assessKey] || null;
+      dayDeals.push({
+        deal: { id: Number(dealId), name: dealHist.name || '?', status: dealHist.status || '?', counterparty: dealHist.counterparty || '—', dealSum: 0, workDesc: '' },
+        isNew: false, actions,
+        dayCalls: actions.filter(a => a.type === 'outCall' || a.type === 'inCall').length,
+        planfixScript: null,
+        scriptHistory: { total: 0, everHowWeWork: false, everCallToAction: false },
+        aiAssessment,
+      });
+    }
+    if (dayDeals.length) {
+      multiDayActivity[dayDMY] = dayDeals;
+      // Итог дня из кэша
+      const aiCache = loadAiCache();
+      if (DEEPSEEK_KEY || POLZA_KEY) {
+        multiDaySummary[dayDMY] = await aiDaySummary(dayDeals, dayDMY, aiCache, null);
+      }
+    }
+  }
+
   return {
     dealCards,
     dailyReports: [],
@@ -580,8 +636,8 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     scriptCompliance: { total: 0 },
     dailyDealActivity,
     aiDaySummaryText,
-    multiDayActivity: { [reportDate]: dailyDealActivity },
-    multiDaySummary: aiDaySummaryText ? { [reportDate]: aiDaySummaryText } : {},
+    multiDayActivity,
+    multiDaySummary,
     managerSummaries,
     incomingByDate: {},
     snapshotDate: null,
