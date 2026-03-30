@@ -547,6 +547,14 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     return card;
   });
 
+  // Сохраняем метаданные сделок в историю (name, status, counterparty)
+  for (const card of dealCards) {
+    const dh = ensureDeal(history, card.id);
+    dh.name = card.name;
+    dh.status = card.status;
+    dh.counterparty = card.counterparty;
+  }
+
   // Шаг 7: Дневная активность (формат для assessment и HTML)
   const dailyDealActivity = dealCards.map(card => {
     const dayComments = card.comments.filter(c => c.date === reportDate);
