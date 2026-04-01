@@ -385,25 +385,20 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       const cachedIds = new Set(cached.map(c => c.id));
       const raw = await getDealComments(t.id);
       const newComments = raw.filter(c => !cachedIds.has(c.id));
-      if (newComments.length) {
-        const newParsed = await parseAll(newComments);
-        commentsByTask[t.id] = [...cached, ...newParsed];
-        // Обновляем историю
+      // Проверяем старые звонки без транскрибации или с мусором от Planfix AI
+      const JUNK_RE = /закончились ai-кредит|не могу выполнить операцию|добавить ai-кредит/i;
+      const isJunkTranscription = (tr) => !tr || JUNK_RE.test(tr);
+      const needWhisper = cached.filter(c => (c.type === 'outCall' || c.type === 'inCall') && isJunkTranscription(c.transcription) && c.files?.some(f => f.toLowerCase().includes('.mp3')));
+
+      if (newComments.length || needWhisper.length) {
+        // Перепарсим ВСЕ из API — Whisper отработает для звонков без транскрибации
+        const reparsed = await parseAll(raw);
+        commentsByTask[t.id] = reparsed;
         const dh = ensureDeal(history, t.id);
-        dh.comments = commentsByTask[t.id];
+        dh.comments = reparsed;
         dh.commentsLoaded = true;
       } else {
-        // Whisper для старых звонков без транскрибации (может появился кэш)
-        const needWhisper = cached.filter(c => (c.type === 'outCall' || c.type === 'inCall') && !c.transcription && c.files?.some(f => f.toLowerCase().includes('.mp3')));
-        if (needWhisper.length) {
-          // Перепарсим из API чтобы Whisper отработал
-          const reparsed = await parseAll(raw);
-          commentsByTask[t.id] = reparsed;
-          const dh = ensureDeal(history, t.id);
-          dh.comments = reparsed;
-        } else {
-          commentsByTask[t.id] = cached;
-        }
+        commentsByTask[t.id] = cached;
       }
       fromCache++;
     } else {
@@ -517,7 +512,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     for (const c of (t.customFieldData || [])) cf[c.field.id] = { name: c.field.name, value: c.value, str: c.stringValue || '' };
 
     const allComments = commentsByTask[t.id] || [];
-    const contactCalls = (contactCallsByTask[t.id] || []).filter(c => c.owner.includes(mgrPfName));
+    const contactCalls = (contactCallsByTask[t.id] || []); // ВСЕ звонки из контрагента (любой сотрудник)
     const comments = [...allComments, ...contactCalls];
 
     const createdDate = t.dateTime?.date || t.dateCreated?.date || '';
@@ -653,6 +648,8 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
   });
   console.log(`  📚 Прошлые дни из истории: ${pastDays.length}`);
 
+  // Догенерация ИИ-оценок за прошлые дни (где их нет)
+  let pastAiGenerated = 0;
   for (const dayDMY of pastDays) {
     const dayDeals = [];
     for (const [dealId, dealHist] of Object.entries(history.deals || {})) {
@@ -674,18 +671,38 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
         isNew: false, actions,
         dayCalls: actions.filter(a => a.type === 'outCall' || a.type === 'inCall').length,
         planfixScript: null,
+        allComments: dealHist.comments || [],
         scriptHistory: { total: 0, everHowWeWork: false, everCallToAction: false },
         aiAssessment,
       });
     }
     if (dayDeals.length) {
+      // Догенерация ИИ-оценок для сделок без оценки за этот день
+      if (DEEPSEEK_KEY || POLZA_KEY) {
+        const needAi = dayDeals.filter(da => !da.aiAssessment);
+        if (needAi.length && !isTimeUp()) {
+          if (!pastAiGenerated) console.log(`  🤖 Догенерация ИИ-оценок за прошлые дни...`);
+          process.stdout.write(`    ${dayDMY}: ${needAi.length} сделок...`);
+          for (const da of needAi) {
+            if (isTimeUp()) break;
+            da.aiAssessment = await aiDealFullAssessment(da, dayDMY, history, true);
+            pastAiGenerated++;
+          }
+          console.log(' ✅');
+        }
+      }
       multiDayActivity[dayDMY] = dayDeals;
       // Итог дня из кэша
-      const aiCache = loadAiCache();
+      const aiCacheDay = loadAiCache();
       if (DEEPSEEK_KEY || POLZA_KEY) {
-        multiDaySummary[dayDMY] = await aiDaySummary(dayDeals, dayDMY, aiCache, null);
+        multiDaySummary[dayDMY] = await aiDaySummary(dayDeals, dayDMY, aiCacheDay, null);
       }
     }
+  }
+  if (pastAiGenerated) {
+    console.log(`  📊 Догенерировано ИИ-оценок за прошлые дни: ${pastAiGenerated}`);
+    saveHistory(history, reportDate);
+    saveAiCache(loadAiCache());
   }
 
   return {
