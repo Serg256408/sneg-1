@@ -1,3 +1,15 @@
+function navTo(alias){
+  var loc=window.location.pathname||'';
+  // Если мы внутри deploy/xxx/index.html — переходим к ../alias/index.html
+  if(loc.indexOf('/deploy/')>=0||loc.indexOf('\\deploy\\')>=0){
+    if(alias==='index')window.location.href='../index.html';
+    else window.location.href='../'+alias+'/index.html';
+  } else {
+    // Из корня (report.html) — переходим в deploy/
+    if(alias==='index')window.location.href='deploy/index.html';
+    else window.location.href='deploy/'+alias+'/index.html';
+  }
+}
 function buildRecommendationText(taskId){
   var da=(D.dailyDealActivity||[]).find(function(x){return x.deal.id===taskId});
   // Если не нашли в dailyDealActivity — ищем в multiDayActivity для выбранной даты
