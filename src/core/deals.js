@@ -47,22 +47,22 @@ async function getManagerDeals(userId, reportDate) {
     const entries = d.directoryEntries || [];
     console.log(` ${entries.length}`);
 
-    let olderCount = 0;
+    let foundOnPage = false;
     for (const entry of entries) {
       const fields = {};
       for (const cf of (entry.customFieldData || [])) fields[cf.field?.id] = cf;
       const date = fields[FIELD_DATE]?.stringValue || '';
-      if (date !== reportDate) { olderCount++; continue; }
-      olderCount = 0; // сбрасываем — нашли запись за нужную дату
+      if (date !== reportDate) continue;
+      foundOnPage = true;
       const empId = (fields[FIELD_EMPLOYEE]?.value?.id || '').replace('user:', '');
       if (empId !== String(userId)) continue;
       const taskId = fields[FIELD_TASK_ID]?.value?.id;
       if (taskId && !seenIds.has(taskId)) { seenIds.add(taskId); all.push(taskId); }
     }
 
-    // Ранний выход: вся страница — записи не за нашу дату (старше)
-    if (olderCount >= entries.length && entries.length > 0) {
-      console.log(`  ⏭ Пропуск: ${olderCount} записей не за ${reportDate}, выход`);
+    // Ранний выход: если уже нашли сделки И на этой странице нет записей за нужную дату
+    if (!foundOnPage && all.length > 0) {
+      console.log(`  ⏭ Сделки найдены (${all.length}), страница без ${reportDate} — выход`);
       break;
     }
     if (entries.length < 100) break;
