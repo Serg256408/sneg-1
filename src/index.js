@@ -17,6 +17,120 @@ function mgrFunnelFile(alias) { return path.join(ROOT_DIR, 'data', `${alias}_fun
 function mgrReportFile(alias) { return path.join(ROOT_DIR, 'reports', `${alias}.html`); }
 function mgrDeployDir(alias) { return path.join(ROOT_DIR, 'deploy', alias); }
 
+function reportDateToIso(reportDate) {
+  const m = String(reportDate || '').match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : null;
+}
+
+function htmlizeText(text) {
+  return String(text || '')
+    .trim()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\r?\n/g, '<br>');
+}
+
+function buildDealAssessmentComment(aa, reportDate) {
+  const ss = aa.salaryScore || {};
+  let h = `<b>🤖 ИИ-оценка сделки за ${reportDate}</b><br><br>`;
+  if (aa.todaySummary) h += `📅 <b>Итог дня:</b> ${aa.todaySummary}<br><br>`;
+  if (aa.overallVerdict) h += `📊 <b>Вердикт:</b> ${aa.overallVerdict}<br><br>`;
+  h += '<b>📋 Скрипт продаж:</b><br>';
+  const vp = aa.verbalPresentation;
+  if (vp) h += `&nbsp;&nbsp;Устная презентация: ${vp.overall ? '✅ (' + vp.source + ')' : '❌'}<br>`;
+  const hw = aa.howWeWork;
+  if (hw) h += `&nbsp;&nbsp;Как мы работаем: ${hw.done ? '✅ (' + hw.source + ')' : '❌'}<br>`;
+  if (aa.writtenPresentation) h += `&nbsp;&nbsp;Презентация (файл): ${aa.writtenPresentation.done ? '✅' : '❌'}<br>`;
+  if (aa.cp) h += `&nbsp;&nbsp;КП: ${aa.cp.done ? '✅' : '❌'}${aa.cp.note ? ' — ' + aa.cp.note : ''}<br>`;
+  if (aa.invoice) h += `&nbsp;&nbsp;Счёт: ${aa.invoice.done ? '✅' : '❌'}${aa.invoice.note ? ' — ' + aa.invoice.note : ''}<br>`;
+  if (aa.callToAction) h += `&nbsp;&nbsp;Призыв к действию: ${aa.callToAction.done ? '✅' : '❌'}<br>`;
+  if (aa.objectionHandling) h += `&nbsp;&nbsp;Отработка возражений: ${aa.objectionHandling.done ? '✅' : '❌'}<br>`;
+  h += `<br><b>💰 Баллы ЗП: ${ss.total}/${ss.max}</b><br>`;
+  const miss = aa.missing || [];
+  if (miss.length) {
+    h += '<br><b>❗ Не выполнено:</b><br>';
+    for (const m of miss) h += `&nbsp;&nbsp;• ${m}<br>`;
+  }
+  const recs = aa.recommendations || [];
+  if (recs.length) {
+    h += '<br><b>💡 Рекомендации:</b><br>';
+    for (const r of recs) h += `&nbsp;&nbsp;• ${r}<br>`;
+  }
+  if (aa.nextStep) h += `<br><b>▶ Следующий шаг:</b> ${aa.nextStep}<br>`;
+  return h;
+}
+
+async function autoSendDealRecommendations(dailyDealActivity, reportDate, aiCache) {
+  if (!dailyDealActivity.length) return;
+
+  const toSend = dailyDealActivity.filter(da => {
+    if (!da.aiAssessment || !da.aiAssessment.missing || !da.aiAssessment.missing.length) return false;
+    return !aiCache[`sent_${da.deal.id}_${reportDate}`];
+  });
+
+  if (!toSend.length) return;
+
+  console.log(`\n📤 Автоотправка ИИ-рекомендаций в Planfix (${toSend.length} сделок за ${reportDate})...`);
+  let sent = 0;
+  let failed = 0;
+
+  for (const da of toSend) {
+    try {
+      await pf(`/task/${da.deal.id}/comments/`, { description: buildDealAssessmentComment(da.aiAssessment, reportDate) });
+      sent++;
+      aiCache[`sent_${da.deal.id}_${reportDate}`] = true;
+      process.stdout.write(`  ✅ #${da.deal.id} `);
+    } catch (e) {
+      failed++;
+      process.stdout.write(`  ❌ #${da.deal.id} `);
+    }
+    await sleep(300);
+  }
+
+  console.log(`\n  📤 Отправлено: ${sent}, ошибок: ${failed}`);
+}
+
+function buildManagerSummaryComment(mgr, reportDate, aiDaySummaryText, managerSummaries) {
+  let h = `<b>🤖 ИИ-сводка менеджера за ${reportDate}</b><br><br>`;
+  h += `<b>Менеджер:</b> ${mgr.name}<br>`;
+  h += `<b>Дата отчета:</b> ${reportDate}<br><br>`;
+
+  if (aiDaySummaryText) {
+    h += `<b>📅 Итог дня</b><br>${htmlizeText(aiDaySummaryText)}<br><br>`;
+  }
+
+  if (managerSummaries?.day) {
+    h += `<b>👔 Вывод для руководителя</b><br>${htmlizeText(managerSummaries.day)}<br><br>`;
+  }
+
+  h += 'Полный HTML-отчет уже сгенерирован и обновлен в GitHub.';
+  return h;
+}
+
+async function autoSendManagerSummary(mgr, reportDate, dailyReports, aiDaySummaryText, managerSummaries, aiCache) {
+  if (!aiDaySummaryText && !managerSummaries?.day) return;
+
+  const reportTaskDate = reportDateToIso(reportDate);
+  const reportTask = (dailyReports || []).find(r => r.date === reportTaskDate);
+  if (!reportTask) {
+    console.log(`  ℹ️ Задача ежедневного отчета за ${reportDate} для ${mgr.name} не найдена, сводку не отправляю`);
+    return;
+  }
+
+  const sentKey = `sent_manager_${mgr.alias}_${reportDate}`;
+  if (aiCache[sentKey]) {
+    console.log(`  ℹ️ ИИ-сводка менеджеру за ${reportDate} уже отправлялась`);
+    return;
+  }
+
+  await pf(`/task/${reportTask.id}/comments/`, {
+    description: buildManagerSummaryComment(mgr, reportDate, aiDaySummaryText, managerSummaries),
+  });
+  aiCache[sentKey] = true;
+  console.log(`  ✅ ИИ-сводка отправлена в задачу отчета #${reportTask.id}`);
+}
+
 // ============ Один менеджер ============
 async function runForManager(mgr, reportDate) {
   console.log(`\n${'='.repeat(60)}`);
@@ -67,14 +181,16 @@ async function runForManager(mgr, reportDate) {
   console.log(`\n🌐 ${htmlPath}`);
 
   // === Автоотправка ИИ-рекомендаций в Planfix за текущий день ===
-  if (dailyDealActivity.length && !process.argv.includes('--no-send')) {
+  if (!process.argv.includes('--no-send')) {
     const aiCache = loadAiCache();
-    const toSend = dailyDealActivity.filter(da => {
-      if (!da.aiAssessment || !da.aiAssessment.missing || !da.aiAssessment.missing.length) return false;
-      const sentKey = `sent_${da.deal.id}_${reportDate}`;
-      if (aiCache[sentKey]) return false;
-      return true;
-    });
+    await autoSendDealRecommendations(dailyDealActivity, reportDate, aiCache);
+    try {
+      await autoSendManagerSummary(mgr, reportDate, dailyReports, aiDaySummaryText, outData.managerSummaries, aiCache);
+    } catch (e) {
+      console.log(`  ⚠️ ИИ-сводку менеджеру не удалось отправить: ${e.message || e}`);
+    }
+    saveAiCache(aiCache);
+    const toSend = [];
     if (toSend.length) {
       console.log(`\n📤 Автоотправка ИИ-рекомендаций в Planfix (${toSend.length} сделок за ${reportDate})...`);
       let sent = 0, failed = 0;

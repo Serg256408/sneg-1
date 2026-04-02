@@ -16,6 +16,10 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: daily-report
+  cancel-in-progress: false
+
 jobs:
   report:
     runs-on: ubuntu-latest
@@ -62,7 +66,7 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add ai_cache.json latest_data.json funnel_snapshot.json daily_log.txt report.html data/ reports/ deploy/ managers.json transcriptions_cache.json
+          git add ai_cache.json deal_history.json latest_data.json funnel_snapshot.json daily_log.txt report.html data/ reports/ deploy/ managers.json transcriptions_cache.json
           git diff --cached --quiet || git commit -m "Report $(TZ=Europe/Moscow date +%d.%m.%Y) $(TZ=Europe/Moscow date +%H:%M)"
           # При конфликте — приоритет CI-версии данных (ours = то что CI сгенерировал)
           git pull --no-rebase -X ours || true
