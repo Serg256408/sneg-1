@@ -1,3 +1,18 @@
+function hasCallRecordingFile(files){
+  return (files||[]).some(function(file){
+    var name=typeof file==='string'?file:(file&&(file.name||file.fileName))||'';
+    return /(запись звонка|\.mp3\b|\.mpga\b|\.mpeg\b|\.m4a\b|\.mp4\b|\.wav\b|\.webm\b|\.ogg\b|\.oga\b|\.flac\b)/i.test(String(name));
+  });
+}
+
+function callNeedsTranscript(item){
+  if(!item)return false;
+  var isCall=item.type==='outCall'||item.type==='inCall'||item.type==='ndz';
+  if(!isCall||item.transcription)return false;
+  var duration=parseInt(item.duration||0,10)||0;
+  return hasCallRecordingFile(item.files)||duration>0;
+}
+
 function renderDay(){
   const deals=buildDayActivity(selectedDate);
   const isOriginalDate=selectedDate===D.reportDate;
@@ -31,7 +46,7 @@ function renderDay(){
   // Метрики дня
   const newD=deals.filter(d=>d.isNew).length;
   const oldD=deals.filter(d=>!d.isNew).length;
-  const totalCalls=deals.reduce((s,d)=>(d.actions||[]).filter(a=>a.type==='outCall'||a.type==='inCall').length+s,0);
+  const totalCalls=deals.reduce((s,d)=>(d.actions||[]).filter(a=>a.type==='outCall'||a.type==='inCall'||a.type==='ndz').length+s,0);
   const totalSalaryScore=deals.reduce((s,d)=>{const ss=(d.aiAssessment||{}).salaryScore;return s+(ss?ss.total:0)},0);
   const maxSalaryScore=deals.length*12;
   h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:14px">';
@@ -60,7 +75,7 @@ function renderDay(){
     const dss=(aa.salaryScore||{});
     const dsCol=dss.total>=7?'#34d399':dss.total>=4?'#fbbf24':'#f87171';
     const acts=da.actions||[];
-    const callCount=acts.filter(a=>a.type==='outCall'||a.type==='inCall').length;
+    const callCount=acts.filter(a=>a.type==='outCall'||a.type==='inCall'||a.type==='ndz').length;
 
     // === CARD WRAPPER ===
     h+='<div class="card" style="border-left:3px solid '+borderCol+'">';
@@ -139,7 +154,7 @@ function renderDay(){
       h+='<div class="coll-body open" id="body_'+cid+'"><div class="coll-inner">';
       for(let ai=0;ai<acts.length;ai++){
         const a=acts[ai];
-        const isCall=a.type==='outCall'||a.type==='inCall';
+        const isCall=a.type==='outCall'||a.type==='inCall'||a.type==='ndz';
         const icon=a.type==='outCall'?'📤':a.type==='inCall'?'📥':a.type==='ndz'?'⏰':'📝';
         const lbl=a.type==='outCall'?'Исходящий':a.type==='inCall'?'Входящий':a.type==='ndz'?'НДЗ':'Заметка';
         const src=a.source==='contact'?' <span class="bg bg-p" style="font-size:9px">контакт</span>':'';
@@ -165,7 +180,7 @@ function renderDay(){
           h+='<div style="margin-top:6px"><span style="font-size:10px;color:#16a34a;font-weight:600">✅ ИИ учёл этот звонок</span> ';
           h+='<button class="toggle-btn" onclick="toggleTr(&#39;'+tid+'&#39;)">🎙 Показать транскрибацию</button></div>';
           h+='<div id="'+tid+'" class="transcript" style="display:none;max-height:300px;overflow-y:auto;margin-top:4px;padding:8px 12px;background:rgba(96,165,250,.04);border-left:3px solid #60a5fa;border-radius:0 8px 8px 0;font-size:11px;color:#374151;line-height:1.5">'+esc(a.transcription)+'</div>';
-        } else if(isCall && a.duration && parseInt(a.duration)>0){
+        } else if(callNeedsTranscript(a)){
           h+='<div style="margin-top:4px"><span style="font-size:10px;color:#f87171;font-weight:600">⚠️ Транскрибация отсутствует — ИИ не видел содержание звонка</span></div>';
         }
         h+='</div>';
@@ -190,7 +205,7 @@ function renderDay(){
           const tid='tr_hist_'+d.id+'_'+c.id;
           h+=' <span style="font-size:9px;color:#16a34a">✅</span> <button class="toggle-btn" onclick="toggleTr(&#39;'+tid+'&#39;)" style="font-size:9px">транскр.</button>';
           h+='<div id="'+tid+'" class="transcript" style="display:none;max-height:150px">'+esc(c.transcription)+'</div>';
-        } else if((c.type==='outCall'||c.type==='inCall')&&c.text.length<30){
+        } else if(callNeedsTranscript(c)){
           h+=' <span style="font-size:9px;color:#f87171">⚠️ нет транскр.</span>';
         }
         h+='</div>';

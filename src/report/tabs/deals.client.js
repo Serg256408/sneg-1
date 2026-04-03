@@ -50,13 +50,13 @@ function renderDeals(cards){
     }
 
     // Транскрибации звонков
-    const callsWithTranscript=d.fComments.filter(c=>(c.type==='outCall'||c.type==='inCall')&&c.transcription);
+    const callsWithTranscript=d.fComments.filter(c=>(c.type==='outCall'||c.type==='inCall'||c.type==='ndz')&&c.transcription);
     if(callsWithTranscript.length){
       h+='<h4>🎙 Транскрибации ('+callsWithTranscript.length+')</h4>';
       for(const c of callsWithTranscript.slice(0,5)){
         const tid='tr_'+d.id+'_'+c.id;
         const src=c.source==='contact'?' <span class="bg bg-p">👤 контакт</span>':'';
-        h+='<div style="margin-bottom:6px"><button class="toggle-btn" onclick="toggleTr(&#39;'+tid+'&#39;)">'+(c.type==='outCall'?'📤':'📥')+' '+esc(c.date)+' '+esc(c.time)+'</button>'+src+' <span style="font-size:10px;color:#475069">показать/скрыть</span>';
+        h+='<div style="margin-bottom:6px"><button class="toggle-btn" onclick="toggleTr(&#39;'+tid+'&#39;)">'+(c.type==='outCall'?'📤':c.type==='inCall'?'📥':'⏰')+' '+esc(c.date)+' '+esc(c.time)+'</button>'+src+' <span style="font-size:10px;color:#475069">показать/скрыть</span>';
         h+='<div id="'+tid+'" class="transcript" style="display:none">'+esc(c.transcription)+'</div></div>';
       }
     }
@@ -94,7 +94,7 @@ function renderDealsV2(cards){
     const fCalls=hasDealRange?d.fCalls.filter(c=>inDealRange(c.date)):d.fCalls;
     const fComments=hasDealRange?d.fComments.filter(c=>inDealRange(c.date)):d.fComments;
     const fAnalyses=hasDealRange?d.fAnalyses.filter(a=>inDealRange(a.date)):d.fAnalyses;
-    const transcripts=fComments.filter(c=>(c.type==='outCall'||c.type==='inCall')&&c.transcription);
+    const transcripts=fComments.filter(c=>(c.type==='outCall'||c.type==='inCall'||c.type==='ndz')&&c.transcription);
     const notes=fComments.filter(c=>c.type==='note'&&c.text.length>5);
     const durM=Math.round(fCalls.reduce((s,c)=>s+c.duration,0)/60);
     // ИИ salaryScore (из 12) — приоритет, иначе Planfix анализы

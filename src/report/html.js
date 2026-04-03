@@ -8,7 +8,7 @@ const { loadAiCache } = require('../core/cache');
 
 // Загрузка клиентского JS из файлов вкладок
 const __tabsDir = require('path').join(__dirname, 'tabs');
-const __tabOrder = ['shared','day','deals','quality','daily','funnel','stats','incoming','manager'];
+const __tabOrder = ['shared','day','deals','quality','daily','funnel','stats','measurements','incoming','manager'];
 function _loadClientJS() {
   return __tabOrder.map(t => {
     const f = require('path').join(__tabsDir, t + '.client.js');
@@ -262,8 +262,8 @@ tr:hover td{background:rgba(217,119,6,.03)}
   ${allManagers ? `<div style="display:flex;gap:6px;margin-left:auto;margin-right:12px;flex-wrap:wrap">${allManagers.map(m =>
     m.name === managerName
       ? `<span style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#3b82f6;color:#1a1a2e">${m.name}</span>`
-      : `<a onclick="navTo('${m.alias}')" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#6b7280;text-decoration:none;border:1px solid #d1d5db;cursor:pointer">${m.name}</a>`
-  ).join('')}<a onclick="navTo('index')" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#fbbf24;text-decoration:none;border:1px solid #d1d5db;cursor:pointer">Обзор</a></div>` : ''}
+      : `<a onclick="navTo('${m.alias}')" data-root="deploy/${m.alias}/index.html" data-deploy="../${m.alias}/index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#6b7280;text-decoration:none;border:1px solid #d1d5db;cursor:pointer">${m.name}</a>`
+  ).join('')}<a onclick="navTo('index')" data-root="deploy/index.html" data-deploy="../index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#fbbf24;text-decoration:none;border:1px solid #d1d5db;cursor:pointer">Обзор</a></div>` : ''}
   <div class="pbar" id="pbar"></div>
 </div></div>
 <div class="cnt">

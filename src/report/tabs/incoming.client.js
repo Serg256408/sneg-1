@@ -68,7 +68,7 @@ var mgrPeriod='day';
 function setMgrPeriod(p){mgrPeriod=p;renderManager();}
 function parsePfDateClient(s){
   if(!s)return null;
-  var m=s.match(/(d{2})-(d{2})-(d{4})/);
+  var m=s.match(/(\d{2})-(\d{2})-(\d{4})/);
   if(m)return new Date(m[3]+'-'+m[2]+'-'+m[1]);
   return new Date(s);
 }
@@ -93,7 +93,7 @@ function mgrDealPopup(id){
   if(btn)btn.insertAdjacentHTML('afterend',h2);
 }
 function linkifyDealIds(text){
-  return text.replace(/#(d{4,6})/g,function(m,id){
+  return text.replace(/#(\d{4,6})/g,function(m,id){
     return '<span id="mgr_btn_'+id+'" onclick="mgrDealPopup('+id+')" style="color:#60a5fa;cursor:pointer;text-decoration:underline;text-decoration-style:dotted">'+m+' ▾</span>';
   });
 }

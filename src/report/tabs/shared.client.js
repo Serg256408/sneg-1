@@ -10,6 +10,18 @@ function navTo(alias){
     else window.location.href='deploy/'+alias+'/index.html';
   }
 }
+function navTo(alias){
+  var loc=window.location.pathname||'';
+  var hash=alias==='index'?'':(window.location.hash||'');
+  if(loc.indexOf('/deploy/')>=0||loc.indexOf('\\deploy\\')>=0){
+    if(alias==='index')window.location.href='../index.html';
+    else window.location.href='../'+alias+'/index.html'+hash;
+  } else {
+    if(alias==='index')window.location.href='deploy/index.html';
+    else window.location.href='deploy/'+alias+'/index.html'+hash;
+  }
+}
+
 function buildRecommendationText(taskId){
   var da=(D.dailyDealActivity||[]).find(function(x){return x.deal.id===taskId});
   // Если не нашли в dailyDealActivity — ищем в multiDayActivity для выбранной даты
@@ -87,6 +99,41 @@ let dealSort='activity';
 let dealFrom='';
 let dealTo='';
 const cardOpenState={};
+const TAB_KEYS=['day','deals','quality','daily','funnel','stats','measurements','incoming','manager'];
+const TAB_LABELS=function(){
+  return [
+    getTabName(),
+    'Все сделки',
+    'Качество',
+    'Ежедневные',
+    'Воронка',
+    '📉 Статистика',
+    '📐 Замеры',
+    '📨 Входящие',
+    '👔 Руководитель'
+  ];
+};
+
+function getRequestedTabKey(){
+  var hash=(window.location.hash||'').replace(/^#/,'').trim().toLowerCase();
+  return hash||'';
+}
+function findTabIndexByKey(key){
+  var idx=TAB_KEYS.indexOf(key||'');
+  return idx>=0?idx:0;
+}
+function syncTabHash(){
+  var key=TAB_KEYS[tab]||'day';
+  if(window.location.hash==='#'+key)return;
+  if(window.history&&window.history.replaceState)window.history.replaceState(null,'','#'+key);
+  else window.location.hash=key;
+}
+function setTab(nextTab){
+  tab=nextTab;
+  syncTabHash();
+  rT();
+  upd();
+}
 
 // Все уникальные даты с активностью из dealCards
 function getAllDates(){
@@ -241,7 +288,7 @@ function buildDayActivity(dateStr){
     const dayComments=hasMgrActivity?(card.comments||[]).filter(c=>c.date===dateStr):[];
     const actions=dayComments.map(c=>({type:c.type,time:c.time,text:c.text,owner:c.owner,transcription:c.transcription,source:c.source||'deal',files:c.files||[]}));
     for(const call of dayCalls){
-      const isDupe=actions.some(a=>(a.type==='outCall'||a.type==='inCall')&&Math.abs(timeToMin(a.time)-timeToMin(call.time))<5);
+      const isDupe=actions.some(a=>(a.type==='outCall'||a.type==='inCall'||a.type==='ndz')&&Math.abs(timeToMin(a.time)-timeToMin(call.time))<5);
       if(!isDupe){
         actions.push({type:call.type==='Входящий'?'inCall':'outCall',time:call.time,text:(call.type+' '+(call.contact||'')+' '+(call.phone||'')).trim(),owner:call.employee,transcription:null,source:'datatag',duration:call.duration});
       }
@@ -261,7 +308,7 @@ function buildDayActivity(dateStr){
       deal:{id:card.id,name:card.name,status:card.status,counterparty:card.counterparty,dealSum:card.dealSum||0},
       isNew:isCreatedToday,
       actions,
-      dayCalls:actions.filter(a=>a.type==='outCall'||a.type==='inCall').length,
+      dayCalls:actions.filter(a=>a.type==='outCall'||a.type==='inCall'||a.type==='ndz').length,
       planfixScript:dayAnalyses.length?dayAnalyses[0]:null,
       allComments:card.comments,
       allCalls:card.calls,
@@ -280,6 +327,27 @@ function rP(){document.getElementById('pbar').innerHTML=PERIODS.map(p=>'<button 
 function rT(){
   const tabs=[getTabName(),...TABS_BASE.slice(1)];
   document.getElementById('tabs').innerHTML=tabs.map((t,i)=>'<div class="tab'+(i===tab?' on':'')+'" onclick="tab='+i+';rT();upd()">'+t+'</div>').join('');
+}
+
+function init(){
+  tab=findTabIndexByKey(getRequestedTabKey());
+  document.getElementById('upd').textContent='Обновлено: '+new Date(D.generated).toLocaleString('ru-RU');
+  rP();
+  rT();
+  upd();
+  syncTabHash();
+  window.addEventListener('hashchange',function(){
+    var next=findTabIndexByKey(getRequestedTabKey());
+    if(next===tab)return;
+    tab=next;
+    rT();
+    upd();
+  });
+}
+
+function rT(){
+  const tabs=TAB_LABELS();
+  document.getElementById('tabs').innerHTML=tabs.map((t,i)=>'<div class="tab'+(i===tab?' on':'')+'" onclick="setTab('+i+')">'+t+'</div>').join('');
 }
 
 function inPeriod(dateStr){
@@ -312,12 +380,17 @@ function upd(){
   const reports=D.dailyReports.filter(r=>inPeriod(r.date));
   if(tab===6){
     document.getElementById('mets').innerHTML='';
-    renderManager();
+    renderMeasurements();
     return;
   }
   if(tab===7){
     document.getElementById('mets').innerHTML='';
     renderIncoming();
+    return;
+  }
+  if(tab===8){
+    document.getElementById('mets').innerHTML='';
+    renderManager();
     return;
   }
   renderMets(allC,allA,reports,cards);
@@ -345,7 +418,7 @@ function renderMets(calls,analyses,reports,cards){
         if(dd.isNew)newCount++;
         workedCount++;
         (dd.actions||[]).forEach(function(a){
-          if(a.type==='outCall'||a.type==='inCall'){mdaCallCount++;mdaCallDur+=(a.duration||0);}
+          if(a.type==='outCall'||a.type==='inCall'||a.type==='ndz'){mdaCallCount++;mdaCallDur+=(a.duration||0);}
         });
       });
     });

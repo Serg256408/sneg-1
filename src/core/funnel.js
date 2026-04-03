@@ -16,7 +16,7 @@ function loadPreviousSnapshot(snapshotFile) {
 function saveSnapshot(dealCards, snapshotFile) {
   const snapshot = {
     date: new Date().toISOString(),
-    deals: {}
+    deals: {},
   };
   for (const d of dealCards) {
     snapshot.deals[d.id] = { name: d.name, status: d.status };

@@ -1,3 +1,90 @@
+function extractMovedStatus(text){
+  var raw=(text||'').replace(/<br\s*\/?>/gi,'\n').replace(/\r/g,'');
+  var prefixes=['Статус изменён на ','Статус изменен на '];
+  for(var i=0;i<prefixes.length;i++){
+    var prefix=prefixes[i];
+    var idx=raw.indexOf(prefix);
+    if(idx<0)continue;
+    var status=raw.slice(idx+prefix.length).split('\n')[0].replace(/<[^>]*>/g,'').trim();
+    if(status)return status;
+  }
+  return '';
+}
+
+function collectMovedToStatuses(){
+  var movedTo={};
+  var dealLookup={};
+  (D.dealCards||[]).forEach(function(card){dealLookup[card.id]=card;});
+
+  var periodDays={};
+  var multiDay=D.multiDayActivity||{};
+  Object.keys(multiDay).forEach(function(date){
+    if(inStatRange(date))periodDays[date]=multiDay[date]||[];
+  });
+  if(D.reportDate&&inStatRange(D.reportDate)&&!periodDays[D.reportDate]&&D.dailyDealActivity){
+    periodDays[D.reportDate]=D.dailyDealActivity;
+  }
+
+  Object.keys(periodDays).forEach(function(date){
+    (periodDays[date]||[]).forEach(function(entry){
+      var dealId=entry&&entry.deal?entry.deal.id:0;
+      if(!dealId)return;
+      var liveCard=dealLookup[dealId];
+      var sourceDeal=liveCard||entry.deal||{};
+      (entry.actions||[]).forEach(function(action){
+        var newStatus=extractMovedStatus(action.text);
+        if(!newStatus)return;
+        if(!movedTo[newStatus])movedTo[newStatus]={count:0,sum:0,deals:[],ids:{}};
+        if(movedTo[newStatus].ids[dealId])return;
+        movedTo[newStatus].ids[dealId]=true;
+        movedTo[newStatus].count++;
+        movedTo[newStatus].sum+=(sourceDeal.dealSum||0);
+        movedTo[newStatus].deals.push({
+          id:dealId,
+          name:sourceDeal.name||'?',
+          sum:sourceDeal.dealSum||0,
+          counterparty:sourceDeal.counterparty||'',
+          moveDate:date
+        });
+      });
+    });
+  });
+
+  if(Object.keys(movedTo).length){
+    return Object.keys(movedTo).reduce(function(acc,status){
+      var item=movedTo[status];
+      acc[status]={count:item.count,sum:item.sum,deals:item.deals};
+      return acc;
+    },{});
+  }
+
+  D.dealCards.forEach(function(card){
+    (card.comments||[]).forEach(function(c){
+      if(!inStatRange(c.date))return;
+      var newStatus=extractMovedStatus(c.text);
+      if(!newStatus)return;
+      if(!movedTo[newStatus])movedTo[newStatus]={count:0,sum:0,deals:[],ids:{}};
+      if(movedTo[newStatus].ids[card.id])return;
+      movedTo[newStatus].ids[card.id]=true;
+      movedTo[newStatus].count++;
+      movedTo[newStatus].sum+=(card.dealSum||0);
+      movedTo[newStatus].deals.push({
+        id:card.id,
+        name:card.name,
+        sum:card.dealSum||0,
+        counterparty:card.counterparty||'',
+        moveDate:c.date
+      });
+    });
+  });
+
+  return Object.keys(movedTo).reduce(function(acc,status){
+    var item=movedTo[status];
+    acc[status]={count:item.count,sum:item.sum,deals:item.deals};
+    return acc;
+  },{});
+}
+
 function renderStats(){
   const stAll=D.statsData||[];
   const opsAll=D.opsStats||[];
@@ -76,8 +163,8 @@ function renderStats(){
   var totalSumAll=periodDeals.reduce(function(s,d){return s+(d.dealSum||0);},0);
   var maxStCount=Math.max.apply(null,allStatuses.map(function(s){return statusData[s].count;}))||1;
 
-  h+='<div class="sec"><h3>📊 Сделки по статусам за период ('+totalDealsAll+' из '+D.dealCards.length+')</h3>';
-  h+='<p style="color:#6b7280;font-size:12px;margin-bottom:10px">Сделки с активностью за выбранный период</p>';
+  h+='<div class="sec"><h3>📊 Текущие статусы сделок с активностью за период ('+totalDealsAll+' из '+D.dealCards.length+')</h3>';
+  h+='<p style="color:#6b7280;font-size:12px;margin-bottom:10px">Здесь показано текущее состояние сделок с активностью за выбранный период, а не переходы между этапами</p>';
   h+='<div style="overflow-x:auto"><table>';
   h+='<tr><th>Статус</th><th style="text-align:center">Сделок</th><th style="text-align:right">Сумма</th><th style="text-align:right">%</th><th style="width:30%"></th></tr>';
   for(var si=0;si<allStatuses.length;si++){
@@ -116,24 +203,8 @@ function renderStats(){
   h+='<td style="text-align:right">100%</td><td></td></tr>';
   h+='</table></div>';
 
-  // Переходы за период (из комментариев "Статус изменён на ...")
-  var movedTo={};
-  D.dealCards.forEach(function(card){
-    (card.comments||[]).forEach(function(c){
-      if(!inStatRange(c.date))return;
-      var txt=(c.text||'');
-      var m=txt.match(/Статус изменён на (.+)/);
-      if(!m)return;
-      var newStatus=m[1].replace(/<[^>]*>/g,'').trim();
-      if(!newStatus)return;
-      if(!movedTo[newStatus])movedTo[newStatus]={count:0,sum:0,deals:[]};
-      if(!movedTo[newStatus].deals.some(function(d){return d.id==card.id;})){
-        movedTo[newStatus].count++;
-        movedTo[newStatus].sum+=(card.dealSum||0);
-        movedTo[newStatus].deals.push({id:card.id,name:card.name,sum:card.dealSum||0,counterparty:card.counterparty||''});
-      }
-    });
-  });
+  var movedTo=collectMovedToStatuses();
+  var hasMovedDeals=Object.keys(movedTo).some(function(status){return movedTo[status]&&movedTo[status].count>0;});
 
   // === ПРОДУКТИВНОСТЬ МЕНЕДЖЕРА ===
   var prodStatuses=[
@@ -155,6 +226,7 @@ function renderStats(){
   });
 
   h+='<div style="margin-top:18px"><h4 style="color:#60a5fa;margin-bottom:10px">📈 Продуктивность менеджера за период</h4>';
+  h+='<p style="color:#6b7280;font-size:12px;margin:0 0 10px">Здесь считаются именно переходы сделок в статусы внутри выбранного периода, а не их текущее распределение</p>';
   h+='<table><tr><th>Движение по воронке</th><th style="text-align:center">Сделок</th><th style="text-align:right">Сумма</th></tr>';
   for(var pi=0;pi<prodStatuses.length;pi++){
     var ps=prodStatuses[pi];
@@ -169,12 +241,13 @@ function renderStats(){
     h+='<td style="text-align:center;font-weight:700;font-size:16px">'+mv.count+'</td>';
     h+='<td style="text-align:right;font-weight:700;color:'+(isMoney?'#16a34a':'#fbbf24')+'">'+(mv.sum?fmt(mv.sum)+' ₽':'—')+'</td></tr>';
     // Раскрывающийся список сделок
-    mv.deals.sort(function(a,b){return(b.sum||0)-(a.sum||0);});
+    mv.deals.sort(function(a,b){return(b.sum||0)-(a.sum||0)||dateStamp(b.moveDate,'00:00')-dateStamp(a.moveDate,'00:00');});
     for(var di3=0;di3<mv.deals.length;di3++){
       var dd=mv.deals[di3];
       h+='<tr style="background:rgba(0,0,0,.02)"><td style="padding-left:28px;font-size:11px;color:#6b7280">';
       h+='↳ <span style="color:#60a5fa;font-weight:600">#'+dd.id+'</span> '+esc((dd.name||'').substring(0,50));
       if(dd.counterparty) h+=' <span style="color:#9ca3af">— '+esc(dd.counterparty.substring(0,25))+'</span>';
+      if(dd.moveDate) h+=' <span style="color:#9ca3af">• '+esc(dd.moveDate)+'</span>';
       h+='</td><td></td>';
       h+='<td style="text-align:right;font-size:11px;color:#fbbf24">'+(dd.sum?fmt(dd.sum)+' ₽':'—')+'</td></tr>';
     }
@@ -187,14 +260,19 @@ function renderStats(){
     h+='<tr><td style="font-weight:600;color:#6b7280">↪ '+esc(s)+'</td>';
     h+='<td style="text-align:center;font-weight:700">'+mv.count+'</td>';
     h+='<td style="text-align:right;color:#fbbf24">'+(mv.sum?fmt(mv.sum)+' ₽':'—')+'</td></tr>';
-    mv.deals.sort(function(a,b){return(b.sum||0)-(a.sum||0);});
+    mv.deals.sort(function(a,b){return(b.sum||0)-(a.sum||0)||dateStamp(b.moveDate,'00:00')-dateStamp(a.moveDate,'00:00');});
     for(var di4=0;di4<mv.deals.length;di4++){
       var dd2=mv.deals[di4];
       h+='<tr style="background:rgba(0,0,0,.02)"><td style="padding-left:28px;font-size:11px;color:#6b7280">';
-      h+='↳ <span style="color:#60a5fa;font-weight:600">#'+dd2.id+'</span> '+esc((dd2.name||'').substring(0,50))+'</td>';
+      h+='↳ <span style="color:#60a5fa;font-weight:600">#'+dd2.id+'</span> '+esc((dd2.name||'').substring(0,50));
+      if(dd2.moveDate) h+=' <span style="color:#9ca3af">• '+esc(dd2.moveDate)+'</span>';
+      h+='</td>';
       h+='<td></td><td style="text-align:right;font-size:11px;color:#fbbf24">'+(dd2.sum?fmt(dd2.sum)+' ₽':'—')+'</td></tr>';
     }
   });
+  if(!hasMovedDeals){
+    h+='<tr style="opacity:.65"><td colspan="3">За выбранный период не найдено переходов по воронке</td></tr>';
+  }
   // ИТОГО к оплате
   h+='<tr style="border-top:2px solid rgba(16,185,129,.3);background:rgba(16,185,129,.06)">';
   h+='<td style="font-weight:800;color:#059669">💵 ИТОГО к оплате/в работе</td>';

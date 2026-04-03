@@ -141,7 +141,11 @@ async function runForManager(mgr, reportDate) {
     if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 
   const result = await buildDealCards(mgr.userId, reportDate, mgr.pfName);
-  const { dealCards, dailyReports, allCalls, allAnalyses, dailyActivity, funnelChanges, scriptCompliance, dailyDealActivity, aiDaySummaryText, multiDayActivity, multiDaySummary } = result;
+  const {
+    dealCards, dailyReports, allCalls, allAnalyses, dailyActivity, funnelChanges, scriptCompliance,
+    dailyDealActivity, aiDaySummaryText, multiDayActivity, multiDaySummary,
+    measurements, measurementsSummary, measurementsComparison,
+  } = result;
 
   console.log(`\n  📊 Сделок с звонками: ${dealCards.filter(d => d.totalCalls > 0).length}`);
   console.log(`  📞 Всего звонков: ${allCalls.length}`);
@@ -152,6 +156,7 @@ async function runForManager(mgr, reportDate) {
   console.log(`  🔄 Изменений воронки: ${funnelChanges.length}`);
   console.log(`  📝 Анализов новых сделок: ${scriptCompliance.total}`);
   console.log(`  🤖 ИИ-сделок за день: ${dailyDealActivity.length}`);
+  console.log(`  📐 Замеров в базе: ${(measurements || []).length}`);
 
   const outData = {
     generated: new Date().toISOString(),
@@ -165,6 +170,9 @@ async function runForManager(mgr, reportDate) {
     managerSummaries: result.managerSummaries || {},
     incomingByDate: result.incomingByDate || {},
     snapshotDate: result.snapshotDate,
+    measurements: measurements || [],
+    measurementsSummary: measurementsSummary || {},
+    measurementsComparison: measurementsComparison || {},
   };
 
   // Сохраняем данные (per-manager + совместимость со старым latest_data.json)

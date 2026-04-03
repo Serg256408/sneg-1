@@ -1,30 +1,26 @@
-// ============================================================
-// deals.js — Новая логика загрузки сделок
-// Старая логика: deals.old.js
-// ============================================================
-
-const { pf, pfGet } = require('../api/planfix');
+﻿const { pf, pfGet, getAllTasks, getLightTasks } = require('../api/planfix');
 const {
-  sleep, parallelMap, utcToMsk, stripHtml, timeToMinNode, extractWorkDesc, normalizePhone,
+  sleep, parallelMap, utcToMsk, stripHtml, timeToMinNode, extractWorkDesc, normalizePhone, parseCfd, parsePfDate, isSameDay,
 } = require('../utils/helpers');
-const { extractTranscription } = require('./transcription');
-const { CONCURRENCY, SKIP_STATUSES, DEAL_FIELDS, DEEPSEEK_KEY, POLZA_KEY, OPENAI_KEY, isTimeUp } = require('../utils/config');
-const { transcribeCallIfNeeded } = require('../api/whisper');
+const { extractTranscription, isNoAnswerTranscription, getNoAnswerLabel, hasCallRecordingFile } = require('./transcription');
+const {
+  CONCURRENCY, SKIP_STATUSES, DEAL_FIELDS, DEEPSEEK_KEY, POLZA_KEY, OPENAI_KEY, isTimeUp,
+  CALL_TAG, ANALYSIS_TAG, ALLOWED_TEMPLATES, ROOT_DIR, MANAGERS_LIST, fs, path,
+} = require('../utils/config');
+const { transcribeCallIfNeeded, findCallAudioFile } = require('../api/whisper');
 const { aiDealFullAssessment } = require('./assessment');
 const { aiDaySummary, aiManagerSummary } = require('./manager-report');
+const { buildMeasurementsData } = require('./measurements');
 const { loadAiCache, saveAiCache } = require('./cache');
 const { loadHistory, saveHistory, ensureDeal } = require('./history');
+const { loadPreviousSnapshot, saveSnapshot, computeFunnelChanges } = require('./funnel');
 
-// Справочник "Реестр активности"
 const DIRECTORY_ID = 16572;
-const FIELD_DATE = 34134;       // Дата
-const FIELD_EMPLOYEE = 34136;   // Сотрудник
-const FIELD_TASK_ID = 34138;    // Id Задачи
-const FIELD_TASK_NAME = 34140;  // Название задачи
-
+const FIELD_DATE = 34134;
+const FIELD_EMPLOYEE = 34136;
+const FIELD_TASK_ID = 34138;
+const FIELD_TASK_NAME = 34140;
 const DIR_FIELDS = `key,${FIELD_DATE},${FIELD_EMPLOYEE},${FIELD_TASK_ID},${FIELD_TASK_NAME}`;
-
-// ============ ШАГ 1: Сделки из реестра активности ============
 
 async function getManagerDeals(userId, reportDate) {
   const seenIds = new Set();
@@ -39,32 +35,32 @@ async function getManagerDeals(userId, reportDate) {
         d = await pf(`/directory/${DIRECTORY_ID}/entry/list`, { offset, pageSize: 100, fields: DIR_FIELDS });
         break;
       } catch (e) {
-        if (attempt < 3) { await sleep(2000 * attempt); continue; }
+        if (attempt < 3) {
+          await sleep(2000 * attempt);
+          continue;
+        }
         console.log(` ⚠️ ${e.message}`);
         return all;
       }
     }
+
     const entries = d.directoryEntries || [];
     console.log(` ${entries.length}`);
 
-    let foundOnPage = false;
     for (const entry of entries) {
       const fields = {};
       for (const cf of (entry.customFieldData || [])) fields[cf.field?.id] = cf;
       const date = fields[FIELD_DATE]?.stringValue || '';
       if (date !== reportDate) continue;
-      foundOnPage = true;
-      const empId = (fields[FIELD_EMPLOYEE]?.value?.id || '').replace('user:', '');
+      const empId = String(fields[FIELD_EMPLOYEE]?.value?.id || '').replace('user:', '');
       if (empId !== String(userId)) continue;
       const taskId = fields[FIELD_TASK_ID]?.value?.id;
-      if (taskId && !seenIds.has(taskId)) { seenIds.add(taskId); all.push(taskId); }
+      if (taskId && !seenIds.has(taskId)) {
+        seenIds.add(taskId);
+        all.push(taskId);
+      }
     }
 
-    // Ранний выход: если уже нашли сделки И на этой странице нет записей за нужную дату
-    if (!foundOnPage && all.length > 0) {
-      console.log(`  ⏭ Сделки найдены (${all.length}), страница без ${reportDate} — выход`);
-      break;
-    }
     if (entries.length < 100) break;
     offset += 100;
     await sleep(300);
@@ -74,8 +70,6 @@ async function getManagerDeals(userId, reportDate) {
   return all;
 }
 
-// ============ ШАГ 2: Комментарии задачи ============
-
 async function getDealComments(taskId) {
   const all = [];
   let offset = 0;
@@ -84,12 +78,16 @@ async function getDealComments(taskId) {
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
         d = await pf(`/task/${taskId}/comments/list`, {
-          offset, pageSize: 100,
+          offset,
+          pageSize: 100,
           fields: 'id,description,dateTime,owner,type,isPinned,files',
         });
         break;
       } catch (e) {
-        if (attempt < 3) { await sleep(2000 * attempt); continue; }
+        if (attempt < 3) {
+          await sleep(2000 * attempt);
+          continue;
+        }
         console.log(`    ⚠️ Комментарии #${taskId}: ${e.message}`);
         return all;
       }
@@ -103,9 +101,6 @@ async function getDealComments(taskId) {
   return all;
 }
 
-// ============ Парсинг комментариев ============
-
-// allowWhisper: true = сделка активна за день, транскрибируем все звонки (даже старые)
 async function parseComment(c, reportDate, transcriptionCache, allowWhisper) {
   const desc = stripHtml(c.description);
   const dt = utcToMsk(c.dateTime?.date, c.dateTime?.time);
@@ -128,30 +123,35 @@ async function parseComment(c, reportDate, transcriptionCache, allowWhisper) {
   let transcription = null;
   if (type === 'outCall' || type === 'inCall') {
     transcription = extractTranscription(c.description);
-    // Whisper: сделка активна за день → транскрибируем любой звонок (и старый тоже)
     if (!transcription && (POLZA_KEY || OPENAI_KEY) && transcriptionCache) {
       transcription = await transcribeCallIfNeeded({ transcription, files: c.files || [] }, transcriptionCache, !!allowWhisper);
     }
   }
-  // note с mp3 "Запись звонка" — тоже транскрибируем
+
   if (!transcription && type === 'note' && (POLZA_KEY || OPENAI_KEY) && transcriptionCache) {
     const cFiles = c.files || [];
-    const hasCallRecording = cFiles.some(f => {
-      const fn = (f.name || f.fileName || '').toLowerCase();
-      return fn.endsWith('.mp3') && fn.includes('запись звонка');
-    });
+    const hasCallRecording = !!findCallAudioFile(cFiles);
     if (hasCallRecording) {
       type = 'inCall';
       transcription = await transcribeCallIfNeeded({ transcription: null, files: cFiles }, transcriptionCache, !!allowWhisper);
     }
   }
 
+  if (transcription && isNoAnswerTranscription(transcription)) {
+    type = 'ndz';
+  }
+
   const files = (c.files || []).map(f => f.name || f.fileName || '').filter(Boolean);
+  const text = type === 'ndz' ? getNoAnswerLabel(transcription || desc) : desc.substring(0, 800);
   return {
-    id: c.id, date: dt.date || '', time: dt.time || '',
-    type, text: desc.substring(0, 800),
+    id: c.id,
+    date: dt.date || '',
+    time: dt.time || '',
+    type,
+    text,
     owner: c.owner?.name || '',
-    transcription, files,
+    transcription,
+    files,
   };
 }
 
@@ -162,8 +162,6 @@ function isAiComment(text) {
     t.includes('ии-оценка сделки') || t.includes('🤖 ии-оценка') || t.includes('баллы зп:');
 }
 
-// ============ RED-ФЛАГИ ============
-
 const NO_KP_STATUSES = ['Обработка', 'Коммерческое предложение'];
 const FORGOTTEN_STATUSES = ['Обработка', 'Коммерческое предложение', 'Замер', 'Клиент принимает решение', 'Договор и Оплата'];
 const HIGH_PRIORITY_SUM = 1000000;
@@ -172,24 +170,20 @@ function detectRedFlags(card, mgrPfName, reportDate) {
   const flags = [];
   const status = card.status || '';
   const comments = card.comments || [];
+  const reportDateObj = parsePfDate(reportDate);
 
-  // Парсим reportDate в объект для сравнения
-  const rp = reportDate.split('-');
-  const reportDateObj = new Date(rp[2], rp[1] - 1, rp[0]);
-
-  // ⚠️ Не обработана >30 мин — сделка в статусе "Новая" больше 30 минут
-  if (status === 'Новая' && card.dateCreated) {
-    const cp = card.dateCreated.split('-');
-    const created = new Date(cp[2], cp[1] - 1, cp[0]);
-    const minutesAgo = (reportDateObj - created) / (1000 * 60);
-    if (minutesAgo > 30) {
-      const hoursAgo = Math.floor(minutesAgo / 60);
-      const label = hoursAgo >= 24 ? `Не обработана (${Math.floor(hoursAgo / 24)} дн)` : `Не обработана (${hoursAgo}ч)`;
-      flags.push({ type: 'warning', code: 'not_processed', label });
+  if (status === 'Новая' && card.dateCreated && reportDateObj) {
+    const created = parsePfDate(card.dateCreated);
+    if (created) {
+      const minutesAgo = (reportDateObj - created) / (1000 * 60);
+      if (minutesAgo > 30) {
+        const hoursAgo = Math.floor(minutesAgo / 60);
+        const label = hoursAgo >= 24 ? `Не обработана (${Math.floor(hoursAgo / 24)} дн)` : `Не обработана (${hoursAgo}ч)`;
+        flags.push({ type: 'warning', code: 'not_processed', label });
+      }
     }
   }
 
-  // ⚠️ Нет КП >24ч (Обработка, Коммерческое предложение, НЕ на замере)
   if (NO_KP_STATUSES.includes(status)) {
     const hasKp = comments.some(c => {
       const t = (c.text || '').toLowerCase();
@@ -197,44 +191,36 @@ function detectRedFlags(card, mgrPfName, reportDate) {
       return t.includes('кп') || t.includes('коммерческое предложение') ||
         f.includes('кп') || f.includes('к.п') || f.includes('коммерческое');
     });
-    if (!hasKp) {
-      // Найти первый комментарий клиента (не менеджер, не робот)
+    if (!hasKp && reportDateObj) {
       const clientComment = comments.find(c =>
-        c.owner && !c.owner.includes(mgrPfName) &&
+        c.owner &&
+        !c.owner.includes(mgrPfName) &&
         !c.owner.toLowerCase().includes('robot') &&
-        c.date
+        c.date,
       );
       if (clientComment) {
-        const cp = clientComment.date.split('-');
-        const clientDate = new Date(cp[2], cp[1] - 1, cp[0]);
-        const hoursAgo = (reportDateObj - clientDate) / (1000 * 60 * 60);
-        if (hoursAgo > 24) {
-          flags.push({ type: 'warning', code: 'no_kp', label: 'Нет КП >24ч' });
+        const clientDate = parsePfDate(clientComment.date);
+        if (clientDate) {
+          const hoursAgo = (reportDateObj - clientDate) / (1000 * 60 * 60);
+          if (hoursAgo > 24) {
+            flags.push({ type: 'warning', code: 'no_kp', label: 'Нет КП >24ч' });
+          }
         }
       }
     }
   }
 
-  // ⚠️ Забыта — нет активности менеджера >10 дней
-  // Хелпер: парсинг DD-MM-YYYY в Date
-  function parseDMY(s) {
-    if (!s) return null;
-    const p = s.split('-');
-    if (p.length !== 3) return null;
-    return new Date(p[2], p[1] - 1, p[0]);
-  }
-
-  if (FORGOTTEN_STATUSES.includes(status)) {
-    // Любой сотрудник (не робот) — потому что сделку могли передать, отпуск и т.д.
+  if (FORGOTTEN_STATUSES.includes(status) && reportDateObj) {
     const humanComments = comments.filter(c =>
-      c.owner && c.date &&
+      c.owner &&
+      c.date &&
       !c.owner.toLowerCase().includes('robot') &&
-      !c.owner.toLowerCase().includes('робот')
+      !c.owner.toLowerCase().includes('робот'),
     );
     if (humanComments.length) {
       let lastDate = null;
       for (const c of humanComments) {
-        const d = parseDMY(c.date);
+        const d = parsePfDate(c.date);
         if (d && (!lastDate || d > lastDate)) lastDate = d;
       }
       if (lastDate) {
@@ -248,7 +234,6 @@ function detectRedFlags(card, mgrPfName, reportDate) {
     }
   }
 
-  // 💰 Высокий приоритет — сумма >1 000 000
   if (card.dealSum >= HIGH_PRIORITY_SUM && card.isActive) {
     flags.push({ type: 'priority', code: 'high_sum', label: `Приоритет (${Math.round(card.dealSum / 1000000 * 10) / 10}М ₽)` });
   }
@@ -256,103 +241,296 @@ function detectRedFlags(card, mgrPfName, reportDate) {
   return flags;
 }
 
-// ============ ШАГ 3-6: Сборка карточек ============
+function itemStamp(item) {
+  const dt = parsePfDate(item?.date || '');
+  if (!dt) return 0;
+  return dt.getTime() + (timeToMinNode(item?.time || '') * 60000);
+}
+
+function buildDayFromHistory(history, dateDMY, dealTasksMap, mgrPfName) {
+  const result = [];
+
+  for (const [dealId, dealHist] of Object.entries(history.deals || {})) {
+    const allComments = [
+      ...(dealHist.comments || []),
+      ...(dealHist.contactCalls || []),
+    ].sort((a, b) => itemStamp(a) - itemStamp(b));
+
+    const dayComments = allComments.filter(c => c.date === dateDMY);
+    if (!dayComments.length) continue;
+
+    const hasMgrActivity = dayComments.some(c => c.owner && c.owner.includes(mgrPfName));
+    if (!hasMgrActivity) continue;
+
+    const task = dealTasksMap[Number(dealId)];
+    const cf = {};
+    if (task) {
+      for (const c of (task.customFieldData || [])) cf[c.field.id] = { value: c.value };
+    }
+
+    const deal = task ? {
+      id: task.id,
+      name: task.name,
+      status: task.status?.name || '?',
+      counterparty: task.counterparty?.name || '—',
+      dealSum: parseFloat(cf[67906]?.value || 0) || 0,
+      workDesc: extractWorkDesc(task.name),
+    } : {
+      id: Number(dealId),
+      name: dealHist.name || '?',
+      status: dealHist.status || '?',
+      counterparty: dealHist.counterparty || '—',
+      dealSum: 0,
+      workDesc: '',
+    };
+
+    const actions = dayComments.map(c => ({
+      type: c.type,
+      time: c.time,
+      text: c.text,
+      owner: c.owner,
+      transcription: c.transcription,
+      source: c.source || 'deal',
+      files: c.files || [],
+    }));
+
+    const isSnow = (deal.name || '').toLowerCase().startsWith('вывоз снега');
+    const assessKey = `assess_${dealId}_${dateDMY}_${isSnow ? 'v20' : 'v20a'}`;
+
+    result.push({
+      deal,
+      isNew: false,
+      actions,
+      dayCalls: actions.filter(a => a.type === 'outCall' || a.type === 'inCall' || a.type === 'ndz').length,
+      planfixScript: null,
+      allComments,
+      allCalls: [],
+      allAnalyses: [],
+      scriptHistory: {
+        total: 0,
+        everHowWeWork: false,
+        everCallToAction: false,
+        everSentInvoice: false,
+        everAllFour: false,
+        bestScore: 0,
+        customerKnowsCompany: false,
+      },
+      aiAssessment: dealHist.assessments?.[assessKey] || null,
+    });
+  }
+
+  return result;
+}
 
 async function buildDealCards(userId, reportDate, mgrPfName) {
-  // Шаг 1: ID сделок из реестра
-  const taskIds = await getManagerDeals(userId, reportDate);
+  const history = loadHistory();
+  const reportDateObj = parsePfDate(reportDate);
+  const managerMeta = MANAGERS_LIST.find(m => String(m.userId) === String(userId) || m.pfName === mgrPfName);
+  const mgrAlias = managerMeta?.alias || null;
+
   const emptyResult = {
-    dealCards: [], dailyReports: [], allCalls: [], allAnalyses: [],
-    dailyActivity: { newDeals: [], workedDeals: [], totalActive: 0 },
-    funnelChanges: [], scriptCompliance: { total: 0 },
-    dailyDealActivity: [], aiDaySummaryText: null,
-    multiDayActivity: { [reportDate]: [] }, multiDaySummary: {},
-    managerSummaries: {}, incomingByDate: {}, snapshotDate: null,
+    dealCards: [],
+    dailyReports: [],
+    allCalls: [],
+    allAnalyses: [],
+    dailyActivity: { newDeals: [], workedDeals: [], incomingDeals: [], totalActive: 0 },
+    funnelChanges: [],
+    scriptCompliance: { total: 0 },
+    dailyDealActivity: [],
+    aiDaySummaryText: null,
+    multiDayActivity: { [reportDate]: [] },
+    multiDaySummary: {},
+    managerSummaries: { day: null, week: null, month: null },
+    incomingByDate: {},
+    snapshotDate: null,
+    measurements: [],
+    measurementsSummary: {
+      defaultDays: 30,
+      ytdStart: '',
+      measurers: [],
+      outcomeCounts: {},
+      byMeasurer: [],
+      daily: [],
+      totals: { total: 0, scheduled: 0, progressed: 0, toContract: 0, toWork: 0, stalled: 0 },
+      compare30d: {
+        enteredMeasurement: 0,
+        scheduledMeasurements: 0,
+        progressed: 0,
+        toContract: 0,
+        toWork: 0,
+        stalled: 0,
+        contractRate: 0,
+        workRate: 0,
+      },
+    },
+    measurementsComparison: {
+      enteredMeasurement: 0,
+      scheduledMeasurements: 0,
+      progressed: 0,
+      toContract: 0,
+      toWork: 0,
+      stalled: 0,
+      contractRate: 0,
+      workRate: 0,
+    },
   };
+
+  const taskIds = await getManagerDeals(userId, reportDate);
+  let allManagerTasks = [];
+  try {
+    allManagerTasks = await getAllTasks(userId);
+  } catch (e) {
+    console.log(`  ⚠️ Все сделки менеджера не удалось загрузить: ${e.message}`);
+  }
+
   if (!taskIds.length) {
     console.log('  ⚠️ Нет сделок в реестре за этот день');
-    // Но прошлые дни из истории всё равно собираем
-    const history = loadHistory();
-    const reportDateObj = new Date(reportDate.split('-').reverse().join('-'));
+    const multiDayActivity = { [reportDate]: [] };
+    const multiDaySummary = {};
+    const managerSummaries = { day: null, week: null, month: null };
+    const aiCache = loadAiCache();
     const historyDatesSet = new Set();
+
     for (const [, dealHist] of Object.entries(history.deals || {})) {
-      for (const c of (dealHist.comments || [])) {
-        if (!c.date || c.date === reportDate) continue;
-        const p = c.date.split('-');
-        const d = new Date(p[2] + '-' + p[1] + '-' + p[0]);
+      for (const c of [...(dealHist.comments || []), ...(dealHist.contactCalls || [])]) {
+        if (!c.date || c.date === reportDate || !reportDateObj) continue;
+        const d = parsePfDate(c.date);
+        if (!d) continue;
         const daysAgo = (reportDateObj - d) / 86400000;
         if (daysAgo > 0 && daysAgo <= 30) historyDatesSet.add(c.date);
       }
     }
-    const pastDays = [...historyDatesSet].sort((a, b) => {
-      const pa = a.split('-'), pb = b.split('-');
-      return new Date(pb[2]+'-'+pb[1]+'-'+pb[0]) - new Date(pa[2]+'-'+pa[1]+'-'+pa[0]);
-    });
+
+    const pastDays = [...historyDatesSet].sort((a, b) => parsePfDate(b) - parsePfDate(a));
     if (pastDays.length) {
       console.log(`  📚 Прошлые дни из истории: ${pastDays.length}`);
-      const multiDayActivity = { [reportDate]: [] };
-      const multiDaySummary = {};
-      const aiCache = loadAiCache();
       for (const dayDMY of pastDays) {
-        const dayDeals = [];
-        for (const [dealId, dealHist] of Object.entries(history.deals || {})) {
-          const comments = (dealHist.comments || []).filter(c => c.date === dayDMY);
-          if (!comments.length) continue;
-          const hasMgr = comments.some(c => c.owner && c.owner.includes(mgrPfName));
-          if (!hasMgr) continue;
-          const actions = comments.map(c => ({
-            type: c.type, time: c.time, text: c.text,
-            owner: c.owner, transcription: c.transcription,
-            source: c.source || 'deal', files: c.files || [],
-          }));
-          actions.sort((a, b) => timeToMinNode(a.time) - timeToMinNode(b.time));
-          const isSnow = (dealHist.name || '').toLowerCase().startsWith('вывоз снега');
-          const assessKey = `assess_${dealId}_${dayDMY}_${isSnow ? 'v20' : 'v20a'}`;
-          dayDeals.push({
-            deal: { id: Number(dealId), name: dealHist.name || '?', status: dealHist.status || '?', counterparty: dealHist.counterparty || '—', dealSum: 0, workDesc: '' },
-            isNew: false, actions,
-            dayCalls: actions.filter(a => a.type === 'outCall' || a.type === 'inCall').length,
-            planfixScript: null, scriptHistory: { total: 0 },
-            aiAssessment: dealHist.assessments?.[assessKey] || null,
-          });
-        }
-        if (dayDeals.length) {
-          multiDayActivity[dayDMY] = dayDeals;
-          if (DEEPSEEK_KEY || POLZA_KEY) {
-            multiDaySummary[dayDMY] = await aiDaySummary(dayDeals, dayDMY, aiCache, null);
+        const dayDeals = buildDayFromHistory(history, dayDMY, {}, mgrPfName);
+        if (!dayDeals.length) continue;
+
+        if ((DEEPSEEK_KEY || POLZA_KEY) && !isTimeUp()) {
+          const needAi = dayDeals.filter(da => !da.aiAssessment);
+          for (const da of needAi) {
+            if (isTimeUp()) break;
+            da.aiAssessment = await aiDealFullAssessment(da, dayDMY, history, true);
           }
+          multiDaySummary[dayDMY] = await aiDaySummary(dayDeals, dayDMY, aiCache, mgrAlias);
         }
+
+        multiDayActivity[dayDMY] = dayDeals;
       }
-      emptyResult.multiDayActivity = multiDayActivity;
-      emptyResult.multiDaySummary = multiDaySummary;
     }
-    return emptyResult;
+
+    if ((DEEPSEEK_KEY || POLZA_KEY) && Object.keys(multiDayActivity).length > 1) {
+      managerSummaries.week = await aiManagerSummary(multiDayActivity, multiDaySummary, [], [], 7, reportDate, aiCache, mgrAlias, true);
+      managerSummaries.month = await aiManagerSummary(multiDayActivity, multiDaySummary, [], [], 30, reportDate, aiCache, mgrAlias, true);
+      saveAiCache(aiCache);
+    }
+
+    const measurementData = buildMeasurementsData({
+      reportDate,
+      managerName: managerMeta?.name || mgrPfName,
+      managerAlias: mgrAlias,
+      history,
+      allTasks: allManagerTasks,
+      activeDealTasks: [],
+      activeSubtasks: [],
+    });
+
+    return { ...emptyResult, multiDayActivity, multiDaySummary, managerSummaries, ...measurementData };
   }
 
-  // Шаг 2: Загрузка данных сделок
-  const API_CONCURRENCY = 3; // Planfix не выдерживает больше
+  const API_CONCURRENCY = 3;
+  const rawTasks = [];
   console.log(`  📋 Загрузка ${taskIds.length} сделок...`);
-  const tasks = [];
   await parallelMap(taskIds, async (taskId) => {
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
         const d = await pf('/task/list', {
-          offset: 0, pageSize: 1,
+          offset: 0,
+          pageSize: 1,
           filters: [{ type: 57, operator: 'equal', value: taskId }],
           fields: DEAL_FIELDS,
         });
-        const t = (d.tasks || [])[0];
-        if (t) tasks.push(t);
+        const task = (d.tasks || [])[0];
+        if (task) rawTasks.push(task);
         break;
       } catch (e) {
-        if (attempt < 3) { await sleep(2000 * attempt); continue; }
+        if (attempt < 3) {
+          await sleep(2000 * attempt);
+          continue;
+        }
         console.log(`    ⚠️ Не удалось загрузить #${taskId}: ${e.message}`);
       }
     }
   }, API_CONCURRENCY);
-  console.log(`    ✅ Загружено: ${tasks.length}`);
+  console.log(`    ✅ Загружено: ${rawTasks.length}`);
 
-  // Кэш транскрибаций из ai_cache
+  const dealTasksById = new Map();
+  const subtasksById = new Map();
+  for (const task of rawTasks) {
+    if (task.parent?.id) subtasksById.set(task.id, task);
+    else dealTasksById.set(task.id, task);
+  }
+
+  const missingParentIds = [...new Set(
+    [...subtasksById.values()]
+      .map(task => task.parent?.id)
+      .filter(parentId => parentId && !dealTasksById.has(parentId)),
+  )];
+
+  if (missingParentIds.length) {
+    console.log(`  📥 Догрузка ${missingParentIds.length} родительских сделок...`);
+    for (const parentId of missingParentIds) {
+      try {
+        const d = await pf('/task/list', {
+          offset: 0,
+          pageSize: 1,
+          filters: [{ type: 57, operator: 'equal', value: parentId }],
+          fields: DEAL_FIELDS,
+        });
+        const task = (d.tasks || [])[0];
+        if (task) dealTasksById.set(task.id, task);
+      } catch (e) {
+        console.log(`    ⚠️ Не удалось загрузить родителя #${parentId}: ${e.message}`);
+      }
+      await sleep(100);
+    }
+  }
+
+  const dealTasks = [...dealTasksById.values()].filter(task => {
+    const tplName = task.template?.name || '';
+    if (!tplName) return true;
+    return ALLOWED_TEMPLATES.some(at => tplName.toLowerCase().includes(at.toLowerCase()));
+  });
+
+  let lightTasks = [];
+  try {
+    lightTasks = await getLightTasks(userId);
+  } catch (e) {
+    console.log(`  ⚠️ Воронку не удалось загрузить полностью: ${e.message}`);
+  }
+
+  const dailyReports = allManagerTasks
+    .filter(task => !(task.parent && task.parent.id) && (task.name || '').startsWith('Отчет'))
+    .map(task => {
+      const cf = {};
+      for (const c of (task.customFieldData || [])) cf[c.field.id] = { value: c.value, str: c.stringValue || '' };
+      const m = (task.name || '').match(/(\d{2})-(\d{2})-(\d{4})/);
+      return {
+        id: task.id,
+        date: m ? `${m[3]}-${m[2]}-${m[1]}` : null,
+        revenue: parseFloat(String(cf[76880]?.str || cf[76880]?.value || 0).replace(/\s/g, '')) || 0,
+        outCalls: parseInt(cf[76866]?.str || cf[76866]?.value || 0, 10) || 0,
+        callMinutes: parseInt(cf[76868]?.str || cf[76868]?.value || 0, 10) || 0,
+        kpSent: parseInt(cf[76872]?.value || 0, 10) || 0,
+        dozhim: parseInt(cf[76874]?.value || 0, 10) || 0,
+        contract: parseInt(cf[76876]?.value || 0, 10) || 0,
+        workDone: parseInt(cf[76878]?.value || 0, 10) || 0,
+      };
+    })
+    .filter(report => report.date);
+
   const aiCachePreload = loadAiCache();
   const transcriptionCache = {};
   for (const [k, v] of Object.entries(aiCachePreload)) {
@@ -360,380 +538,769 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
   }
   console.log(`  📝 Кэш транскрибаций: ${Object.keys(transcriptionCache).length}`);
 
-  // Хелпер: парсинг массива комментариев с Whisper
   async function parseAll(rawComments) {
     const parsed = [];
     for (const c of rawComments) {
-      const p = await parseComment(c, reportDate, transcriptionCache, true); // активная сделка → Whisper для всех звонков
-      if (!isAiComment(p.text)) parsed.push(p);
+      const parsedComment = await parseComment(c, reportDate, transcriptionCache, true);
+      if (!isAiComment(parsedComment.text)) parsed.push(parsedComment);
     }
     return parsed;
   }
 
-  // Шаг 3: Комментарии сделок (сначала из deal_history.json, потом API)
-  const history = loadHistory();
-  console.log(`  💬 Загрузка комментариев...`);
+  console.log('  💬 Загрузка комментариев...');
   const commentsByTask = {};
-  let fromCache = 0, fromApi = 0;
+  let fromCache = 0;
+  let fromApi = 0;
   let loadIdx = 0;
-  await parallelMap(tasks, async (t) => {
-    const dealHist = history.deals[String(t.id)];
-    if (dealHist && dealHist.commentsLoaded && dealHist.comments && dealHist.comments.length) {
-      // Есть в истории — берём оттуда
-      const cached = dealHist.comments.filter(c => !isAiComment(c.text));
-      // Догружаем из API только новые (по id)
-      const cachedIds = new Set(cached.map(c => c.id));
-      const raw = await getDealComments(t.id);
-      const newComments = raw.filter(c => !cachedIds.has(c.id));
-      // Проверяем старые звонки без транскрибации или с мусором от Planfix AI
-      const JUNK_RE = /закончились ai-кредит|не могу выполнить операцию|добавить ai-кредит/i;
-      const isJunkTranscription = (tr) => !tr || JUNK_RE.test(tr);
-      const needWhisper = cached.filter(c => (c.type === 'outCall' || c.type === 'inCall') && isJunkTranscription(c.transcription) && c.files?.some(f => f.toLowerCase().includes('.mp3')));
 
-      if (newComments.length || needWhisper.length) {
-        // Перепарсим ВСЕ из API — Whisper отработает для звонков без транскрибации
-        const reparsed = await parseAll(raw);
-        commentsByTask[t.id] = reparsed;
-        const dh = ensureDeal(history, t.id);
-        dh.comments = reparsed;
-        dh.commentsLoaded = true;
+  await parallelMap(dealTasks, async (task) => {
+    const dealHist = history.deals[String(task.id)];
+
+    if (dealHist && dealHist.commentsLoaded && dealHist.comments && dealHist.comments.length) {
+      const cached = dealHist.comments.filter(c => !isAiComment(c.text));
+      const cachedIds = new Set(cached.map(c => c.id));
+      const raw = await getDealComments(task.id);
+      const newComments = raw.filter(c => !cachedIds.has(c.id));
+      const junkRe = /закончились ai-кредит|не могу выполнить операцию|добавить ai-кредит/i;
+      const needsWhisper = cached.filter(c =>
+        (c.type === 'outCall' || c.type === 'inCall') &&
+        (!c.transcription || junkRe.test(c.transcription)) &&
+        hasCallRecordingFile(c.files || []),
+      );
+
+      if (newComments.length || needsWhisper.length) {
+        commentsByTask[task.id] = await parseAll(raw);
+        const deal = ensureDeal(history, task.id);
+        deal.comments = commentsByTask[task.id];
+        deal.commentsLoaded = true;
       } else {
-        commentsByTask[t.id] = cached;
+        commentsByTask[task.id] = cached;
       }
       fromCache++;
     } else {
-      // Нет в истории — грузим из API
-      const raw = await getDealComments(t.id);
-      commentsByTask[t.id] = await parseAll(raw);
-      // Сохраняем в историю
-      const dh = ensureDeal(history, t.id);
-      dh.comments = commentsByTask[t.id];
-      dh.commentsLoaded = true;
+      const raw = await getDealComments(task.id);
+      commentsByTask[task.id] = await parseAll(raw);
+      const deal = ensureDeal(history, task.id);
+      deal.comments = commentsByTask[task.id];
+      deal.commentsLoaded = true;
       fromApi++;
     }
+
     loadIdx++;
-    if (loadIdx % 5 === 0) process.stdout.write(`\r    [${loadIdx}/${tasks.length}]`);
+    if (loadIdx % 5 === 0) process.stdout.write(`\r    [${loadIdx}/${dealTasks.length}]`);
   }, API_CONCURRENCY);
-  if (tasks.length > 0) console.log(`\r    [${tasks.length}/${tasks.length}] (кэш: ${fromCache}, API: ${fromApi}) ✅`);
 
-  // Шаг 4: Подзадачи
-  console.log(`  📎 Подзадачи...`);
-  for (const t of tasks) {
-    try {
-      const d = await pf('/task/list', {
-        offset: 0, pageSize: 100,
-        filters: [{ type: 58, operator: 'equal', value: t.id }],
-        fields: 'id,name',
-      });
-      const children = d.tasks || [];
-      for (const ch of children) {
-        const chRaw = await getDealComments(ch.id);
-        const chParsed = await parseAll(chRaw);
-        if (chParsed.length) {
-          if (!commentsByTask[t.id]) commentsByTask[t.id] = [];
-          commentsByTask[t.id].push(...chParsed);
-        }
-      }
-    } catch {}
+  if (dealTasks.length > 0) {
+    console.log(`\r    [${dealTasks.length}/${dealTasks.length}] (кэш: ${fromCache}, API: ${fromApi}) ✅`);
   }
-  console.log(`    ✅`);
 
-  // Шаг 5: Звонки из контрагентов (с поиском дублей по телефону)
-  console.log(`  👤 Контрагенты...`);
+  console.log('  📎 Подзадачи...');
+  const loadedSubtaskIds = new Set();
+  const walkedSubtaskParents = new Set();
+
+  async function mergeSubtaskComments(subtask) {
+    const parentId = subtask.parent?.id;
+    if (!parentId || !dealTasksById.has(parentId)) return;
+    const raw = await getDealComments(subtask.id);
+    const parsed = await parseAll(raw);
+    if (!parsed.length) return;
+    if (!commentsByTask[parentId]) commentsByTask[parentId] = [];
+    const existingIds = new Set((commentsByTask[parentId] || []).map(c => String(c.id)));
+    commentsByTask[parentId].push(...parsed.filter(c => !existingIds.has(String(c.id))));
+  }
+
+  async function loadChildSubtasksRecursive(parentId) {
+    if (!parentId || walkedSubtaskParents.has(parentId)) return;
+    walkedSubtaskParents.add(parentId);
+
+    let offset = 0;
+    while (true) {
+      let d;
+      try {
+        d = await pf('/task/list', {
+          offset,
+          pageSize: 100,
+          filters: [{ type: 58, operator: 'equal', value: parentId }],
+          fields: 'id,name,parent,status,dateTime,dataTags,template,assignees',
+        });
+      } catch {
+        return;
+      }
+
+      const subtasks = d.tasks || [];
+      for (const subtask of subtasks) {
+        subtasksById.set(subtask.id, subtask);
+        if (!loadedSubtaskIds.has(subtask.id)) {
+          loadedSubtaskIds.add(subtask.id);
+          await mergeSubtaskComments(subtask);
+        }
+        await loadChildSubtasksRecursive(subtask.id);
+      }
+
+      if (subtasks.length < 100) break;
+      offset += 100;
+    }
+  }
+
+  for (const task of dealTasks) {
+    await loadChildSubtasksRecursive(task.id);
+  }
+
+  for (const subtask of subtasksById.values()) {
+    if (!loadedSubtaskIds.has(subtask.id)) {
+      loadedSubtaskIds.add(subtask.id);
+      await mergeSubtaskComments(subtask);
+    }
+    await loadChildSubtasksRecursive(subtask.id);
+  }
+
+  for (const task of dealTasks) {
+    commentsByTask[task.id] = (commentsByTask[task.id] || []).sort((a, b) => itemStamp(a) - itemStamp(b));
+  }
+  console.log('    ✅');
+
+  console.log('  👤 Контрагенты...');
   const contactCallsByTask = {};
-  const seenContactIds = new Set(); // чтобы не грузить один контакт дважды
+  const contactCallCache = {};
 
-  // Загрузить звонки из одного контакта и привязать к сделке
-  async function loadContactCalls(contactId, taskId) {
-    if (seenContactIds.has(contactId)) return;
-    seenContactIds.add(contactId);
+  async function getCachedContactCalls(contactId) {
+    if (contactCallCache[contactId]) return contactCallCache[contactId];
+
+    const rawComments = [];
+    let offset = 0;
+
     try {
-      const d = await pf(`/contact/${contactId}/comments/list`, {
-        offset: 0, pageSize: 100,
-        fields: 'id,description,dateTime,owner,files',
-      });
-      for (const c of (d.comments || [])) {
-        const parsed = await parseComment(c, reportDate, transcriptionCache, true); // активная сделка → Whisper
-        if (parsed.type !== 'outCall' && parsed.type !== 'inCall') continue;
-        parsed.source = 'contact';
-        const existing = [...(commentsByTask[taskId] || []), ...(contactCallsByTask[taskId] || [])];
-        const isDupe = existing.some(e =>
-          (e.type === 'outCall' || e.type === 'inCall') &&
-          e.date === parsed.date &&
-          Math.abs(timeToMinNode(e.time) - timeToMinNode(parsed.time)) < 5
-        );
-        if (!isDupe) {
-          if (!contactCallsByTask[taskId]) contactCallsByTask[taskId] = [];
-          contactCallsByTask[taskId].push(parsed);
-        }
+      while (true) {
+        const d = await pf(`/contact/${contactId}/comments/list`, {
+          offset,
+          pageSize: 100,
+          fields: 'id,description,dateTime,owner,files',
+        });
+
+        const comments = d.comments || [];
+        rawComments.push(...comments);
+        if (comments.length < 100) break;
+        offset += 100;
       }
-    } catch {}
+
+      const parsedCalls = [];
+      for (const c of rawComments) {
+        const parsed = await parseComment(c, reportDate, transcriptionCache, true);
+        if (parsed.type !== 'outCall' && parsed.type !== 'inCall' && parsed.type !== 'ndz') continue;
+        parsedCalls.push({ ...parsed, source: 'contact' });
+      }
+
+      contactCallCache[contactId] = parsedCalls;
+      return parsedCalls;
+    } catch {
+      contactCallCache[contactId] = [];
+      return [];
+    }
   }
 
-  for (const t of tasks) {
-    const cpId = (t.counterparty?.id || '').replace('contact:', '');
+  async function loadContactCalls(contactId, taskId) {
+    const parsedCalls = await getCachedContactCalls(contactId);
+
+    for (const parsedBase of parsedCalls) {
+      const parsed = { ...parsedBase };
+      const existing = [...(commentsByTask[taskId] || []), ...(contactCallsByTask[taskId] || [])];
+      const isDupe = existing.some(e =>
+        (e.type === 'outCall' || e.type === 'inCall' || e.type === 'ndz') &&
+        e.date === parsed.date &&
+        Math.abs(timeToMinNode(e.time) - timeToMinNode(parsed.time)) < 5,
+      );
+
+      if (!isDupe) {
+        if (!contactCallsByTask[taskId]) contactCallsByTask[taskId] = [];
+        contactCallsByTask[taskId].push(parsed);
+      }
+    }
+  }
+
+  for (const task of dealTasks) {
+    const cpId = String(task.counterparty?.id || '').replace('contact:', '');
     if (!cpId) continue;
 
-    // Загружаем звонки основного контрагента
-    await loadContactCalls(cpId, t.id);
+    await loadContactCalls(cpId, task.id);
 
-    // Ищем дубли по телефону
     try {
       const contact = await pfGet(`/contact/${cpId}?fields=id,phones`);
       const phones = contact.contact?.phones || [];
       for (const p of phones) {
         const norm = normalizePhone(p.number);
         if (!norm || norm.length < 10) continue;
-        // Ищем контакты с таким же нормализованным телефоном
+
         const search = await pf('/contact/list', {
-          offset: 0, pageSize: 10,
+          offset: 0,
+          pageSize: 100,
           fields: 'id,phones',
           filters: [{ type: 61, operator: 'contain', value: norm.slice(-10) }],
         });
+
         for (const dup of (search.contacts || [])) {
           const dupId = String(dup.id);
-          if (dupId === cpId) continue; // это сам контрагент
-          // Проверяем что телефон реально совпадает
+          if (dupId === cpId) continue;
           const dupPhones = (dup.phones || []).map(dp => normalizePhone(dp.number));
           if (dupPhones.includes(norm)) {
-            console.log(`    📞 Дубль: contact:${dupId} → сделка #${t.id}`);
-            await loadContactCalls(dupId, t.id);
+            console.log(`    📞 Дубль: contact:${dupId} → сделка #${task.id}`);
+            await loadContactCalls(dupId, task.id);
           }
         }
       }
     } catch {}
+
     await sleep(100);
   }
-  console.log(`    ✅`);
 
-  // Шаг 6: Сборка карточек
-  const dealCards = tasks.map(t => {
+  for (const taskId of Object.keys(contactCallsByTask)) {
+    contactCallsByTask[taskId].sort((a, b) => itemStamp(a) - itemStamp(b));
+  }
+  console.log('    ✅');
+
+  const dealTaskIdSet = new Set(dealTasks.map(task => task.id));
+  const callKeys = [];
+  const analysisKeys = [];
+  for (const task of dealTasks) {
+    for (const dt of (task.dataTags || [])) {
+      if (dt.dataTag.id === CALL_TAG) callKeys.push({ taskId: task.id, key: dt.key });
+      if (dt.dataTag.id === ANALYSIS_TAG) analysisKeys.push({ taskId: task.id, key: dt.key });
+    }
+  }
+  for (const subtask of subtasksById.values()) {
+    const parentId = subtask.parent?.id;
+    if (!parentId || !dealTaskIdSet.has(parentId)) continue;
+    for (const dt of (subtask.dataTags || [])) {
+      if (dt.dataTag.id === CALL_TAG) callKeys.push({ taskId: parentId, key: dt.key });
+      if (dt.dataTag.id === ANALYSIS_TAG) analysisKeys.push({ taskId: parentId, key: dt.key });
+    }
+  }
+
+  async function loadFilteredEntries(tagId, dateField, fields) {
+    const result = {};
+    let offset = 0;
+
+    while (true) {
+      let d;
+      try {
+        d = await pf(`/datatag/${tagId}/entry/list`, {
+          offset,
+          pageSize: 100,
+          fields: `key,${fields}`,
+          filters: [{
+            type: 3101,
+            field: dateField,
+            operator: 'equal',
+            value: { dateType: 'otherRange', dateFrom: reportDate, dateTo: reportDate },
+          }],
+        });
+      } catch (e) {
+        console.log(`  ⚠️ DataTag ${tagId}: ${e.message}`);
+        break;
+      }
+
+      const entries = d.dataTagEntries || [];
+      if (!entries.length) break;
+      for (const entry of entries) result[entry.key] = parseCfd(entry);
+      if (entries.length < 100) break;
+      offset += 100;
+      await sleep(50);
+    }
+
+    return result;
+  }
+
+  console.log(`  📞 Звонки за ${reportDate}...`);
+  const allCallEntries = await loadFilteredEntries(CALL_TAG, 58528, '58528,58530,58532,58534,58536,58538,58542');
+  console.log(`    ✅ ${Object.keys(allCallEntries).length}`);
+
+  console.log(`  🔍 Анализы за ${reportDate}...`);
+  const allAnalysisEntries = await loadFilteredEntries(ANALYSIS_TAG, 58628, '58628,58630,58634,58646,58648,58650,58652,58654,58656');
+  console.log(`    ✅ ${Object.keys(allAnalysisEntries).length}`);
+
+  const callsByTask = {};
+  for (const { taskId, key } of callKeys) {
+    const call = allCallEntries[key];
+    if (!call) continue;
+    if (!callsByTask[taskId]) callsByTask[taskId] = [];
+    callsByTask[taskId].push({
+      key,
+      date: call['Дата'] || '',
+      time: call['Время'] || '',
+      type: call['Тип'] || '',
+      duration: parseInt(call['Продолжительность (сек.)'] || '0', 10) || 0,
+      employee: call['Сотрудник'] || '',
+      contact: call['Контакт'] || '',
+      phone: call['Номер контакта'] || '',
+      source: 'datatag',
+    });
+  }
+
+  const analysisByTask = {};
+  for (const { taskId, key } of analysisKeys) {
+    const analysis = allAnalysisEntries[key];
+    if (!analysis) continue;
+    const ballsStr = analysis['Баллы'] || '';
+    const scoreMatch = ballsStr.match(/=\s*(\d+)\s*\/\s*(\d+)/);
+    const totalBalls = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
+    if (!analysisByTask[taskId]) analysisByTask[taskId] = [];
+    analysisByTask[taskId].push({
+      key,
+      date: (analysis['Дата'] || '').substring(0, 10),
+      time: (analysis['Дата'] || '').substring(11),
+      employee: analysis['Сотрудник'] || '',
+      topic: analysis['Тема звонка'] || '',
+      howWeWork: analysis['Рассказал как работаем'] || '',
+      callToAction: analysis['Призыв к действию'] || '',
+      sentInvoice: analysis['Скинул счёт'] || '',
+      allFour: analysis['Все 4 момента выполнены'] || '',
+      ballsRaw: ballsStr,
+      totalBalls,
+      verdict: analysis['Вердикт'] || '',
+    });
+  }
+
+  const dealCards = dealTasks.map(task => {
     const cf = {};
-    for (const c of (t.customFieldData || [])) cf[c.field.id] = { name: c.field.name, value: c.value, str: c.stringValue || '' };
+    for (const c of (task.customFieldData || [])) cf[c.field.id] = { value: c.value, str: c.stringValue || '' };
 
-    const allComments = commentsByTask[t.id] || [];
-    const contactCalls = (contactCallsByTask[t.id] || []); // ВСЕ звонки из контрагента (любой сотрудник)
-    const comments = [...allComments, ...contactCalls];
-
-    const createdDate = t.dateTime?.date || t.dateCreated?.date || '';
-    const isNew = createdDate === reportDate && (t.status?.name || '') !== 'Новая';
+    const calls = (callsByTask[task.id] || []).filter(c => (c.employee || '').includes(mgrPfName));
+    const analyses = (analysisByTask[task.id] || []).filter(a => (a.employee || '').includes(mgrPfName));
+    const taskComments = commentsByTask[task.id] || [];
+    const contactCalls = contactCallsByTask[task.id] || [];
+    const comments = [...taskComments, ...contactCalls].sort((a, b) => itemStamp(a) - itemStamp(b));
+    const totalDuration = calls.reduce((sum, call) => sum + (call.duration || 0), 0);
+    const createdDate = task.dateTime?.date || task.dateCreated?.date || '';
+    const isNew = createdDate === reportDate && (task.status?.name || '') !== 'Новая';
 
     const card = {
-      id: t.id,
-      name: t.name,
-      status: t.status?.name || '?',
-      template: t.template?.name || '',
-      counterparty: t.counterparty?.name || '—',
+      id: task.id,
+      name: task.name,
+      status: task.status?.name || '?',
+      template: task.template?.name || '',
+      counterparty: task.counterparty?.name || '—',
       dateCreated: createdDate,
       dealSum: parseFloat(cf[67906]?.value || 0) || 0,
-      workDesc: extractWorkDesc(t.name),
-      isActive: !SKIP_STATUSES.includes(t.status?.name || ''),
+      workDesc: extractWorkDesc(task.name),
+      isActive: !SKIP_STATUSES.includes(task.status?.name || ''),
       isNew,
-      calls: [],
-      analyses: [],
+      calls,
+      analyses,
       comments,
-      totalCalls: comments.filter(c => c.type === 'outCall' || c.type === 'inCall').length,
-      totalDuration: 0,
-      totalAnalyses: 0,
-      avgBalls: null,
+      totalCalls: calls.length,
+      totalDuration,
+      totalAnalyses: analyses.length,
+      avgBalls: analyses.length
+        ? Math.round((analyses.reduce((sum, analysis) => sum + analysis.totalBalls, 0) / analyses.length) * 10) / 10
+        : null,
       redFlags: [],
     };
+
     card.redFlags = detectRedFlags(card, mgrPfName, reportDate);
     return card;
   });
 
-  // Сохраняем метаданные сделок в историю (name, status, counterparty)
   for (const card of dealCards) {
-    const dh = ensureDeal(history, card.id);
-    dh.name = card.name;
-    dh.status = card.status;
-    dh.counterparty = card.counterparty;
+    const deal = ensureDeal(history, card.id);
+    deal.name = card.name;
+    deal.status = card.status;
+    deal.counterparty = card.counterparty;
+    deal.comments = commentsByTask[card.id] || [];
+    deal.commentsLoaded = true;
+    deal.contactCalls = contactCallsByTask[card.id] || [];
   }
 
-  // Шаг 7: Дневная активность (формат для assessment и HTML)
-  const dailyDealActivity = dealCards.map(card => {
-    const dayComments = card.comments.filter(c => c.date === reportDate);
-    const actions = dayComments.map(c => ({
-      type: c.type, time: c.time, text: c.text,
-      owner: c.owner, transcription: c.transcription,
-      source: c.source || 'deal', files: c.files || [],
-    }));
-    actions.sort((a, b) => timeToMinNode(a.time) - timeToMinNode(b.time));
-    return {
-      deal: { id: card.id, name: card.name, status: card.status, counterparty: card.counterparty, dealSum: card.dealSum, workDesc: card.workDesc },
-      isNew: card.isNew,
-      actions,
-      dayCalls: actions.filter(a => a.type === 'outCall' || a.type === 'inCall').length,
-      planfixScript: null,
-      allComments: card.comments,
-      allCalls: card.calls,
-      allAnalyses: card.analyses,
-      scriptHistory: { total: 0, everHowWeWork: false, everCallToAction: false, everSentInvoice: false, everAllFour: false, bestScore: 0, customerKnowsCompany: false },
-      aiAssessment: null,
-    };
-  });
+  const totalActive = lightTasks.length
+    ? lightTasks
+      .filter(task => !(task.parent && task.parent.id))
+      .filter(task => {
+        const tplName = task.template?.name || '';
+        if (!tplName) return true;
+        return ALLOWED_TEMPLATES.some(at => tplName.toLowerCase().includes(at.toLowerCase()));
+      })
+      .filter(task => !SKIP_STATUSES.includes(task.status?.name || ''))
+      .length
+    : dealCards.filter(card => card.isActive).length;
 
-  // Шаг 8: dailyActivity (новые/обработанные за день)
   const dailyActivity = {
-    newDeals: dealCards.filter(c => c.isNew).map(c => ({ id: c.id, name: c.name, status: c.status, counterparty: c.counterparty })),
+    newDeals: [],
     workedDeals: [],
-    totalActive: dealCards.length,
+    incomingDeals: [],
+    totalActive,
   };
+
   for (const card of dealCards) {
-    if (card.isNew) continue;
-    const hasMgrAction = card.comments.some(c => c.date === reportDate && c.owner && c.owner.includes(mgrPfName));
-    if (hasMgrAction) {
+    const createdOnDate = reportDateObj ? isSameDay(card.dateCreated, reportDateObj) : false;
+    const hasManagerComment = card.comments.some(c => c.date === reportDate && c.owner && c.owner.includes(mgrPfName));
+    const hasManagerCalls = card.calls.some(c => c.date === reportDate);
+    const hasActivity = hasManagerComment || hasManagerCalls;
+    const isOtherHuman = c =>
+      c.date === reportDate &&
+      c.owner &&
+      !c.owner.includes(mgrPfName) &&
+      !c.owner.toLowerCase().includes('robot') &&
+      !(c.text || '').includes('целевое действие') &&
+      !(c.text || '').includes('Статус изменён');
+
+    if (createdOnDate) {
+      dailyActivity.newDeals.push({
+        id: card.id,
+        name: card.name,
+        status: card.status,
+        counterparty: card.counterparty,
+      });
+    } else if (hasActivity) {
       const dayActions = card.comments
         .filter(c => c.date === reportDate && c.owner && c.owner.includes(mgrPfName))
         .map(c => ({ type: c.type, text: (c.text || '').substring(0, 100), time: c.time }));
-      dailyActivity.workedDeals.push({ id: card.id, name: card.name, status: card.status, counterparty: card.counterparty, actions: dayActions });
+
+      dailyActivity.workedDeals.push({
+        id: card.id,
+        name: card.name,
+        status: card.status,
+        counterparty: card.counterparty,
+        actions: dayActions,
+      });
+    }
+
+    if (!hasActivity && !createdOnDate) {
+      const otherActions = card.comments
+        .filter(isOtherHuman)
+        .map(c => ({ type: c.type, text: (c.text || '').substring(0, 100), time: c.time, owner: c.owner }));
+      if (otherActions.length) {
+        dailyActivity.incomingDeals.push({
+          id: card.id,
+          name: card.name,
+          status: card.status,
+          counterparty: card.counterparty,
+          dealSum: card.dealSum || 0,
+          actions: otherActions,
+        });
+      }
     }
   }
 
-  // Шаг 9: ИИ-оценка сделок
+  function buildDayActivityServer(dateDMY) {
+    const dateObj = parsePfDate(dateDMY);
+    const result = [];
+
+    for (const card of dealCards) {
+      const createdOnDate = dateObj ? isSameDay(card.dateCreated, dateObj) : false;
+      const dayMgrComments = card.comments.filter(c => c.date === dateDMY && c.owner && c.owner.includes(mgrPfName));
+      const dayCalls = card.calls.filter(c => c.date === dateDMY);
+      const hasMgrActivity = dayMgrComments.length > 0 || dayCalls.length > 0;
+      if (!hasMgrActivity && !createdOnDate) continue;
+
+      const dayComments = hasMgrActivity ? card.comments.filter(c => c.date === dateDMY) : [];
+      const actions = dayComments.map(c => ({
+        type: c.type,
+        time: c.time,
+        text: c.text,
+        owner: c.owner,
+        transcription: c.transcription,
+        source: c.source || 'deal',
+        files: c.files || [],
+      }));
+
+      for (const call of dayCalls) {
+        const isDupe = actions.some(a =>
+          (a.type === 'outCall' || a.type === 'inCall' || a.type === 'ndz') &&
+          Math.abs(timeToMinNode(a.time) - timeToMinNode(call.time)) < 5,
+        );
+        if (!isDupe) {
+          actions.push({
+            type: call.type === 'Входящий' ? 'inCall' : 'outCall',
+            time: call.time,
+            text: `${call.type} ${call.contact} ${call.phone}`.trim(),
+            owner: call.employee,
+            transcription: null,
+            source: 'datatag',
+            duration: call.duration,
+          });
+        }
+      }
+
+      actions.sort((a, b) => timeToMinNode(a.time) - timeToMinNode(b.time));
+
+      const dayAnalyses = card.analyses.filter(a => a.date === dateDMY);
+      const scriptHistory = {
+        total: card.analyses.length,
+        everHowWeWork: card.analyses.some(a => a.howWeWork === 'Да'),
+        everCallToAction: card.analyses.some(a => a.callToAction === 'Да'),
+        everSentInvoice: card.analyses.some(a => a.sentInvoice === 'Да'),
+        everAllFour: card.analyses.some(a => a.allFour === 'Да'),
+        bestScore: card.analyses.length ? Math.max(...card.analyses.map(a => a.totalBalls)) : 0,
+        customerKnowsCompany: card.analyses.some(a => a.howWeWork === 'Да'),
+      };
+
+      result.push({
+        deal: {
+          id: card.id,
+          name: card.name,
+          status: card.status,
+          counterparty: card.counterparty,
+          dealSum: card.dealSum || 0,
+          workDesc: card.workDesc || '',
+        },
+        isNew: createdOnDate,
+        actions,
+        dayCalls: actions.filter(a => a.type === 'outCall' || a.type === 'inCall' || a.type === 'ndz').length,
+        planfixScript: dayAnalyses.length ? dayAnalyses[0] : null,
+        allComments: card.comments,
+        allCalls: card.calls,
+        allAnalyses: card.analyses,
+        scriptHistory,
+        aiAssessment: null,
+      });
+    }
+
+    return result;
+  }
+
   const aiCache = loadAiCache();
-  let aiDaySummaryText = null;
-  let managerSummaries = {};
+  const multiDayActivity = {};
+  const multiDaySummary = {};
+  const reportDayDeals = buildDayActivityServer(reportDate);
 
-  if (dailyDealActivity.length && (DEEPSEEK_KEY || POLZA_KEY)) {
-    console.log(`  🤖 ИИ-оценка ${dailyDealActivity.length} сделок...`);
-    let aiIdx = 0;
-    await parallelMap(dailyDealActivity, async (da) => {
-      if (!isTimeUp()) da.aiAssessment = await aiDealFullAssessment(da, reportDate, history, true);
-      aiIdx++;
-      process.stdout.write(`\r    [${aiIdx}/${dailyDealActivity.length}]`);
-    }, 3); // не больше 3 параллельных ИИ-запросов
-    console.log(' ✅');
+  console.log(`  🤖 День отчета ${reportDate}: ${reportDayDeals.length} сделок`);
+  if (reportDayDeals.length && (DEEPSEEK_KEY || POLZA_KEY)) {
+    const isSnow = name => (name || '').toLowerCase().startsWith('вывоз снега');
+    const cached = reportDayDeals.filter(da => {
+      const dealHist = history.deals[String(da.deal.id)];
+      const key = `assess_${da.deal.id}_${reportDate}_${isSnow(da.deal.name) ? 'v20' : 'v20a'}`;
+      return dealHist?.assessments?.[key];
+    }).length;
+    const needAi = reportDayDeals.length - cached;
 
-    // Шаг 10: Итог дня
-    aiDaySummaryText = await aiDaySummary(dailyDealActivity, reportDate, aiCache, null, true);
-
-    // Шаг 11: Отчёты руководителя (день / неделя / месяц)
-    console.log(`  📋 Отчёты руководителя...`);
-    const multiDayAct = { [reportDate]: dailyDealActivity };
-    const multiDaySum = {};
-    if (aiDaySummaryText) multiDaySum[reportDate] = aiDaySummaryText;
-    for (const period of [1, 7, 30]) {
-      const label = period === 1 ? 'день' : period === 7 ? 'неделя' : 'месяц';
-      process.stdout.write(`    ${label}...`);
-      const summary = await aiManagerSummary(multiDayAct, multiDaySum, dealCards, [], period, reportDate, aiCache, null, true);
-      if (summary) managerSummaries[period] = summary;
-      console.log(summary ? ' ✅' : ' пропуск');
+    if (needAi > 0) {
+      console.log(`  🤖 ИИ-оценка ${reportDayDeals.length} сделок за ${reportDate} (${cached} из истории)...`);
+    } else {
+      process.stdout.write(`  🤖 ${reportDate}: ${reportDayDeals.length} сделок (история) `);
     }
 
+    let aiIdx = 0;
+    await parallelMap(reportDayDeals, async (dealActivity) => {
+      if (!isTimeUp()) dealActivity.aiAssessment = await aiDealFullAssessment(dealActivity, reportDate, history, true);
+      aiIdx++;
+      if (needAi > 0) process.stdout.write(`\r    [${aiIdx}/${reportDayDeals.length}]`);
+    }, CONCURRENCY);
+
+    if (needAi > 0) console.log('\n    ✅');
+    else console.log('✅');
+
+    multiDaySummary[reportDate] = await aiDaySummary(reportDayDeals, reportDate, aiCache, mgrAlias, true);
     saveHistory(history, reportDate);
-    saveAiCache(aiCache);
   }
 
-  console.log(`  ✅ Карточек: ${dealCards.length}, за день: ${dailyDealActivity.length}`);
+  multiDayActivity[reportDate] = reportDayDeals;
 
-  // Шаг 12: Прошлые дни из deal_history.json
-  const multiDayActivity = { [reportDate]: dailyDealActivity };
-  const multiDaySummary = aiDaySummaryText ? { [reportDate]: aiDaySummaryText } : {};
+  const dealTasksMap = {};
+  for (const task of dealTasks) dealTasksMap[task.id] = task;
 
-  const reportDateObj = new Date(reportDate.split('-').reverse().join('-'));
   const historyDatesSet = new Set();
   for (const [, dealHist] of Object.entries(history.deals || {})) {
-    for (const c of (dealHist.comments || [])) {
-      if (!c.date || c.date === reportDate) continue;
-      const p = c.date.split('-');
-      const d = new Date(p[2] + '-' + p[1] + '-' + p[0]);
+    for (const c of [...(dealHist.comments || []), ...(dealHist.contactCalls || [])]) {
+      if (!c.date || c.date === reportDate || !reportDateObj) continue;
+      const d = parsePfDate(c.date);
+      if (!d) continue;
       const daysAgo = (reportDateObj - d) / 86400000;
       if (daysAgo > 0 && daysAgo <= 30) historyDatesSet.add(c.date);
     }
   }
-  const pastDays = [...historyDatesSet].sort((a, b) => {
-    const pa = a.split('-'), pb = b.split('-');
-    return new Date(pb[2]+'-'+pb[1]+'-'+pb[0]) - new Date(pa[2]+'-'+pa[1]+'-'+pa[0]);
-  });
+
+  const pastDays = [...historyDatesSet].sort((a, b) => parsePfDate(b) - parsePfDate(a));
   console.log(`  📚 Прошлые дни из истории: ${pastDays.length}`);
 
-  // Догенерация ИИ-оценок за прошлые дни (где их нет)
   let pastAiGenerated = 0;
   for (const dayDMY of pastDays) {
-    const dayDeals = [];
-    for (const [dealId, dealHist] of Object.entries(history.deals || {})) {
-      const comments = (dealHist.comments || []).filter(c => c.date === dayDMY);
-      if (!comments.length) continue;
-      const hasMgr = comments.some(c => c.owner && c.owner.includes(mgrPfName));
-      if (!hasMgr) continue;
-      const actions = comments.map(c => ({
-        type: c.type, time: c.time, text: c.text,
-        owner: c.owner, transcription: c.transcription,
-        source: c.source || 'deal', files: c.files || [],
-      }));
-      actions.sort((a, b) => timeToMinNode(a.time) - timeToMinNode(b.time));
-      const isSnow = (dealHist.name || '').toLowerCase().startsWith('вывоз снега');
-      const assessKey = `assess_${dealId}_${dayDMY}_${isSnow ? 'v20' : 'v20a'}`;
-      const aiAssessment = dealHist.assessments?.[assessKey] || null;
-      dayDeals.push({
-        deal: { id: Number(dealId), name: dealHist.name || '?', status: dealHist.status || '?', counterparty: dealHist.counterparty || '—', dealSum: 0, workDesc: '' },
-        isNew: false, actions,
-        dayCalls: actions.filter(a => a.type === 'outCall' || a.type === 'inCall').length,
-        planfixScript: null,
-        allComments: dealHist.comments || [],
-        scriptHistory: { total: 0, everHowWeWork: false, everCallToAction: false },
-        aiAssessment,
-      });
-    }
-    if (dayDeals.length) {
-      // Догенерация ИИ-оценок для сделок без оценки за этот день
-      if (DEEPSEEK_KEY || POLZA_KEY) {
-        const needAi = dayDeals.filter(da => !da.aiAssessment);
-        if (needAi.length && !isTimeUp()) {
-          if (!pastAiGenerated) console.log(`  🤖 Догенерация ИИ-оценок за прошлые дни...`);
-          process.stdout.write(`    ${dayDMY}: ${needAi.length} сделок...`);
-          for (const da of needAi) {
-            if (isTimeUp()) break;
-            da.aiAssessment = await aiDealFullAssessment(da, dayDMY, history, true);
-            pastAiGenerated++;
-          }
-          console.log(' ✅');
+    const dayDeals = buildDayFromHistory(history, dayDMY, dealTasksMap, mgrPfName);
+    if (!dayDeals.length) continue;
+
+    if ((DEEPSEEK_KEY || POLZA_KEY) && !isTimeUp()) {
+      const needAi = dayDeals.filter(da => !da.aiAssessment);
+      if (needAi.length) {
+        if (!pastAiGenerated) console.log('  🤖 Догенерация ИИ-оценок за прошлые дни...');
+        process.stdout.write(`    ${dayDMY}: ${needAi.length} сделок...`);
+        for (const dealActivity of needAi) {
+          if (isTimeUp()) break;
+          dealActivity.aiAssessment = await aiDealFullAssessment(dealActivity, dayDMY, history, true);
+          pastAiGenerated++;
         }
+        console.log(' ✅');
       }
-      multiDayActivity[dayDMY] = dayDeals;
-      // Итог дня из кэша
-      const aiCacheDay = loadAiCache();
-      if (DEEPSEEK_KEY || POLZA_KEY) {
-        multiDaySummary[dayDMY] = await aiDaySummary(dayDeals, dayDMY, aiCacheDay, null);
-      }
+      multiDaySummary[dayDMY] = await aiDaySummary(dayDeals, dayDMY, aiCache, mgrAlias);
     }
+
+    multiDayActivity[dayDMY] = dayDeals;
   }
+
   if (pastAiGenerated) {
     console.log(`  📊 Догенерировано ИИ-оценок за прошлые дни: ${pastAiGenerated}`);
     saveHistory(history, reportDate);
-    saveAiCache(loadAiCache());
   }
+
+  const incomingByDate = {};
+  function addIncoming(dealId, dealName, dealStatus, dealCounterparty, dealSum, comments) {
+    for (const c of comments) {
+      if (!c.date) continue;
+      const ownerLow = (c.owner || '').toLowerCase();
+      if (!c.owner || c.owner.includes(mgrPfName) || ownerLow.includes('robot') || ownerLow.includes('робот')) continue;
+      if ((c.text || '').includes('целевое действие') || (c.text || '').includes('Статус изменён')) continue;
+      if (!incomingByDate[c.date]) incomingByDate[c.date] = [];
+
+      const action = { type: c.type, text: (c.text || '').substring(0, 100), time: c.time, owner: c.owner };
+      const existing = incomingByDate[c.date].find(d => d.id === dealId);
+      if (existing) {
+        const hasSameAction = existing.actions.some(a =>
+          a.time === action.time &&
+          a.owner === action.owner &&
+          a.type === action.type &&
+          a.text === action.text,
+        );
+        if (!hasSameAction) existing.actions.push(action);
+      } else {
+        incomingByDate[c.date].push({
+          id: dealId,
+          name: dealName,
+          status: dealStatus,
+          counterparty: dealCounterparty,
+          dealSum: dealSum || 0,
+          actions: [action],
+        });
+      }
+    }
+  }
+
+  for (const card of dealCards) {
+    if (!card.isActive) continue;
+    addIncoming(card.id, card.name, card.status, card.counterparty, card.dealSum, card.comments);
+  }
+
+  for (const [dealId, dealHist] of Object.entries(history.deals || {})) {
+    const combinedPastComments = [
+      ...(dealHist.comments || []),
+      ...(dealHist.contactCalls || []),
+    ].filter(c => c.date && c.date !== reportDate);
+
+    if (!combinedPastComments.length) continue;
+
+    const task = dealTasksMap[Number(dealId)];
+    const cf = {};
+    if (task) {
+      for (const c of (task.customFieldData || [])) cf[c.field.id] = { value: c.value };
+    }
+
+    addIncoming(
+      Number(dealId),
+      task?.name || dealHist.name || '?',
+      task?.status?.name || dealHist.status || '?',
+      task?.counterparty?.name || dealHist.counterparty || '—',
+      task ? (parseFloat(cf[67906]?.value || 0) || 0) : 0,
+      combinedPastComments,
+    );
+  }
+
+  const newDealAnalyses = [];
+  for (const card of dealCards) {
+    if (!card.isNew) continue;
+    for (const analysis of card.analyses) {
+      newDealAnalyses.push({ ...analysis, dealId: card.id, dealName: card.name });
+    }
+  }
+
+  const scriptCompliance = {
+    total: newDealAnalyses.length,
+    howWeWork: newDealAnalyses.filter(a => a.howWeWork === 'Да').length,
+    callToAction: newDealAnalyses.filter(a => a.callToAction === 'Да').length,
+    sentInvoice: newDealAnalyses.filter(a => a.sentInvoice === 'Да').length,
+    allFour: newDealAnalyses.filter(a => a.allFour === 'Да').length,
+    avgScore: newDealAnalyses.length
+      ? Math.round((newDealAnalyses.reduce((sum, analysis) => sum + analysis.totalBalls, 0) / newDealAnalyses.length) * 10) / 10
+      : 0,
+    details: newDealAnalyses,
+  };
+
+  const snapshotRoot = path.join(ROOT_DIR, 'funnel_snapshot.json');
+  let snapshotFile = snapshotRoot;
+  if (mgrAlias) {
+    const perManagerSnapshot = path.join(ROOT_DIR, 'data', `${mgrAlias}_funnel.json`);
+    if (!fs.existsSync(perManagerSnapshot) && fs.existsSync(snapshotRoot)) {
+      try { fs.copyFileSync(snapshotRoot, perManagerSnapshot); } catch {}
+    }
+    snapshotFile = perManagerSnapshot;
+  }
+
+  const prevSnapshot = loadPreviousSnapshot(snapshotFile);
+  const activeCardIds = new Set(dealCards.map(card => card.id));
+  const funnelCards = lightTasks.length
+    ? [
+      ...dealCards,
+      ...lightTasks
+        .filter(task => !activeCardIds.has(task.id) && !(task.parent && task.parent.id))
+        .filter(task => {
+          const tplName = task.template?.name || '';
+          if (!tplName) return true;
+          return ALLOWED_TEMPLATES.some(at => tplName.toLowerCase().includes(at.toLowerCase()));
+        })
+        .map(task => ({
+          id: task.id,
+          name: task.name,
+          status: task.status?.name || '?',
+          counterparty: task.counterparty?.name || '—',
+        })),
+    ]
+    : dealCards;
+
+  const funnelChanges = computeFunnelChanges(prevSnapshot, funnelCards);
+  saveSnapshot(funnelCards, snapshotFile);
+
+  const allCalls = dealCards.flatMap(card => card.calls);
+  const allAnalyses = dealCards.flatMap(card => card.analyses);
+  const managerSummaries = { day: null, week: null, month: null };
+
+  if (DEEPSEEK_KEY || POLZA_KEY) {
+    console.log('\n👔 Генерация отчета для руководителя...');
+    managerSummaries.day = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 1, reportDate, aiCache, mgrAlias, true);
+    if (managerSummaries.day) process.stdout.write('  ✅ День ');
+    managerSummaries.week = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 7, reportDate, aiCache, mgrAlias, true);
+    if (managerSummaries.week) process.stdout.write('✅ Неделя ');
+    managerSummaries.month = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 30, reportDate, aiCache, mgrAlias, true);
+    if (managerSummaries.month) console.log('✅ Месяц');
+    saveAiCache(aiCache);
+  }
+
+  saveHistory(history, reportDate);
+  const measurementData = buildMeasurementsData({
+    reportDate,
+    managerName: managerMeta?.name || mgrPfName,
+    managerAlias: mgrAlias,
+    history,
+    allTasks: allManagerTasks,
+    activeDealTasks: dealTasks,
+    activeSubtasks: [...subtasksById.values()],
+  });
+
+  console.log(`  📊 Дневная активность: ${dailyActivity.newDeals.length} новых, ${dailyActivity.workedDeals.length} обработано`);
+  console.log(`  🔄 Изменения воронки: ${funnelChanges.length}`);
+  console.log(`  📝 Скрипт новых: ${scriptCompliance.total} анализов`);
+  console.log(`  📐 Замеров найдено: ${measurementData.measurements.length}`);
 
   return {
     dealCards,
-    dailyReports: [],
-    allCalls: [],
-    allAnalyses: [],
+    dailyReports,
+    allCalls,
+    allAnalyses,
     dailyActivity,
-    funnelChanges: [],
-    scriptCompliance: { total: 0 },
-    dailyDealActivity,
-    aiDaySummaryText,
+    funnelChanges,
+    scriptCompliance,
+    dailyDealActivity: reportDayDeals,
+    aiDaySummaryText: multiDaySummary[reportDate] || null,
     multiDayActivity,
     multiDaySummary,
     managerSummaries,
-    incomingByDate: {},
-    snapshotDate: null,
+    incomingByDate,
+    snapshotDate: prevSnapshot?.date || null,
+    ...measurementData,
   };
 }
 
 module.exports = { getManagerDeals, getDealComments, buildDealCards };
-
-// === Тестовый вызов ===
-if (require.main === module) {
-  buildDealCards('1', '29-03-2026', 'Боровая').then(cards => {
-    console.log('\n=== РЕЗУЛЬТАТ ===');
-    console.log('Карточек:', cards.length);
-    cards.forEach(c => {
-      const dayCom = c.comments.filter(x => x.date === '29-03-2026');
-      const calls = dayCom.filter(x => x.type === 'outCall' || x.type === 'inCall');
-      console.log(`#${c.id} ${c.name} | ${c.status} | комм:${dayCom.length} звонки:${calls.length}`);
-    });
-  }).catch(e => console.error('Ошибка:', e));
-}

@@ -93,7 +93,7 @@ function renderManager(){
       h+='</div>';
       // Собираем все #ID из текста секции и показываем карточки сделок
       var secText=sec.lines.join(' ');
-      var idMatches=secText.match(/#(d{4,6})/g);
+      var idMatches=secText.match(/#(\d{4,6})/g);
       if(idMatches&&idMatches.length){
         var uniqueIds=[...new Set(idMatches.map(function(m){return parseInt(m.substring(1))}))];
         var secDeals=uniqueIds.map(function(id){return D.dealCards.find(function(c){return c.id===id})}).filter(Boolean);

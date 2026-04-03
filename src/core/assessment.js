@@ -5,6 +5,7 @@
 const { calculateSalaryScore } = require('./scoring');
 const { openaiChat } = require('../api/deepseek');
 const { ensureDeal } = require('./history');
+const { hasCallRecordingFile } = require('./transcription');
 
 async function aiDealFullAssessment(dealActivity, reportDate, history, forceRefresh) {
   const deal = dealActivity.deal;
@@ -18,26 +19,32 @@ async function aiDealFullAssessment(dealActivity, reportDate, history, forceRefr
 
   // Собираем данные, ЧЁТКО разделяя ЗВОНКИ и ПЕРЕПИСКУ
   const allC = dealActivity.allComments || [];
+  const isCallLike = c => c.type === 'outCall' || c.type === 'inCall' || c.type === 'ndz';
+  const needsTranscript = c => {
+    if (!isCallLike(c) || c.transcription) return false;
+    const duration = parseInt(c.duration || 0, 10) || 0;
+    return hasCallRecordingFile(c.files || []) || duration > 0;
+  };
 
   // ТРАНСКРИБАЦИИ — это единственное что доказывает устную речь в звонке
   const transcriptions = allC
-    .filter(c => c.transcription)
+    .filter(c => isCallLike(c) && c.transcription)
     .map(c => `[ЗВОНОК ${c.date} ${c.time}] ${c.transcription.substring(0, 2000)}`)
     .join('\n---\n');
 
   // ЗВОНКИ БЕЗ ТРАНСКРИБАЦИИ — только факт, длительность. Текст НЕ показываем (чтобы ИИ не путал с транскрибацией)
   const callsWithoutTr = allC
-    .filter(c => (c.type === 'outCall' || c.type === 'inCall') && !c.transcription)
+    .filter(needsTranscript)
     .map(c => {
-      const dir = c.type === 'outCall' ? 'Исходящий' : 'Входящий';
+      const dir = c.type === 'outCall' ? 'Исходящий' : c.type === 'inCall' ? 'Входящий' : 'НДЗ';
       const dur = c.duration ? Math.round(c.duration / 60) + 'м' : '?';
       return `[ЗВОНОК БЕЗ ТРАНСКРИБАЦИИ ${c.date} ${c.time}] ${dir} ${dur} — СОДЕРЖАНИЕ НЕИЗВЕСТНО`;
     })
     .join('\n');
 
   // Предварительная классификация: сколько звонков с/без транскрибации
-  const callsWithTrCount = allC.filter(c => c.transcription).length;
-  const callsWithoutTrCount = allC.filter(c => (c.type === 'outCall' || c.type === 'inCall') && !c.transcription).length;
+  const callsWithTrCount = allC.filter(c => isCallLike(c) && c.transcription).length;
+  const callsWithoutTrCount = allC.filter(needsTranscript).length;
   const hasAnyTranscription = callsWithTrCount > 0;
 
   // ПЕРЕПИСКА/КОММЕНТАРИИ — заметки менеджера (НЕ звонки)
@@ -52,7 +59,7 @@ async function aiDealFullAssessment(dealActivity, reportDate, history, forceRefr
 
   // Действия за ДЕНЬ — с чёткой маркировкой типа
   const todayActions = (dealActivity.actions || []).map(a => {
-    const isCall = a.type === 'outCall' || a.type === 'inCall';
+    const isCall = a.type === 'outCall' || a.type === 'inCall' || a.type === 'ndz';
     const tag = isCall ? 'ЗВОНОК' : 'КОММЕНТАРИЙ';
     let line = `${a.time || '?'} [${tag}] ${a.text.substring(0, 200)}`;
     if (a.files && a.files.length) line += ` [Файлы: ${a.files.join(', ')}]`;

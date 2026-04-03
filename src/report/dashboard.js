@@ -19,11 +19,14 @@ function generateDashboard(date, mgrDataFile) {
       const active = (d.dealCards || []).filter(c => c.isActive);
       const pipeline = active.reduce((s, c) => s + (c.dealSum || 0), 0);
       const dda = d.dailyDealActivity || [];
-      const totalCalls = dda.reduce((s, dd) => s + (dd.actions || []).filter(a => a.type === 'outCall' || a.type === 'inCall').length, 0);
-      const scores = dda.filter(dd => dd.ai?.salaryScore?.total).map(dd => dd.ai.salaryScore.total);
+      const totalCalls = dda.reduce((s, dd) => s + (dd.actions || []).filter(a => a.type === 'outCall' || a.type === 'inCall' || a.type === 'ndz').length, 0);
+      const scores = dda
+        .map(dd => dd.aiAssessment?.salaryScore?.total)
+        .filter(score => score !== undefined && score !== null);
       const avgScore = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : '—';
       const closing = active.filter(c => ['Дожим', 'Договор и оплата'].includes(c.status));
       const closingSum = closing.reduce((s, c) => s + (c.dealSum || 0), 0);
+      const measures = d.measurementsComparison || d.measurementsSummary?.compare30d || {};
       cards.push({
         name: mgr.name, alias: mgr.alias,
         activeDealCount: active.length, pipeline,
@@ -31,6 +34,16 @@ function generateDashboard(date, mgrDataFile) {
         closingCount: closing.length, closingSum,
         reportDate: d.reportDate || date,
         aiSummary: (d.aiDaySummaryText || '').substring(0, 200),
+        measurements: {
+          entered: measures.enteredMeasurement || 0,
+          scheduled: measures.scheduledMeasurements || 0,
+          progressed: measures.progressed || 0,
+          toContract: measures.toContract || 0,
+          toWork: measures.toWork || 0,
+          stalled: measures.stalled || 0,
+          contractRate: measures.contractRate || 0,
+          workRate: measures.workRate || 0,
+        },
       });
     } catch {}
   }
@@ -57,9 +70,41 @@ body{background:#f5f5f5;color:#1a1a2e;font-family:-apple-system,BlinkMacSystemFo
 .card-summary{margin-top:12px;font-size:12px;color:#6b7280;line-height:1.4}
 .card-link{display:block;text-align:center;margin-top:16px;padding:10px;background:#d97706;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px}
 .card-link:hover{background:#2563eb}
+.compare{max-width:1200px;margin:0 auto 24px;background:#fff;border:1px solid #d1d5db;border-radius:16px;padding:20px}
+.compare h2{font-size:18px;color:#1a1a2e;margin-bottom:8px}
+.compare p{color:#6b7280;font-size:13px;margin-bottom:14px}
+.compare-wrap{overflow-x:auto}
+.compare table{width:100%;border-collapse:collapse;font-size:13px}
+.compare th,.compare td{padding:10px 12px;border-bottom:1px solid #eef2f7;text-align:left}
+.compare th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#6b7280}
+.compare tr:hover td{background:#fafafa}
+.chip{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.chip-green{background:rgba(22,163,74,.12);color:#16a34a}
+.chip-blue{background:rgba(37,99,235,.12);color:#2563eb}
+.chip-amber{background:rgba(245,158,11,.14);color:#b45309}
+.chip-red{background:rgba(220,38,38,.12);color:#dc2626}
 .footer{text-align:center;margin-top:30px;color:#6b7280;font-size:12px}
 </style></head><body>
 <div class="header"><h1>ТрансКом — Обзор менеджеров</h1><div class="date">${date}</div></div>
+<div class="compare">
+<h2>📐 Сравнение по замерам за 30 дней</h2>
+<p>Оперативный срез: сколько замеров вошло в работу менеджера, сколько назначено и во что это конвертируется дальше.</p>
+<div class="compare-wrap"><table>
+<tr><th>Менеджер</th><th>В замер</th><th>Назначено</th><th>Продвинуто</th><th>В договор</th><th>В работу</th><th>Конв. договор</th><th>Конв. работа</th><th>Зависло</th><th></th></tr>
+${cards.map(c => `<tr>
+<td style="font-weight:700;color:#1a1a2e">${c.name}</td>
+<td><span class="chip chip-blue">${c.measurements.entered}</span></td>
+<td>${c.measurements.scheduled}</td>
+<td>${c.measurements.progressed}</td>
+<td style="color:#16a34a;font-weight:700">${c.measurements.toContract}</td>
+<td style="color:#059669;font-weight:700">${c.measurements.toWork}</td>
+<td><span class="chip chip-amber">${c.measurements.contractRate}%</span></td>
+<td><span class="chip chip-green">${c.measurements.workRate}%</span></td>
+<td><span class="chip chip-red">${c.measurements.stalled}</span></td>
+<td style="text-align:right"><a href="${c.alias}/index.html#measurements" style="color:#2563eb;text-decoration:none;font-weight:600">Открыть замеры →</a></td>
+</tr>`).join('')}
+</table></div>
+</div>
 <div class="grid">`;
 
   for (const c of cards) {

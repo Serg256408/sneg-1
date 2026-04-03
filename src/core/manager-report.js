@@ -19,9 +19,9 @@ async function aiDaySummary(dailyDeals, reportDate, aiCache, mgrAlias, forceRefr
     const a = d.aiAssessment;
     const verdict = a ? a.overallVerdict || '' : '';
     const score = a && a.salaryScore ? a.salaryScore.total + '/' + a.salaryScore.max : '';
-    const calls = (d.actions || []).filter(x => x.type === 'outCall' || x.type === 'inCall').length;
-    const callsList = (d.actions || []).filter(x => x.type === 'outCall' || x.type === 'inCall')
-      .map(x => `${x.time} ${x.type === 'outCall' ? 'Исх' : 'Вх'}${x.transcription ? ' (с транскрибацией)' : ''}`).join(', ');
+    const calls = (d.actions || []).filter(x => x.type === 'outCall' || x.type === 'inCall' || x.type === 'ndz').length;
+    const callsList = (d.actions || []).filter(x => x.type === 'outCall' || x.type === 'inCall' || x.type === 'ndz')
+      .map(x => `${x.time} ${x.type === 'outCall' ? 'Исх' : x.type === 'inCall' ? 'Вх' : 'НДЗ'}${x.transcription ? ' (с транскрибацией)' : ''}`).join(', ');
     const sum = d.deal.dealSum ? d.deal.dealSum + '₽' : '';
     let line = `- #${d.deal.id} "${d.deal.name}" (${d.deal.status}${sum ? ', ' + sum : ''}) ${d.deal.counterparty || ''}`;
     if (calls) line += `\n  Звонки (${calls}): ${callsList}`;
