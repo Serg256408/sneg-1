@@ -125,17 +125,603 @@ tr:hover td{background:rgba(217,119,6,.03)}
   .deal-card-body{padding:14px}
   .deal-summary{grid-template-columns:1fr}
 }
+:root{
+  --bg:#f4f1ea;
+  --panel:#fffdf9;
+  --panel-strong:#ffffff;
+  --line:#e6ddd0;
+  --line-soft:#efe6da;
+  --text:#1f2937;
+  --muted:#6b7280;
+  --brand:#c06a16;
+  --brand-strong:#9a4f08;
+  --brand-soft:rgba(192,106,22,.11);
+  --blue:#2563eb;
+  --blue-soft:rgba(37,99,235,.1);
+  --green:#15803d;
+  --green-soft:rgba(21,128,61,.1);
+  --amber:#b45309;
+  --amber-soft:rgba(180,83,9,.12);
+  --purple:#7c3aed;
+  --purple-soft:rgba(124,58,237,.1);
+  --shadow:0 14px 40px rgba(120,94,58,.10);
+  --shadow-soft:0 8px 22px rgba(120,94,58,.07);
+}
+body{
+  font-family:'Manrope',system-ui,-apple-system,sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(217,119,6,.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(37,99,235,.10), transparent 30%),
+    linear-gradient(180deg,#faf7f2 0%,#f4f1ea 38%,#f1eee8 100%);
+  color:var(--text);
+}
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.24) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.24) 1px, transparent 1px);
+  background-size:32px 32px;
+  mask-image:linear-gradient(180deg,rgba(0,0,0,.16),transparent 62%);
+}
+.hdr{
+  position:sticky;
+  top:0;
+  z-index:12;
+  background:rgba(250,247,242,.90);
+  border-bottom:1px solid rgba(154,79,8,.10);
+  padding:18px 18px 16px;
+  box-shadow:0 10px 30px rgba(75,56,33,.08);
+  backdrop-filter:blur(16px);
+}
+.hdr-in{
+  max-width:1440px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:minmax(320px,1.4fr) minmax(240px,.8fr);
+  gap:18px;
+  align-items:stretch;
+}
+.hero-card,
+.hero-side{
+  background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,251,244,.92));
+  border:1px solid rgba(154,79,8,.10);
+  border-radius:28px;
+  box-shadow:var(--shadow-soft);
+}
+.hero-card{
+  padding:22px 24px;
+  display:flex;
+  gap:18px;
+  align-items:flex-start;
+}
+.hero-side{
+  padding:20px 22px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:16px;
+}
+.logo{
+  width:64px;
+  height:64px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#cf7a1f,#a95308 58%,#6b3d10 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  font-weight:800;
+  color:#fff;
+  box-shadow:0 14px 30px rgba(154,79,8,.28);
+  flex:0 0 auto;
+}
+.brand-copy{flex:1;min-width:0}
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 12px;
+  border-radius:999px;
+  background:var(--brand-soft);
+  color:var(--brand-strong);
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.mgr-name{
+  margin-top:14px;
+  font-size:clamp(28px,3vw,42px);
+  line-height:1.05;
+  font-weight:800;
+  color:#1f2937;
+}
+.mgr-sub{
+  margin-top:10px;
+  font-size:14px;
+  line-height:1.65;
+  color:#5b6472;
+  max-width:700px;
+}
+.hero-meta{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(140px,1fr));
+  gap:10px;
+}
+.hero-meta-card{
+  padding:14px 16px;
+  border-radius:18px;
+  background:rgba(255,255,255,.84);
+  border:1px solid rgba(154,79,8,.10);
+}
+.hero-meta-card b{
+  display:block;
+  font-size:11px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  margin-bottom:7px;
+}
+.hero-meta-card span{
+  display:block;
+  font-size:15px;
+  font-weight:700;
+  line-height:1.45;
+  color:var(--text);
+}
+.hero-upd{
+  font-size:13px;
+  line-height:1.6;
+  color:#5f6773;
+}
+.hero-upd b{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+.manager-rail{
+  max-width:1440px;
+  margin:14px auto 0;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.manager-label{
+  font-size:11px;
+  font-weight:800;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  margin-right:6px;
+}
+.manager-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-height:44px;
+  padding:10px 16px;
+  border-radius:999px;
+  text-decoration:none;
+  font-size:13px;
+  font-weight:700;
+  color:#4b5563;
+  background:rgba(255,255,255,.82);
+  border:1px solid rgba(154,79,8,.12);
+  box-shadow:0 5px 18px rgba(88,67,40,.06);
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+}
+.manager-pill:hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 20px rgba(88,67,40,.10);
+  border-color:rgba(154,79,8,.24);
+}
+.manager-pill.is-active{
+  background:linear-gradient(135deg,#cf7a1f,#9a4f08);
+  color:#fff;
+  border-color:transparent;
+  box-shadow:0 12px 26px rgba(154,79,8,.28);
+}
+.manager-pill.is-overview{color:var(--brand-strong)}
+.toolbar-row{
+  max-width:1440px;
+  margin:14px auto 0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.toolbar-copy{min-width:220px}
+.toolbar-copy b{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+.toolbar-copy span{
+  display:block;
+  font-size:14px;
+  line-height:1.55;
+  color:#505968;
+}
+.pbar{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.pbtn{
+  min-height:42px;
+  padding:10px 15px;
+  border-radius:999px;
+  border:1px solid rgba(154,79,8,.14);
+  cursor:pointer;
+  font-size:12px;
+  font-weight:800;
+  font-family:inherit;
+  background:rgba(255,255,255,.78);
+  color:#5b6472;
+  transition:.18s ease;
+  box-shadow:0 5px 18px rgba(88,67,40,.06);
+}
+.pbtn.on{
+  background:linear-gradient(135deg,#cf7a1f,#9a4f08);
+  color:#fff;
+  border-color:transparent;
+  box-shadow:0 12px 24px rgba(154,79,8,.25);
+}
+.cnt{max-width:1440px;margin:0 auto;padding:20px 18px 36px}
+.mets{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(168px,1fr));
+  gap:14px;
+  margin-bottom:18px;
+}
+.met{
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(255,251,244,.94));
+  border:1px solid rgba(154,79,8,.10);
+  border-radius:24px;
+  padding:18px 16px;
+  text-align:left;
+  box-shadow:var(--shadow-soft);
+  min-height:122px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+.met-v{font-size:32px;line-height:1;font-weight:800;margin:10px 0 0;color:#1f2937}
+.met-l{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.tabs-wrap{position:sticky;top:188px;z-index:10;margin-bottom:18px}
+.tabs{
+  display:flex;
+  gap:10px;
+  padding:12px;
+  border:1px solid rgba(154,79,8,.10);
+  border-radius:24px;
+  background:rgba(255,252,247,.88);
+  box-shadow:var(--shadow-soft);
+  backdrop-filter:blur(14px);
+  flex-wrap:wrap;
+}
+.tab{
+  padding:11px 16px;
+  cursor:pointer;
+  color:#5b6472;
+  font-size:13px;
+  font-weight:800;
+  border:none;
+  border-radius:999px;
+  transition:.18s ease;
+}
+.tab.on{
+  color:#fff;
+  background:linear-gradient(135deg,#cf7a1f,#9a4f08);
+  box-shadow:0 12px 24px rgba(154,79,8,.22);
+}
+.sec{
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(255,251,244,.92));
+  border:1px solid rgba(154,79,8,.10);
+  border-radius:28px;
+  padding:22px;
+  margin-bottom:16px;
+  box-shadow:var(--shadow-soft);
+}
+.sec h3{font-size:18px;font-weight:800;color:var(--text);margin-bottom:12px}
+.sec h4{font-size:14px;font-weight:700;color:#525b69;margin:12px 0 8px}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+th{
+  text-align:left;
+  padding:12px 14px;
+  color:var(--muted);
+  font-weight:800;
+  border-bottom:1px solid var(--line-soft);
+  font-size:11px;
+  white-space:nowrap;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+td{
+  padding:14px;
+  border-bottom:1px solid rgba(239,230,218,.95);
+  vertical-align:top;
+  color:#374151;
+  background:rgba(255,255,255,.55);
+}
+tr:hover td{background:rgba(255,248,240,.92)}
+.bg{padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap}
+.bg-g{background:var(--green-soft);color:var(--green)}
+.bg-y{background:var(--amber-soft);color:var(--amber)}
+.bg-r{background:rgba(220,38,38,.10);color:#dc2626}
+.bg-b{background:var(--blue-soft);color:var(--blue)}
+.bg-p{background:var(--purple-soft);color:var(--purple)}
+.bar-bg{height:8px;background:#efe7dd;border-radius:999px;overflow:hidden;margin-top:6px}
+.bar-f{height:100%;border-radius:999px}
+.grid2{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+.cmt{font-size:13px;color:#4b5563;padding:10px 0;border-bottom:1px solid rgba(239,230,218,.9);line-height:1.6}
+.no-data{
+  text-align:center;
+  padding:52px 20px;
+  color:#7b8594;
+  font-size:15px;
+  background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(250,246,239,.9));
+  border:1px dashed rgba(154,79,8,.18);
+  border-radius:26px;
+}
+.transcript{
+  background:rgba(250,248,244,.96);
+  border:1px solid rgba(154,79,8,.10);
+  border-radius:16px;
+  padding:14px 16px;
+  margin:8px 0;
+  font-size:12px;
+  line-height:1.8;
+  color:#374151;
+  max-height:260px;
+  overflow-y:auto;
+}
+.toggle-btn{
+  background:#fff;
+  border:1px solid rgba(154,79,8,.16);
+  color:#4b5563;
+  padding:7px 12px;
+  border-radius:999px;
+  cursor:pointer;
+  font-size:11px;
+  font-weight:800;
+  font-family:inherit;
+  transition:.18s ease;
+}
+.toggle-btn:hover{
+  color:var(--brand-strong);
+  border-color:rgba(154,79,8,.32);
+  box-shadow:0 8px 16px rgba(154,79,8,.12);
+}
+.card,.deal-card{
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(255,251,244,.94));
+  border:1px solid rgba(154,79,8,.10);
+  border-radius:28px;
+  box-shadow:var(--shadow-soft);
+}
+.card-top,.deal-card-top{
+  padding:20px 22px 16px;
+  border-bottom:1px solid rgba(239,230,218,.95);
+}
+.card-top:hover,.deal-card-top:hover{background:rgba(255,248,240,.82)}
+.card-title,.deal-card-title{font-size:19px;line-height:1.35;font-weight:800;color:var(--text)}
+.deal-card-subline{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:10px;
+  font-size:12px;
+  color:#6b7280;
+}
+.result-block{
+  margin:14px 16px;
+  padding:16px 18px;
+  background:linear-gradient(135deg,rgba(37,99,235,.06),rgba(124,58,237,.03));
+  border:1px solid rgba(37,99,235,.12);
+  border-radius:22px;
+}
+.score-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:800}
+.deal-tools{
+  top:190px;
+  z-index:9;
+  background:linear-gradient(180deg,rgba(255,253,249,.96),rgba(255,250,243,.92));
+  border:1px solid rgba(154,79,8,.10);
+  border-radius:30px;
+  padding:20px;
+  margin-bottom:18px;
+  box-shadow:var(--shadow);
+}
+.deal-tools-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+  margin-bottom:16px;
+}
+.deal-tools-kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 12px;
+  border-radius:999px;
+  background:var(--brand-soft);
+  color:var(--brand-strong);
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.deal-tools-title{margin:12px 0 6px;font-size:28px;line-height:1.1;color:var(--text);font-weight:800}
+.deal-tools-sub{max-width:720px;font-size:14px;line-height:1.65;color:#586170}
+.deal-tools-grid{display:grid;grid-template-columns:repeat(4,minmax(180px,1fr));gap:12px}
+.deal-field{display:flex;flex-direction:column;gap:7px}
+.deal-label{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.deal-input,.deal-select{
+  width:100%;
+  min-height:48px;
+  padding:12px 14px;
+  border-radius:16px;
+  border:1px solid rgba(154,79,8,.12);
+  background:rgba(255,255,255,.92);
+  color:var(--text);
+  font-size:14px;
+  font-family:inherit;
+}
+.deal-input:focus,.deal-select:focus{border-color:rgba(154,79,8,.34);box-shadow:0 0 0 4px rgba(192,106,22,.10)}
+.deal-date-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+.deal-date-row input[type="date"]{
+  min-height:42px;
+  padding:8px 12px;
+  border-radius:14px;
+  border:1px solid rgba(154,79,8,.12);
+  background:rgba(255,255,255,.92);
+  color:var(--text);
+  font-family:inherit;
+}
+.deal-tools-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px}
+.deal-chips{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:10px;
+  flex:1;
+  min-width:min(640px,100%);
+}
+.deal-chip{
+  padding:14px 16px;
+  border-radius:20px;
+  background:rgba(255,255,255,.86);
+  border:1px solid rgba(154,79,8,.10);
+  font-size:13px;
+  color:#4b5563;
+  min-height:82px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  box-shadow:0 6px 18px rgba(88,67,40,.06);
+}
+.deal-chip strong{display:block;font-size:24px;line-height:1;margin-top:10px;color:var(--text)}
+.deal-card-top{padding:22px 24px 18px}
+.deal-card-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.deal-card-body{padding:18px 22px 22px}
+.deal-kpis{display:grid;grid-template-columns:repeat(2,minmax(140px,1fr));gap:10px;min-width:min(420px,100%)}
+.deal-kpi{
+  padding:14px 16px;
+  border-radius:20px;
+  background:rgba(255,255,255,.88);
+  border:1px solid rgba(154,79,8,.10);
+  min-height:92px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+.deal-kpi-v{font-size:24px}
+.deal-kpi-l{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.deal-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.deal-summary-item{
+  padding:14px 16px;
+  border-radius:20px;
+  background:rgba(255,255,255,.88);
+  border:1px solid rgba(154,79,8,.10);
+  min-height:112px;
+}
+.deal-summary-item b{font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em}
+.deal-summary-item span{font-size:14px;font-weight:700;line-height:1.55}
+.deal-section-title{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin:16px 0 10px;flex-wrap:wrap}
+.deal-empty{
+  padding:24px;
+  border-radius:20px;
+  background:rgba(255,249,242,.88);
+  border:1px dashed rgba(154,79,8,.18);
+  color:#6b7280;
+  text-align:center;
+  font-size:14px;
+}
+.deal-table-wrap{
+  overflow-x:auto;
+  border:1px solid rgba(154,79,8,.10);
+  border-radius:20px;
+  background:rgba(255,255,255,.86);
+}
+.deal-caption{font-size:12px;color:var(--muted)}
+@media(max-width:1180px){
+  .hdr-in{grid-template-columns:1fr}
+  .hero-meta{grid-template-columns:repeat(2,minmax(140px,1fr))}
+  .tabs-wrap,.deal-tools{top:154px}
+}
+@media(max-width:900px){
+  .cnt{padding:18px 14px 30px}
+  .hdr{padding:14px 14px 12px}
+  .hero-card,.hero-side,.card,.deal-card,.sec{border-radius:24px}
+  .deal-tools-grid{grid-template-columns:repeat(2,minmax(160px,1fr))}
+  .deal-kpis{grid-template-columns:repeat(2,minmax(110px,1fr));min-width:0;width:100%}
+  .deal-summary{grid-template-columns:repeat(2,minmax(140px,1fr))}
+  .grid2{grid-template-columns:1fr}
+  .mets{grid-template-columns:repeat(2,minmax(150px,1fr))}
+  .tabs-wrap{top:144px}
+}
+@media(max-width:640px){
+  .logo{width:54px;height:54px;font-size:24px;border-radius:18px}
+  .mgr-name{font-size:28px}
+  .hero-meta{grid-template-columns:1fr}
+  .tabs-wrap{position:static}
+  .tabs{padding:10px}
+  .tab{flex:1 1 calc(50% - 10px);text-align:center}
+  .deal-tools{position:static;padding:16px;border-radius:24px}
+  .deal-tools-title{font-size:24px}
+  .deal-tools-grid{grid-template-columns:1fr}
+  .deal-card-top,.deal-card-body,.card-top{padding-left:16px;padding-right:16px}
+  .deal-summary{grid-template-columns:1fr}
+  .deal-chips,.mets{grid-template-columns:1fr 1fr;min-width:0}
+  th,td{padding:10px}
+}
+@media(max-width:480px){
+  .cnt{padding:14px 10px 28px}
+  .hdr{padding:10px}
+  .hero-card,.hero-side,.sec,.deal-card,.card{border-radius:22px}
+  .deal-chips,.mets{grid-template-columns:1fr}
+  .tab{flex:1 1 100%}
+}
 </style>
 </head><body>
-<div class="hdr"><div class="hdr-in">
-  <div class="logo">T</div>
-  <div><div style="font-size:17px;font-weight:800;color:#1a1a2e">Ия Боровая</div><div style="font-size:12px;color:#6b7280" id="upd"></div></div>
-  <div style="display:flex;gap:6px;margin-left:auto;margin-right:12px;flex-wrap:wrap"><span style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#3b82f6;color:#1a1a2e">Ия Боровая</span><a href="../mikhail/index.html" onclick="return navTo('mikhail')" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#6b7280;text-decoration:none;border:1px solid #d1d5db;cursor:pointer">Михаил</a><a href="../guzairov/index.html" onclick="return navTo('guzairov')" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#6b7280;text-decoration:none;border:1px solid #d1d5db;cursor:pointer">Артем Гузаиров</a><a href="../index.html" onclick="return navTo('index')" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#fbbf24;text-decoration:none;border:1px solid #d1d5db;cursor:pointer">Обзор</a></div>
-  <div class="pbar" id="pbar"></div>
-</div></div>
+<div class="hdr">
+  <div class="hdr-in">
+    <div class="hero-card">
+      <div class="logo">T</div>
+      <div class="brand-copy">
+        <div class="eyebrow">Transkom Sales Cockpit</div>
+        <div class="mgr-name">Ия Боровая</div>
+        <div class="mgr-sub">Крупная сводка сверху, рабочие вкладки ниже и раскрывающиеся карточки внутри. Логика отчета сохранена, но визуально страница стала ближе к удобному ежедневному рабочему столу.</div>
+      </div>
+    </div>
+    <div class="hero-side">
+      <div class="hero-meta">
+        <div class="hero-meta-card"><b>Отчетная дата</b><span>04-04-2026</span></div>
+        <div class="hero-meta-card"><b>Активных сделок</b><span>0</span></div>
+      </div>
+      <div class="hero-upd"><b>Состояние сборки</b><div id="upd"></div></div>
+    </div>
+  </div>
+  <div class="manager-rail"><span class="manager-label">Переход по отчетам</span><span class="manager-pill is-active">Ия Боровая</span><a class="manager-pill" href="../mikhail/index.html" onclick="return navTo('mikhail')">Михаил</a><a class="manager-pill" href="../guzairov/index.html" onclick="return navTo('guzairov')">Артем Гузаиров</a><a href="../index.html" onclick="return navTo('index')" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#fbbf24;text-decoration:none;border:1px solid #d1d5db;cursor:pointer">Обзор</a></div>
+  <div class="toolbar-row">
+    <div class="toolbar-copy">
+      <b>Быстрые срезы</b>
+      <span>Переключайте период, а затем переходите по вкладкам. Все детали остаются внутри карточек и раскрываются только по необходимости.</span>
+    </div>
+    <div class="pbar" id="pbar"></div>
+  </div>
+</div>
 <div class="cnt">
   <div class="mets" id="mets"></div>
-  <div class="tabs" id="tabs"></div>
+  <div class="tabs-wrap"><div class="tabs" id="tabs"></div></div>
   <div id="out"></div>
 </div>
 <script>
@@ -1129,7 +1715,8 @@ function renderDealsV2(cards){
   const anyOpen=prepared.some(d=>cardOpenState['deal_'+d.id]);
   const hasFilters=!!dealSearch||dealStatus!=='all'||dealFocus!=='all'||dealSort!=='activity'||!!dealFrom||!!dealTo;
 
-  let h='<div class="deal-tools">';
+  let h='<div class="deal-workspace"><div class="deal-tools">';
+  h+='<div class="deal-tools-head"><div><div class="deal-tools-kicker">Рабочий стол</div><div class="deal-tools-title">Сделки в работе</div><div class="deal-tools-sub">Сначала крупная картина по фильтрам, затем раскрывайте только нужные сделки и спускайтесь в звонки, транскрипции и заметки.</div></div></div>';
   h+='<div class="deal-tools-grid">';
   h+='<div class="deal-field"><span class="deal-label">Поиск</span><input id="dealSearch" class="deal-input" type="text" placeholder="ID, название, контрагент, статус" value="'+esc(dealSearch)+'" oninput="setDealSearch(this.value,this.selectionStart)"></div>';
   h+='<div class="deal-field"><span class="deal-label">Статус</span><select class="deal-select" onchange="setDealStatus(this.value)">';
@@ -1155,7 +1742,7 @@ function renderDealsV2(cards){
   h+='</select></div>';
   h+='</div>';
   // Фильтр по периоду (от — до)
-  h+='<div style="display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap">';
+  h+='<div class="deal-date-row">';
   h+='<span style="font-size:11px;color:#6b7280">с</span>';
   h+='<input type="date" id="dealFrom" value="'+(dealFrom||'')+'" onchange="dealFrom=this.value;renderDealsV2(currentCards)" style="background:#fff;border:1px solid rgba(0,0,0,.1);color:#1a1a2e;padding:4px 8px;border-radius:6px;font-size:11px;font-family:inherit">';
   h+='<span style="font-size:11px;color:#6b7280">по</span>';
@@ -1175,7 +1762,7 @@ function renderDealsV2(cards){
 
   if(!prepared.length){
     h+='<div class="deal-empty">Ничего не найдено. Попробуйте изменить поиск, статус или фокус.</div>';
-    document.getElementById('out').innerHTML=h;
+    document.getElementById('out').innerHTML=h+'</div>';
     return;
   }
 
@@ -1194,6 +1781,7 @@ function renderDealsV2(cards){
     h+='<div class="deal-card-top'+(isOpen?' open':'')+'" id="chdr_'+cardId+'" onclick="toggleCard(&#39;'+cardId+'&#39;)">';
     h+='<div style="flex:1;min-width:220px">';
     h+='<div class="deal-card-title"><span class="card-arrow">▸</span> #'+d.id+' '+esc((d.name||'').substring(0,80))+'</div>';
+    h+='<div class="deal-card-subline"><span>Создана '+esc(d.dateCreated||'—')+'</span><span>Последнее касание '+esc(lastTouchLabel)+'</span></div>';
     h+='<div class="deal-card-meta">';
     h+='<span style="font-size:12px;color:#6b7280">'+esc((d.counterparty||'Без контрагента').substring(0,60))+'</span>';
     h+='<span class="bg '+statusClass+'">'+esc(d.status||'Без статуса')+'</span>';
@@ -1265,7 +1853,7 @@ function renderDealsV2(cards){
     }
     h+='</div></div>';
   }
-  document.getElementById('out').innerHTML=h;
+  document.getElementById('out').innerHTML=h+'</div>';
 }
 
 function renderQuality(analyses,cards){

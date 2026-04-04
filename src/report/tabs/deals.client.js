@@ -144,7 +144,8 @@ function renderDealsV2(cards){
   const anyOpen=prepared.some(d=>cardOpenState['deal_'+d.id]);
   const hasFilters=!!dealSearch||dealStatus!=='all'||dealFocus!=='all'||dealSort!=='activity'||!!dealFrom||!!dealTo;
 
-  let h='<div class="deal-tools">';
+  let h='<div class="deal-workspace"><div class="deal-tools">';
+  h+='<div class="deal-tools-head"><div><div class="deal-tools-kicker">Рабочий стол</div><div class="deal-tools-title">Сделки в работе</div><div class="deal-tools-sub">Сначала крупная картина по фильтрам, затем раскрывайте только нужные сделки и спускайтесь в звонки, транскрипции и заметки.</div></div></div>';
   h+='<div class="deal-tools-grid">';
   h+='<div class="deal-field"><span class="deal-label">Поиск</span><input id="dealSearch" class="deal-input" type="text" placeholder="ID, название, контрагент, статус" value="'+esc(dealSearch)+'" oninput="setDealSearch(this.value,this.selectionStart)"></div>';
   h+='<div class="deal-field"><span class="deal-label">Статус</span><select class="deal-select" onchange="setDealStatus(this.value)">';
@@ -170,7 +171,7 @@ function renderDealsV2(cards){
   h+='</select></div>';
   h+='</div>';
   // Фильтр по периоду (от — до)
-  h+='<div style="display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap">';
+  h+='<div class="deal-date-row">';
   h+='<span style="font-size:11px;color:#6b7280">с</span>';
   h+='<input type="date" id="dealFrom" value="'+(dealFrom||'')+'" onchange="dealFrom=this.value;renderDealsV2(currentCards)" style="background:#fff;border:1px solid rgba(0,0,0,.1);color:#1a1a2e;padding:4px 8px;border-radius:6px;font-size:11px;font-family:inherit">';
   h+='<span style="font-size:11px;color:#6b7280">по</span>';
@@ -190,7 +191,7 @@ function renderDealsV2(cards){
 
   if(!prepared.length){
     h+='<div class="deal-empty">Ничего не найдено. Попробуйте изменить поиск, статус или фокус.</div>';
-    document.getElementById('out').innerHTML=h;
+    document.getElementById('out').innerHTML=h+'</div>';
     return;
   }
 
@@ -209,6 +210,7 @@ function renderDealsV2(cards){
     h+='<div class="deal-card-top'+(isOpen?' open':'')+'" id="chdr_'+cardId+'" onclick="toggleCard(&#39;'+cardId+'&#39;)">';
     h+='<div style="flex:1;min-width:220px">';
     h+='<div class="deal-card-title"><span class="card-arrow">▸</span> #'+d.id+' '+esc((d.name||'').substring(0,80))+'</div>';
+    h+='<div class="deal-card-subline"><span>Создана '+esc(d.dateCreated||'—')+'</span><span>Последнее касание '+esc(lastTouchLabel)+'</span></div>';
     h+='<div class="deal-card-meta">';
     h+='<span style="font-size:12px;color:#6b7280">'+esc((d.counterparty||'Без контрагента').substring(0,60))+'</span>';
     h+='<span class="bg '+statusClass+'">'+esc(d.status||'Без статуса')+'</span>';
@@ -280,5 +282,5 @@ function renderDealsV2(cards){
     }
     h+='</div></div>';
   }
-  document.getElementById('out').innerHTML=h;
+  document.getElementById('out').innerHTML=h+'</div>';
 }
