@@ -10,4 +10,10 @@ A skill is a local instruction bundle stored in a `SKILL.md` file. This project 
 - If a task touches the overall repo workflow, start with `transcom-project-workflow`.
 - If a task changes data refresh, report generation, `.env` usage, or rebuild commands, also use `transcom-report-generation`.
 - If a task changes the interface for viewing deals, filters, cards, or readability, also use `transcom-deals-ux`.
-- For UI changes, edit `analytics.js` first. Do not treat `report.html` or `deploy/index.html` as the source of truth.
+- For report logic and UI changes, edit the real source in `src/`. `analytics.js` is only a compatibility wrapper and `report.html` / `deploy/index.html` remain generated artifacts.
+
+## Report Rules
+- Daily report generation must pre-transcribe same-day call recordings that still have no text before assembling deal cards and manager summaries.
+- Before sending a new audio file to Whisper, always check existing transcript storage in both `ai_cache.json` and `transcriptions_cache.json`.
+- Transcript reuse must work by both Planfix file id and a stable audio-name signature so previously processed calls are not transcribed twice.
+- Manager AI summaries and deal AI comments may be auto-sent to Planfix only after the day report has been fully built for that manager.

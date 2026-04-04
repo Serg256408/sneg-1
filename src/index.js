@@ -17,6 +17,18 @@ function mgrFunnelFile(alias) { return path.join(ROOT_DIR, 'data', `${alias}_fun
 function mgrReportFile(alias) { return path.join(ROOT_DIR, 'reports', `${alias}.html`); }
 function mgrDeployDir(alias) { return path.join(ROOT_DIR, 'deploy', alias); }
 
+function writeManagerHtmlOutputs(mgr, outData) {
+  const htmlReport = generateHtml(mgr.name, outData, MANAGERS_LIST, 'reports');
+  const htmlRoot = generateHtml(mgr.name, outData, MANAGERS_LIST, 'root');
+  const htmlDeploy = generateHtml(mgr.name, outData, MANAGERS_LIST, 'deploy');
+
+  if (!fs.existsSync(mgrDeployDir(mgr.alias))) fs.mkdirSync(mgrDeployDir(mgr.alias), { recursive: true });
+
+  fs.writeFileSync(mgrReportFile(mgr.alias), htmlReport, 'utf8');
+  fs.writeFileSync(path.join(ROOT_DIR, 'report.html'), htmlRoot, 'utf8');
+  fs.writeFileSync(path.join(mgrDeployDir(mgr.alias), 'index.html'), htmlDeploy, 'utf8');
+}
+
 function reportDateToIso(reportDate) {
   const m = String(reportDate || '').match(/^(\d{2})-(\d{2})-(\d{4})$/);
   return m ? `${m[3]}-${m[2]}-${m[1]}` : null;
@@ -180,11 +192,8 @@ async function runForManager(mgr, reportDate) {
   fs.writeFileSync(path.join(ROOT_DIR, 'latest_data.json'), JSON.stringify(outData, null, 2), 'utf8');
 
   // HTML
-  const html = generateHtml(mgr.name, outData, MANAGERS_LIST);
   const htmlPath = mgrReportFile(mgr.alias);
-  fs.writeFileSync(htmlPath, html, 'utf8');
-  fs.writeFileSync(path.join(ROOT_DIR, 'report.html'), html, 'utf8');
-  fs.writeFileSync(path.join(mgrDeployDir(mgr.alias), 'index.html'), html, 'utf8');
+  writeManagerHtmlOutputs(mgr, outData);
 
   console.log(`\n🌐 ${htmlPath}`);
 
@@ -256,11 +265,7 @@ async function main() {
       const dataFile = fs.existsSync(dataPath) ? dataPath : fallback;
       if (!fs.existsSync(dataFile)) { console.error('❌ Данные не найдены'); process.exit(1); }
       const outData = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
-      const html = generateHtml(mgr.name, outData, MANAGERS_LIST);
-      fs.writeFileSync(mgrReportFile(mgr.alias), html, 'utf8');
-      fs.writeFileSync(path.join(ROOT_DIR, 'report.html'), html, 'utf8');
-      if (!fs.existsSync(mgrDeployDir(mgr.alias))) fs.mkdirSync(mgrDeployDir(mgr.alias), { recursive: true });
-      fs.writeFileSync(path.join(mgrDeployDir(mgr.alias), 'index.html'), html, 'utf8');
+      writeManagerHtmlOutputs(mgr, outData);
       console.log(`✅ HTML: ${mgrReportFile(mgr.alias)}`);
     } else {
       for (const mgr of MANAGERS_LIST) {
@@ -269,11 +274,7 @@ async function main() {
         const dataFile = fs.existsSync(dataPath) ? dataPath : fallback;
         if (!fs.existsSync(dataFile)) continue;
         const outData = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
-        const html = generateHtml(mgr.name, outData, MANAGERS_LIST);
-        fs.writeFileSync(mgrReportFile(mgr.alias), html, 'utf8');
-        fs.writeFileSync(path.join(ROOT_DIR, 'report.html'), html, 'utf8');
-        if (!fs.existsSync(mgrDeployDir(mgr.alias))) fs.mkdirSync(mgrDeployDir(mgr.alias), { recursive: true });
-        fs.writeFileSync(path.join(mgrDeployDir(mgr.alias), 'index.html'), html, 'utf8');
+        writeManagerHtmlOutputs(mgr, outData);
         console.log(`✅ HTML: ${mgrReportFile(mgr.alias)}`);
       }
       const now = new Date();

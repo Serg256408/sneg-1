@@ -61,7 +61,7 @@ function buildStatsFromMultiDay(multiDayActivity) {
   }));
 }
 
-function generateHtml(managerName, data, allManagers) {
+function generateHtml(managerName, data, allManagers, navMode = 'root') {
   // Статистика из multiDayActivity (ИИ-оценки) + операционные данные
   const statsData = buildStatsFromMultiDay(data.multiDayActivity);
   // Операционная статистика по дням из dealCards
@@ -127,6 +127,12 @@ function generateHtml(managerName, data, allManagers) {
     .replace(/<\/script/gi, '<\\/script')
     .replace(/<!--/g, '<\\!--')
     .replace(/`/g, '\\u0060');
+  const navHref = (alias) => {
+    if (navMode === 'deploy') return alias === 'index' ? '../index.html' : `../${alias}/index.html`;
+    if (navMode === 'reports') return alias === 'index' ? '../deploy/index.html' : `../deploy/${alias}/index.html`;
+    return alias === 'index' ? 'deploy/index.html' : `deploy/${alias}/index.html`;
+  };
+
   return `<!DOCTYPE html>
 <html lang="ru"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -262,8 +268,8 @@ tr:hover td{background:rgba(217,119,6,.03)}
   ${allManagers ? `<div style="display:flex;gap:6px;margin-left:auto;margin-right:12px;flex-wrap:wrap">${allManagers.map(m =>
     m.name === managerName
       ? `<span style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#3b82f6;color:#1a1a2e">${m.name}</span>`
-      : `<a onclick="navTo('${m.alias}')" data-root="deploy/${m.alias}/index.html" data-deploy="../${m.alias}/index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#6b7280;text-decoration:none;border:1px solid #d1d5db;cursor:pointer">${m.name}</a>`
-  ).join('')}<a onclick="navTo('index')" data-root="deploy/index.html" data-deploy="../index.html" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#fbbf24;text-decoration:none;border:1px solid #d1d5db;cursor:pointer">Обзор</a></div>` : ''}
+      : `<a href="${navHref(m.alias)}" onclick="return navTo('${m.alias}')" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#6b7280;text-decoration:none;border:1px solid #d1d5db;cursor:pointer">${m.name}</a>`
+  ).join('')}<a href="${navHref('index')}" onclick="return navTo('index')" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#fbbf24;text-decoration:none;border:1px solid #d1d5db;cursor:pointer">Обзор</a></div>` : ''}
   <div class="pbar" id="pbar"></div>
 </div></div>
 <div class="cnt">

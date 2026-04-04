@@ -7,11 +7,11 @@ const {
   CONCURRENCY, SKIP_STATUSES, DEAL_FIELDS, DEEPSEEK_KEY, POLZA_KEY, OPENAI_KEY, isTimeUp,
   CALL_TAG, ANALYSIS_TAG, ALLOWED_TEMPLATES, ROOT_DIR, MANAGERS_LIST, fs, path,
 } = require('../utils/config');
-const { transcribeCallIfNeeded, findCallAudioFile } = require('../api/whisper');
+const { transcribeCallIfNeeded, findCallAudioFile, buildAudioSignature } = require('../api/whisper');
 const { aiDealFullAssessment } = require('./assessment');
 const { aiDaySummary, aiManagerSummary } = require('./manager-report');
-const { buildMeasurementsData } = require('./measurements');
-const { loadAiCache, saveAiCache } = require('./cache');
+const { buildMeasurementsData, buildMeasurementsComparison, isMeasurementTaskLike } = require('./measurements');
+const { loadAiCache, saveAiCache, loadTranscriptionCache } = require('./cache');
 const { loadHistory, saveHistory, ensureDeal } = require('./history');
 const { loadPreviousSnapshot, saveSnapshot, computeFunnelChanges } = require('./funnel');
 
@@ -21,6 +21,394 @@ const FIELD_EMPLOYEE = 34136;
 const FIELD_TASK_ID = 34138;
 const FIELD_TASK_NAME = 34140;
 const DIR_FIELDS = `key,${FIELD_DATE},${FIELD_EMPLOYEE},${FIELD_TASK_ID},${FIELD_TASK_NAME}`;
+const measurementRangeCache = new Map();
+const companyMeasurementsCache = new Map();
+
+async function taskListWithRetry(payload, label) {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      return await pf('/task/list', payload);
+    } catch (e) {
+      if (attempt === 3) throw e;
+      console.log(`    ⚠️ ${label}: ${e.message || e} (повтор ${attempt}/3)`);
+      await sleep(1500 * attempt);
+    }
+  }
+  return { tasks: [] };
+}
+
+function tagTaskComments(comments, task, source, parentId = null) {
+  return (comments || []).map(comment => ({
+    ...comment,
+    source: comment.source || source,
+    sourceTaskId: comment.sourceTaskId || task?.id || null,
+    sourceTaskName: comment.sourceTaskName || task?.name || '',
+    sourceParentId: comment.sourceParentId || parentId || null,
+    sourceTaskTemplateId: comment.sourceTaskTemplateId || task?.template?.id || null,
+  }));
+}
+
+function firstDayOfYear(dateStr) {
+  const d = parsePfDate(dateStr);
+  if (!d || Number.isNaN(d.getTime())) return '01-01-1970';
+  return `01-01-${d.getFullYear()}`;
+}
+
+function uniqTasksById(tasks) {
+  const map = new Map();
+  for (const task of tasks || []) {
+    if (!task?.id) continue;
+    const current = map.get(task.id) || {};
+    map.set(task.id, { ...current, ...task });
+  }
+  return [...map.values()];
+}
+
+function getTaskCustomFieldText(task, fieldId) {
+  const field = (task?.customFieldData || []).find(item => String(item.field?.id) === String(fieldId));
+  if (!field) return '';
+  if (field.stringValue) return String(field.stringValue).trim();
+  if (field.value && typeof field.value === 'object') return String(field.value.name || field.value.text || field.value.value || '').trim();
+  return String(field.value ?? '').trim();
+}
+
+function taskHasMeasurementSignal(task) {
+  return !!(
+    isMeasurementTaskLike(task) ||
+    getTaskCustomFieldText(task, '76672') ||
+    getTaskCustomFieldText(task, '76826') ||
+    getTaskCustomFieldText(task, '67894') ||
+    (task?.status?.name || '') === 'Замер'
+  );
+}
+
+function collectMeasurementRelevantDealIds({ multiDayActivity, dealTasks, allManagerTasks }) {
+  const ids = new Set();
+
+  for (const task of dealTasks || []) {
+    const id = Number(task?.parent?.id || task?.id || 0);
+    if (id) ids.add(id);
+  }
+
+  for (const task of allManagerTasks || []) {
+    if (!taskHasMeasurementSignal(task)) continue;
+    const id = Number(task?.parent?.id || task?.id || 0);
+    if (id) ids.add(id);
+  }
+
+  for (const dayDeals of Object.values(multiDayActivity || {})) {
+    for (const item of dayDeals || []) {
+      const id = Number(item?.deal?.id || 0);
+      if (id) ids.add(id);
+    }
+  }
+
+  return ids;
+}
+
+async function loadTasksByIds(taskIds) {
+  const uniqueIds = [...new Set((taskIds || []).map(id => Number(id)).filter(Boolean))];
+  if (!uniqueIds.length) return [];
+
+  const loaded = [];
+  await parallelMap(uniqueIds, async (taskId) => {
+    try {
+      const d = await pf('/task/list', {
+        offset: 0,
+        pageSize: 1,
+        filters: [{ type: 57, operator: 'equal', value: taskId }],
+        fields: DEAL_FIELDS,
+      });
+      const task = (d.tasks || [])[0];
+      if (task) loaded.push(task);
+    } catch (e) {
+      console.log(`    ⚠️ Не удалось загрузить задачу #${taskId}: ${e.message}`);
+    }
+  }, 3);
+
+  return loaded;
+}
+
+async function getMeasurementTasksInRange(fromDate, toDate) {
+  const cacheKey = `${fromDate}_${toDate}`;
+  if (measurementRangeCache.has(cacheKey)) return measurementRangeCache.get(cacheKey);
+
+  const all = [];
+  let offset = 0;
+  while (true) {
+    const d = await taskListWithRetry({
+      offset,
+      pageSize: 100,
+      filters: [{ type: 21, operator: 'equal', value: { dateType: 'otherRange', dateFrom: fromDate, dateTo: toDate } }],
+      fields: DEAL_FIELDS,
+    }, `Замеры ${fromDate}-${toDate} offset=${offset}`);
+    const tasks = d.tasks || [];
+    all.push(...tasks);
+    if (tasks.length < 100) break;
+    offset += 100;
+  }
+
+  const measurements = all.filter(task => task?.parent?.id && isMeasurementTaskLike(task));
+  measurementRangeCache.set(cacheKey, measurements);
+  return measurements;
+}
+
+async function buildMeasurementContextTasks({ reportDate, multiDayActivity, dealTasks, allManagerTasks }) {
+  const relevantDealIds = collectMeasurementRelevantDealIds({ multiDayActivity, dealTasks, allManagerTasks });
+  if (!relevantDealIds.size) return uniqTasksById([...(allManagerTasks || []), ...(dealTasks || [])]);
+
+  const existingTasks = uniqTasksById([...(allManagerTasks || []), ...(dealTasks || [])]).filter(task => {
+    const rootId = Number(task?.parent?.id || task?.id || 0);
+    return rootId && relevantDealIds.has(rootId);
+  });
+  const existingDealIds = new Set(
+    existingTasks
+      .filter(task => !task?.parent?.id)
+      .map(task => Number(task.id))
+      .filter(Boolean),
+  );
+
+  const missingDealIds = [...relevantDealIds].filter(id => !existingDealIds.has(id));
+  const extraDealTasks = missingDealIds.length ? await loadTasksByIds(missingDealIds) : [];
+  const measurementTasks = await getMeasurementTasksInRange(firstDayOfYear(reportDate), reportDate);
+  const relatedMeasurementTasks = measurementTasks.filter(task => relevantDealIds.has(Number(task?.parent?.id || 0)));
+
+  console.log(`  📐 Контекст замеров: ${relatedMeasurementTasks.length} подзадач, ${extraDealTasks.length} сделок`);
+  return uniqTasksById([...existingTasks, ...extraDealTasks, ...relatedMeasurementTasks]);
+}
+
+function buildTranscriptionCacheFromAiCache() {
+  const aiCache = loadAiCache();
+  const transcriptionCache = {};
+  const persistedCache = loadTranscriptionCache();
+  for (const [key, value] of Object.entries(persistedCache || {})) {
+    transcriptionCache[key] = value;
+  }
+  for (const [key, value] of Object.entries(aiCache || {})) {
+    if (key.startsWith('whisper_sig_')) transcriptionCache[`sig:${key.replace('whisper_sig_', '')}`] = value;
+    else if (key.startsWith('whisper_')) transcriptionCache[key.replace('whisper_', '')] = value;
+  }
+  return transcriptionCache;
+}
+
+async function preloadReportDayCallTranscriptions(rawComments, reportDate, transcriptionCache, stats = null) {
+  const queue = new Map();
+  const cachedKeys = new Set();
+
+  for (const comment of rawComments || []) {
+    const dt = utcToMsk(comment?.dateTime?.date, comment?.dateTime?.time);
+    if (dt.date !== reportDate) continue;
+    if (extractTranscription(comment.description)) continue;
+
+    const audioFile = findCallAudioFile(comment.files || []);
+    if (!audioFile) continue;
+
+    const fileId = String(audioFile.id || '');
+    const signature = buildAudioSignature(audioFile);
+    const cacheKey = fileId || (signature ? `sig:${signature}` : '') || String(comment.id);
+    if ((fileId && transcriptionCache[fileId]) || (signature && transcriptionCache[`sig:${signature}`])) {
+      if (stats && !cachedKeys.has(cacheKey)) {
+        stats.cached += 1;
+        cachedKeys.add(cacheKey);
+      }
+      continue;
+    }
+
+    const queueKey = fileId || (signature ? `sig:${signature}` : '') || String(comment.id);
+    if (!queue.has(queueKey)) queue.set(queueKey, audioFile);
+  }
+
+  if (stats) stats.queued += queue.size;
+
+  let transcribed = 0;
+  for (const audioFile of queue.values()) {
+    if (isTimeUp()) break;
+    const text = await transcribeCallIfNeeded({ transcription: null, files: [audioFile] }, transcriptionCache, true);
+    if (text) transcribed += 1;
+  }
+
+  if (stats) stats.transcribed += transcribed;
+  return transcribed;
+}
+
+async function parseCommentsForMeasurementReport(rawComments, reportDate, transcriptionCache) {
+  const parsed = [];
+  for (const comment of rawComments || []) {
+    const parsedComment = await parseComment(comment, reportDate, transcriptionCache, true);
+    if (!isAiComment(parsedComment.text)) parsed.push(parsedComment);
+  }
+  return parsed;
+}
+
+async function loadRootDealCommentsForMeasurements(task, history, reportDate, transcriptionCache) {
+  const deal = ensureDeal(history, task.id);
+  const cached = deal.commentsLoaded && Array.isArray(deal.comments)
+    ? tagTaskComments(deal.comments.filter(comment => !isAiComment(comment.text)), task, 'deal')
+    : null;
+  const cachedIds = new Set((deal.comments || []).map(comment => String(comment.id)));
+  const junkRe = /закончились ai-кредит|не могу выполнить операцию|добавить ai-кредит/i;
+
+  let raw = [];
+  try {
+    raw = await getDealComments(task.id);
+  } catch {}
+
+  const needsWhisper = cached
+    ? cached.filter(comment =>
+      (comment.type === 'outCall' || comment.type === 'inCall') &&
+      (!comment.transcription || junkRe.test(comment.transcription)) &&
+      hasCallRecordingFile(comment.files || []))
+    : [];
+
+  if (cached && raw.length && raw.every(comment => cachedIds.has(String(comment.id))) && !needsWhisper.length) {
+    return cached;
+  }
+
+  if (!raw.length && cached) return cached;
+
+  await preloadReportDayCallTranscriptions(raw, reportDate, transcriptionCache);
+  const parsed = tagTaskComments(await parseCommentsForMeasurementReport(raw, reportDate, transcriptionCache), task, 'deal');
+  deal.comments = parsed;
+  deal.commentsLoaded = true;
+  return parsed;
+}
+
+async function mergeMeasurementSubtaskComments({ rootTask, subtask, commentsByTask, reportDate, transcriptionCache, history }) {
+  let raw = [];
+  try {
+    raw = await getDealComments(subtask.id);
+  } catch {}
+  if (!raw.length) return;
+
+  await preloadReportDayCallTranscriptions(raw, reportDate, transcriptionCache);
+  const parsed = tagTaskComments(
+    await parseCommentsForMeasurementReport(raw, reportDate, transcriptionCache),
+    subtask,
+    'subtask',
+    rootTask.id,
+  );
+  if (!parsed.length) return;
+
+  if (!commentsByTask[rootTask.id]) commentsByTask[rootTask.id] = [];
+  const parsedIds = new Set(parsed.map(comment => String(comment.id)));
+  commentsByTask[rootTask.id] = commentsByTask[rootTask.id]
+    .filter(comment => !parsedIds.has(String(comment.id)))
+    .concat(parsed);
+
+  const deal = ensureDeal(history, rootTask.id);
+  deal.comments = commentsByTask[rootTask.id];
+  deal.commentsLoaded = true;
+}
+
+async function loadCompanyMeasurementSubtasks(rootTask, subtasksById, commentsByTask, reportDate, transcriptionCache, history) {
+  const walkedParents = new Set();
+  const loadedSubtaskIds = new Set();
+
+  async function walk(parentId) {
+    if (!parentId || walkedParents.has(parentId)) return;
+    walkedParents.add(parentId);
+
+    let offset = 0;
+    while (true) {
+      try {
+        const d = await taskListWithRetry({
+          offset,
+          pageSize: 100,
+          filters: [{ type: 58, operator: 'equal', value: parentId }],
+          fields: DEAL_FIELDS,
+        }, `Подзадачи замеров parent=${parentId} offset=${offset}`);
+
+        const subtasks = d.tasks || [];
+        for (const subtask of subtasks) {
+          const current = subtasksById.get(subtask.id) || {};
+          subtasksById.set(subtask.id, { ...current, ...subtask });
+          if (!loadedSubtaskIds.has(subtask.id)) {
+            loadedSubtaskIds.add(subtask.id);
+            await mergeMeasurementSubtaskComments({
+              rootTask,
+              subtask: subtasksById.get(subtask.id),
+              commentsByTask,
+              reportDate,
+              transcriptionCache,
+              history,
+            });
+          }
+          await walk(subtask.id);
+        }
+
+        if (subtasks.length < 100) break;
+        offset += 100;
+      } catch {
+        return;
+      }
+    }
+  }
+
+  await walk(rootTask.id);
+}
+
+async function buildCompanyMeasurementsBundle(reportDate, history) {
+  if (companyMeasurementsCache.has(reportDate)) return companyMeasurementsCache.get(reportDate);
+
+  const transcriptionCache = buildTranscriptionCacheFromAiCache();
+  const measurementTasks = await getMeasurementTasksInRange(firstDayOfYear(reportDate), reportDate);
+  const measurementDealIds = [...new Set(
+    measurementTasks
+      .map(task => Number(task?.parent?.id || 0))
+      .filter(Boolean),
+  )];
+
+  if (!measurementDealIds.length) {
+    const empty = {
+      measurements: [],
+      measurementsSummary: {
+        defaultDays: 30,
+        ytdStart: '',
+        managerNames: [],
+        byManager: [],
+        measurers: [],
+        outcomeCounts: {},
+        byMeasurer: [],
+        daily: [],
+        totals: { total: 0, scheduled: 0, progressed: 0, toContract: 0, toWork: 0, stalled: 0 },
+        compare30d: buildMeasurementsComparison([], reportDate),
+      },
+    };
+    companyMeasurementsCache.set(reportDate, empty);
+    return empty;
+  }
+
+  const dealTasks = await loadTasksByIds(measurementDealIds);
+  const commentsByTask = {};
+  const subtasksById = new Map((measurementTasks || []).map(task => [task.id, task]));
+
+  for (const task of dealTasks) {
+    commentsByTask[task.id] = await loadRootDealCommentsForMeasurements(task, history, reportDate, transcriptionCache);
+    await loadCompanyMeasurementSubtasks(task, subtasksById, commentsByTask, reportDate, transcriptionCache, history);
+    commentsByTask[task.id] = (commentsByTask[task.id] || []).sort((a, b) => itemStamp(a) - itemStamp(b));
+    const deal = ensureDeal(history, task.id);
+    deal.comments = commentsByTask[task.id];
+    deal.commentsLoaded = true;
+  }
+
+  const contextTasks = uniqTasksById([...dealTasks, ...measurementTasks, ...subtasksById.values()]);
+  const measurementData = buildMeasurementsData({
+    reportDate,
+    managerName: '',
+    managerAlias: '',
+    history,
+    allTasks: contextTasks,
+    activeDealTasks: dealTasks,
+    activeSubtasks: [...subtasksById.values()],
+  });
+
+  const cached = {
+    measurements: measurementData.measurements,
+    measurementsSummary: measurementData.measurementsSummary,
+  };
+  companyMeasurementsCache.set(reportDate, cached);
+  return cached;
+}
 
 async function getManagerDeals(userId, reportDate) {
   const seenIds = new Set();
@@ -327,6 +715,12 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
   const reportDateObj = parsePfDate(reportDate);
   const managerMeta = MANAGERS_LIST.find(m => String(m.userId) === String(userId) || m.pfName === mgrPfName);
   const mgrAlias = managerMeta?.alias || null;
+  const matchesCurrentMeasurementManager = (item) => {
+    if (mgrAlias) return item?.managerAlias === mgrAlias;
+    if (managerMeta?.name) return item?.manager === managerMeta.name;
+    if (mgrPfName) return (item?.manager || '').includes(mgrPfName);
+    return true;
+  };
 
   const emptyResult = {
     dealCards: [],
@@ -347,6 +741,8 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     measurementsSummary: {
       defaultDays: 30,
       ytdStart: '',
+      managerNames: [],
+      byManager: [],
       measurers: [],
       outcomeCounts: {},
       byMeasurer: [],
@@ -427,17 +823,19 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       saveAiCache(aiCache);
     }
 
-    const measurementData = buildMeasurementsData({
-      reportDate,
-      managerName: managerMeta?.name || mgrPfName,
-      managerAlias: mgrAlias,
-      history,
-      allTasks: allManagerTasks,
-      activeDealTasks: [],
-      activeSubtasks: [],
-    });
-
-    return { ...emptyResult, multiDayActivity, multiDaySummary, managerSummaries, ...measurementData };
+    const measurementData = await buildCompanyMeasurementsBundle(reportDate, history);
+    saveHistory(history, reportDate);
+    return {
+      ...emptyResult,
+      multiDayActivity,
+      multiDaySummary,
+      managerSummaries,
+      ...measurementData,
+      measurementsComparison: buildMeasurementsComparison(
+        (measurementData.measurements || []).filter(matchesCurrentMeasurementManager),
+        reportDate,
+      ),
+    };
   }
 
   const API_CONCURRENCY = 3;
@@ -531,11 +929,8 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     })
     .filter(report => report.date);
 
-  const aiCachePreload = loadAiCache();
-  const transcriptionCache = {};
-  for (const [k, v] of Object.entries(aiCachePreload)) {
-    if (k.startsWith('whisper_')) transcriptionCache[k.replace('whisper_', '')] = v;
-  }
+  const transcriptionCache = buildTranscriptionCacheFromAiCache();
+  const transcriptionStats = { queued: 0, cached: 0, transcribed: 0 };
   console.log(`  📝 Кэш транскрибаций: ${Object.keys(transcriptionCache).length}`);
 
   async function parseAll(rawComments) {
@@ -557,7 +952,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     const dealHist = history.deals[String(task.id)];
 
     if (dealHist && dealHist.commentsLoaded && dealHist.comments && dealHist.comments.length) {
-      const cached = dealHist.comments.filter(c => !isAiComment(c.text));
+      const cached = tagTaskComments(dealHist.comments.filter(c => !isAiComment(c.text)), task, 'deal');
       const cachedIds = new Set(cached.map(c => c.id));
       const raw = await getDealComments(task.id);
       const newComments = raw.filter(c => !cachedIds.has(c.id));
@@ -569,7 +964,8 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       );
 
       if (newComments.length || needsWhisper.length) {
-        commentsByTask[task.id] = await parseAll(raw);
+        await preloadReportDayCallTranscriptions(raw, reportDate, transcriptionCache, transcriptionStats);
+        commentsByTask[task.id] = tagTaskComments(await parseAll(raw), task, 'deal');
         const deal = ensureDeal(history, task.id);
         deal.comments = commentsByTask[task.id];
         deal.commentsLoaded = true;
@@ -579,7 +975,8 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       fromCache++;
     } else {
       const raw = await getDealComments(task.id);
-      commentsByTask[task.id] = await parseAll(raw);
+      await preloadReportDayCallTranscriptions(raw, reportDate, transcriptionCache, transcriptionStats);
+      commentsByTask[task.id] = tagTaskComments(await parseAll(raw), task, 'deal');
       const deal = ensureDeal(history, task.id);
       deal.comments = commentsByTask[task.id];
       deal.commentsLoaded = true;
@@ -602,11 +999,14 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     const parentId = subtask.parent?.id;
     if (!parentId || !dealTasksById.has(parentId)) return;
     const raw = await getDealComments(subtask.id);
-    const parsed = await parseAll(raw);
+    await preloadReportDayCallTranscriptions(raw, reportDate, transcriptionCache, transcriptionStats);
+    const parsed = tagTaskComments(await parseAll(raw), subtask, 'subtask', parentId);
     if (!parsed.length) return;
     if (!commentsByTask[parentId]) commentsByTask[parentId] = [];
-    const existingIds = new Set((commentsByTask[parentId] || []).map(c => String(c.id)));
-    commentsByTask[parentId].push(...parsed.filter(c => !existingIds.has(String(c.id))));
+    const parsedIds = new Set(parsed.map(c => String(c.id)));
+    commentsByTask[parentId] = commentsByTask[parentId]
+      .filter(c => !parsedIds.has(String(c.id)))
+      .concat(parsed);
   }
 
   async function loadChildSubtasksRecursive(parentId) {
@@ -683,6 +1083,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
         offset += 100;
       }
 
+      await preloadReportDayCallTranscriptions(rawComments, reportDate, transcriptionCache, transcriptionStats);
       const parsedCalls = [];
       for (const c of rawComments) {
         const parsed = await parseComment(c, reportDate, transcriptionCache, true);
@@ -756,6 +1157,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     contactCallsByTask[taskId].sort((a, b) => itemStamp(a) - itemStamp(b));
   }
   console.log('    ✅');
+  console.log(`  🎤 Звонки дня без текста: ${transcriptionStats.queued} новых, ${transcriptionStats.transcribed} расшифровано, ${transcriptionStats.cached} взято из базы`);
 
   const dealTaskIdSet = new Set(dealTasks.map(task => task.id));
   const callKeys = [];
@@ -1269,15 +1671,8 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
   }
 
   saveHistory(history, reportDate);
-  const measurementData = buildMeasurementsData({
-    reportDate,
-    managerName: managerMeta?.name || mgrPfName,
-    managerAlias: mgrAlias,
-    history,
-    allTasks: allManagerTasks,
-    activeDealTasks: dealTasks,
-    activeSubtasks: [...subtasksById.values()],
-  });
+  const measurementData = await buildCompanyMeasurementsBundle(reportDate, history);
+  saveHistory(history, reportDate);
 
   console.log(`  📊 Дневная активность: ${dailyActivity.newDeals.length} новых, ${dailyActivity.workedDeals.length} обработано`);
   console.log(`  🔄 Изменения воронки: ${funnelChanges.length}`);
@@ -1300,7 +1695,11 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     incomingByDate,
     snapshotDate: prevSnapshot?.date || null,
     ...measurementData,
+    measurementsComparison: buildMeasurementsComparison(
+      (measurementData.measurements || []).filter(matchesCurrentMeasurementManager),
+      reportDate,
+    ),
   };
 }
 
-module.exports = { getManagerDeals, getDealComments, buildDealCards };
+module.exports = { getManagerDeals, getDealComments, buildDealCards, buildCompanyMeasurementsBundle };

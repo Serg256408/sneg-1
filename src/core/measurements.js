@@ -1,4 +1,5 @@
 const { parsePfDate, timeToMinNode, stripHtml, pad2 } = require('../utils/helpers');
+const { MANAGERS_LIST } = require('../utils/config');
 
 const STATUS_PREFIXES = ['Статус изменён на ', 'Статус изменен на '];
 const MEASUREMENT_KEYWORDS = /(замер|замерщик|замерить|замер\s+на|осмотр|осмотреть)/i;
@@ -14,6 +15,78 @@ const CONTRACT_STATUS = 'Договор и Оплата';
 const WORK_STATUSES = new Set(['Выполнение Работы', 'Сделанная', 'Подготовка закрывающих документов']);
 const CLOSED_LOST_STATUSES = new Set(['Сделка завершена', 'Сделка потеряна', 'Отложенная']);
 const STALLED_AFTER_DAYS = 10;
+const MEASUREMENT_TEMPLATE_ID = '655';
+const MEASURER_FIELD_ID = '76672';
+const MEASUREMENT_TYPE_FIELD_ID = '67894';
+const MEASUREMENT_DATE_FIELD_ID = '76826';
+const SOURCE_PRIORITY = {
+  'current-status': 1,
+  status: 2,
+  'deal-field': 3,
+  subtask: 4,
+};
+const UNKNOWN_MANAGER = '\u041d\u0435 \u0443\u043a\u0430\u0437\u0430\u043d';
+
+function normalizeManagerName(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function slugifyManagerName(name) {
+  const normalized = String(name || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\u0400-\u04ff]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  return normalized || 'unknown_manager';
+}
+
+function resolveKnownManagerByUsers(users) {
+  for (const user of users || []) {
+    const rawId = String(user?.id || '').replace('user:', '');
+    const known = MANAGERS_LIST.find(manager => String(manager.userId) === rawId);
+    if (known) return known;
+  }
+  return null;
+}
+
+function resolveKnownManagerByName(name) {
+  const normalized = normalizeManagerName(name);
+  if (!normalized) return null;
+  return MANAGERS_LIST.find(manager => {
+    const variants = [manager.name, manager.pfName]
+      .map(value => normalizeManagerName(value))
+      .filter(Boolean);
+    return variants.includes(normalized);
+  }) || null;
+}
+
+function getTaskManagerInfo(task, fallbackName = '', fallbackAlias = '') {
+  const users = task?.assignees?.users || [];
+  const knownByUser = resolveKnownManagerByUsers(users);
+  if (knownByUser) {
+    return {
+      name: knownByUser.name,
+      alias: knownByUser.alias,
+    };
+  }
+
+  const assigneeName = users.map(user => user?.name || '').find(Boolean) || '';
+  const knownByName = resolveKnownManagerByName(assigneeName) || resolveKnownManagerByName(fallbackName);
+  if (knownByName) {
+    return {
+      name: knownByName.name,
+      alias: knownByName.alias,
+    };
+  }
+
+  const finalName = assigneeName || fallbackName || UNKNOWN_MANAGER;
+  return {
+    name: finalName,
+    alias: fallbackAlias || slugifyManagerName(finalName),
+  };
+}
 
 function toDmy(dateStr) {
   if (!dateStr) return '';
@@ -81,6 +154,35 @@ function parseTaskSum(task) {
   return parseFloat(String(value).replace(/\s/g, '').replace(',', '.')) || 0;
 }
 
+function getCustomField(task, fieldId) {
+  if (!task || !Array.isArray(task.customFieldData)) return null;
+  return task.customFieldData.find(cf => String(cf.field?.id) === String(fieldId)) || null;
+}
+
+function getCustomFieldText(task, fieldId) {
+  const field = getCustomField(task, fieldId);
+  if (!field) return '';
+  if (field.stringValue) return String(field.stringValue).trim();
+  if (field.value && typeof field.value === 'object') {
+    return String(field.value.name || field.value.text || field.value.value || '').trim();
+  }
+  return String(field.value ?? '').trim();
+}
+
+function getTaskMeasurer(task) {
+  return getCustomFieldText(task, MEASURER_FIELD_ID);
+}
+
+function getTaskMeasurementType(task) {
+  return getCustomFieldText(task, MEASUREMENT_TYPE_FIELD_ID);
+}
+
+function getTaskMeasurementDate(task) {
+  const field = getCustomField(task, MEASUREMENT_DATE_FIELD_ID);
+  const raw = field?.stringValue || field?.value?.date || field?.value || '';
+  return toDmy(raw);
+}
+
 function getTaskAssignees(task) {
   return ((task?.assignees?.users) || [])
     .map(user => user?.name || '')
@@ -94,6 +196,27 @@ function isMeasurementSubtask(task) {
     task?.template?.name || '',
   ].join(' ').toLowerCase();
   return hay.includes('замер');
+}
+
+function isMeasurementTaskLike(task) {
+  const templateId = String(task?.template?.id || '');
+  const typeValue = getTaskMeasurementType(task).toLowerCase();
+  const hasFieldSignal = !!(getTaskMeasurer(task) || getTaskMeasurementDate(task));
+  const hay = [
+    task?.name || '',
+    task?.status?.name || '',
+    task?.template?.name || '',
+  ].join(' ').toLowerCase();
+  if (!hasFieldSignal && templateId !== MEASUREMENT_TEMPLATE_ID && !typeValue.includes('Р·Р°РјРµСЂ')) return false;
+  return templateId === MEASUREMENT_TEMPLATE_ID || typeValue.includes('замер') || hay.includes('замер');
+}
+
+function hasMeasurementFieldSignal(task) {
+  return !!(
+    getTaskMeasurer(task) ||
+    getTaskMeasurementDate(task) ||
+    getTaskMeasurementType(task)
+  );
 }
 
 function extractMeasurerFromText(text) {
@@ -153,6 +276,85 @@ function combineComments(dealHist) {
   ].sort((a, b) => dateStamp(a.date, a.time) - dateStamp(b.date, b.time));
 }
 
+function isCallComment(comment) {
+  return comment?.type === 'outCall' || comment?.type === 'inCall';
+}
+
+function isHumanOwner(owner) {
+  const normalized = String(owner || '').toLowerCase();
+  return !!normalized && !normalized.includes('robot') && !normalized.includes('робот');
+}
+
+function commentTaskId(comment) {
+  return Number(comment?.sourceTaskId || 0);
+}
+
+function summarizeCallComment(comment) {
+  const raw = stripHtml(comment?.transcription || comment?.text || '');
+  if (!raw) return '';
+  const lines = raw
+    .split('\n')
+    .map(line => line.replace(/^[🔴🔵●]\s*[A-Za-zА-Яа-яЁё]:\s*/u, '').trim())
+    .filter(Boolean);
+  return clip(lines.slice(-4).join(' ') || raw, 180);
+}
+
+function selectScopedComments(base, windowComments) {
+  const subtaskId = Number(base?.subtaskId || 0);
+  if (!subtaskId || base?.source !== 'subtask') return windowComments;
+  const scoped = windowComments.filter(comment => commentTaskId(comment) === subtaskId);
+  const informativeScoped = scoped.filter(comment =>
+    isCallComment(comment) || isMeaningfulText(comment.text || comment.transcription || ''),
+  );
+  return informativeScoped.length ? scoped : windowComments;
+}
+
+function pickLatestResultComment(comments) {
+  const ordered = [...(comments || [])].sort((a, b) => dateStamp(a.date, a.time) - dateStamp(b.date, b.time));
+  const latestCall = [...ordered].reverse().find(comment =>
+    isCallComment(comment) && isMeaningfulText(comment.transcription || comment.text || ''),
+  ) || null;
+  const latestNote = [...ordered].reverse().find(comment =>
+    comment?.type === 'note' &&
+    isHumanOwner(comment.owner) &&
+    isMeaningfulText(comment.text || comment.transcription || ''),
+  ) || null;
+
+  if (latestNote && latestCall) {
+    const noteStamp = dateStamp(latestNote.date, latestNote.time);
+    const callStamp = dateStamp(latestCall.date, latestCall.time);
+    if (noteStamp >= callStamp && noteStamp - callStamp <= 2 * 60 * 60 * 1000) {
+      return {
+        text: clip(stripHtml(latestNote.text || latestNote.transcription || '')),
+        comment: latestNote,
+      };
+    }
+  }
+
+  if (latestNote) {
+    return {
+      text: clip(stripHtml(latestNote.text || latestNote.transcription || '')),
+      comment: latestNote,
+    };
+  }
+
+  if (latestCall) {
+    return {
+      text: summarizeCallComment(latestCall),
+      comment: latestCall,
+    };
+  }
+
+  const latestMeaningful = [...ordered].reverse().find(comment =>
+    isMeaningfulText(comment.text || comment.transcription || ''),
+  ) || null;
+
+  return {
+    text: latestMeaningful ? clip(stripHtml(latestMeaningful.text || latestMeaningful.transcription || '')) : '',
+    comment: latestMeaningful,
+  };
+}
+
 function collectStatusEvents(comments) {
   return comments
     .map(comment => {
@@ -204,21 +406,46 @@ function buildTaskMaps(allTasks, activeDealTasks, activeSubtasks) {
 
 function buildBaseRecords({ dealId, task, comments, statusEvents, subtasks }) {
   const bases = [];
+  const taskMeasurementDate = getTaskMeasurementDate(task);
+  const taskMeasurer = getTaskMeasurer(task);
 
   for (const subtask of subtasks || []) {
-    if (!isMeasurementSubtask(subtask)) continue;
+    if (!isMeasurementTaskLike(subtask)) continue;
+    const scheduledAt = getTaskMeasurementDate(subtask);
+    const measurementDate = scheduledAt || toDmy(subtask?.dateTime?.date);
     bases.push({
       source: 'subtask',
       rawId: String(subtask.id),
-      date: toDmy(subtask?.dateTime?.date),
+      subtaskId: Number(subtask.id),
+      date: measurementDate,
       time: subtask?.dateTime?.time || '',
-      stamp: dateStamp(subtask?.dateTime?.date, subtask?.dateTime?.time),
-      measurer: getTaskAssignees(subtask).join(', '),
+      stamp: dateStamp(measurementDate, subtask?.dateTime?.time),
+      measurer: getTaskMeasurer(subtask) || getTaskAssignees(subtask).join(', '),
+      scheduledAt,
       title: subtask?.name || '',
     });
   }
 
+  const hasRealMeasurementSubtask = bases.some(base => base.source === 'subtask');
+
+  if (task && hasMeasurementFieldSignal(task) && !hasRealMeasurementSubtask) {
+    const baseDate = taskMeasurementDate || toDmy(task?.dateTime?.date);
+    bases.push({
+      source: 'deal-field',
+      rawId: `deal-field-${dealId}-${baseDate || task?.id || 'current'}`,
+      date: baseDate,
+      time: task?.dateTime?.time || '',
+      stamp: dateStamp(baseDate, task?.dateTime?.time),
+      measurer: taskMeasurer,
+      scheduledAt: taskMeasurementDate || '',
+      title: task?.name || '',
+    });
+  }
+
+  const hasDealFieldMeasurement = bases.some(base => base.source === 'deal-field');
+
   for (const event of statusEvents) {
+    if (hasRealMeasurementSubtask || hasDealFieldMeasurement) continue;
     if (event.status !== 'Замер') continue;
     bases.push({
       source: 'status',
@@ -227,6 +454,7 @@ function buildBaseRecords({ dealId, task, comments, statusEvents, subtasks }) {
       time: event.time,
       stamp: event.stamp,
       measurer: '',
+      scheduledAt: '',
       title: event.text || 'Статус изменён на Замер',
     });
   }
@@ -241,6 +469,7 @@ function buildBaseRecords({ dealId, task, comments, statusEvents, subtasks }) {
       time: measurementComment?.time || task?.dateTime?.time || '',
       stamp: dateStamp(fallbackDate, measurementComment?.time || task?.dateTime?.time || ''),
       measurer: '',
+      scheduledAt: taskMeasurementDate || '',
       title: task?.name || 'Замер',
     });
   }
@@ -252,10 +481,12 @@ function buildBaseRecords({ dealId, task, comments, statusEvents, subtasks }) {
     const last = deduped[deduped.length - 1];
     if (last && Math.abs(base.stamp - last.stamp) <= 36 * 60 * 60 * 1000) {
       if (!last.measurer && base.measurer) last.measurer = base.measurer;
-      if (last.source !== 'subtask' && base.source === 'subtask') {
+      if (!last.scheduledAt && base.scheduledAt) last.scheduledAt = base.scheduledAt;
+      if ((SOURCE_PRIORITY[base.source] || 0) > (SOURCE_PRIORITY[last.source] || 0)) {
         last.source = base.source;
         last.rawId = base.rawId;
         last.title = base.title;
+        last.date = base.date || last.date;
         last.time = base.time;
         last.stamp = base.stamp || last.stamp;
       }
@@ -340,36 +571,7 @@ function buildDailySummary(measurements, dealTaskById, reportDate) {
   return filled;
 }
 
-function buildSummaryObjects(measurements, dealTaskById, reportDate) {
-  const byMeasurer = {};
-  const outcomeCounts = {};
-
-  for (const measurement of measurements) {
-    outcomeCounts[measurement.outcome] = (outcomeCounts[measurement.outcome] || 0) + 1;
-    const key = measurement.measurer || 'Не указан';
-    if (!byMeasurer[key]) {
-      byMeasurer[key] = {
-        measurer: key,
-        total: 0,
-        scheduled: 0,
-        progressed: 0,
-        toContract: 0,
-        toWork: 0,
-        stalled: 0,
-        sum: 0,
-      };
-    }
-    const bucket = byMeasurer[key];
-    bucket.total++;
-    bucket.sum += measurement.dealSum || 0;
-    if (measurement.scheduledAt) bucket.scheduled++;
-    if (measurement.progressedDate) bucket.progressed++;
-    if (measurement.contractDate) bucket.toContract++;
-    if (measurement.workDate) bucket.toWork++;
-    if (measurement.outcome === 'stalled') bucket.stalled++;
-  }
-
-  const daily = buildDailySummary(measurements, dealTaskById, reportDate);
+function buildMeasurementsComparison(measurements, reportDate) {
   const report = parsePfDate(reportDate);
   const compareFrom = report ? new Date(report) : new Date();
   compareFrom.setDate(compareFrom.getDate() - 29);
@@ -379,7 +581,7 @@ function buildSummaryObjects(measurements, dealTaskById, reportDate) {
     return !!d && d >= compareFrom && d <= report;
   };
 
-  const compare30d = measurements.reduce((acc, measurement) => {
+  const compare30d = (measurements || []).reduce((acc, measurement) => {
     if (compareInRange(measurement.measurementCreatedAt)) acc.enteredMeasurement++;
     if (compareInRange(measurement.scheduledAt)) acc.scheduledMeasurements++;
     if (compareInRange(measurement.progressedDate)) acc.progressed++;
@@ -406,9 +608,57 @@ function buildSummaryObjects(measurements, dealTaskById, reportDate) {
     ? Math.round(compare30d.toWork / compare30d.enteredMeasurement * 100)
     : 0;
 
+  return compare30d;
+}
+
+function buildSummaryObjects(measurements, dealTaskById, reportDate) {
+  const byMeasurer = {};
+  const byManager = {};
+  const outcomeCounts = {};
+
+  for (const measurement of measurements) {
+    outcomeCounts[measurement.outcome] = (outcomeCounts[measurement.outcome] || 0) + 1;
+    const key = measurement.measurer || UNKNOWN_MANAGER;
+    if (!byMeasurer[key]) {
+      byMeasurer[key] = {
+        measurer: key,
+        total: 0,
+        scheduled: 0,
+        progressed: 0,
+        toContract: 0,
+        toWork: 0,
+        stalled: 0,
+        sum: 0,
+      };
+    }
+    const bucket = byMeasurer[key];
+    bucket.total++;
+    bucket.sum += measurement.dealSum || 0;
+    if (measurement.scheduledAt) bucket.scheduled++;
+    if (measurement.progressedDate) bucket.progressed++;
+    if (measurement.contractDate) bucket.toContract++;
+    if (measurement.workDate) bucket.toWork++;
+    if (measurement.outcome === 'stalled') bucket.stalled++;
+
+    const managerKey = measurement.manager || UNKNOWN_MANAGER;
+    if (!byManager[managerKey]) {
+      byManager[managerKey] = {
+        manager: managerKey,
+        managerAlias: measurement.managerAlias || slugifyManagerName(managerKey),
+        total: 0,
+      };
+    }
+    byManager[managerKey].total++;
+  }
+
+  const daily = buildDailySummary(measurements, dealTaskById, reportDate);
+  const report = parsePfDate(reportDate);
+
   return {
     defaultDays: 30,
     ytdStart: report ? `01-01-${report.getFullYear()}` : '',
+    managerNames: Object.keys(byManager).sort((a, b) => a.localeCompare(b, 'ru')),
+    byManager: Object.values(byManager).sort((a, b) => (b.total - a.total) || a.manager.localeCompare(b.manager, 'ru')),
     measurers: Object.keys(byMeasurer).sort((a, b) => a.localeCompare(b, 'ru')),
     outcomeCounts,
     byMeasurer: Object.values(byMeasurer).sort((a, b) => (b.total - a.total) || a.measurer.localeCompare(b.measurer, 'ru')),
@@ -421,7 +671,7 @@ function buildSummaryObjects(measurements, dealTaskById, reportDate) {
       toWork: measurements.filter(item => item.workDate).length,
       stalled: measurements.filter(item => item.outcome === 'stalled').length,
     },
-    compare30d,
+    compare30d: buildMeasurementsComparison(measurements, reportDate),
   };
 }
 
@@ -437,7 +687,6 @@ function buildMeasurementsData({
   const { dealTaskById, subtasksByParent } = buildTaskMaps(allTasks, activeDealTasks, activeSubtasks);
   const dealIds = new Set([
     ...dealTaskById.keys(),
-    ...Object.keys(history?.deals || {}).map(id => Number(id)),
     ...subtasksByParent.keys(),
   ]);
 
@@ -462,6 +711,7 @@ function buildMeasurementsData({
     const currentDealStatus = task?.status?.name || dealHist?.status || '?';
     const counterparty = task?.counterparty?.name || dealHist?.counterparty || '—';
     const dealSum = task ? parseTaskSum(task) : 0;
+    const managerInfo = getTaskManagerInfo(task, managerName, managerAlias);
 
     for (let i = 0; i < bases.length; i++) {
       const base = bases[i];
@@ -471,15 +721,18 @@ function buildMeasurementsData({
         const stamp = dateStamp(comment.date, comment.time);
         return stamp >= base.stamp && stamp < nextStamp;
       });
+      const scopedComments = selectScopedComments(base, windowComments);
       const windowStatuses = statusEvents.filter(event => event.stamp >= base.stamp && event.stamp < nextStamp);
-      const measurementComments = windowComments.filter(comment =>
+      const measurementComments = scopedComments.filter(comment =>
         MEASUREMENT_KEYWORDS.test(stripHtml(comment.text || comment.transcription || '')),
       );
 
-      let scheduledAt = '';
-      for (const comment of measurementComments) {
-        scheduledAt = parseDateMention(comment.text || comment.transcription || '', comment.date);
-        if (scheduledAt) break;
+      let scheduledAt = base.scheduledAt || '';
+      if (!scheduledAt) {
+        for (const comment of measurementComments) {
+          scheduledAt = parseDateMention(comment.text || comment.transcription || '', comment.date);
+          if (scheduledAt) break;
+        }
       }
 
       let measurer = base.measurer || '';
@@ -489,19 +742,30 @@ function buildMeasurementsData({
           if (measurer) break;
         }
       }
-      if (!measurer) measurer = 'Не указан';
+      if (!measurer) measurer = UNKNOWN_MANAGER;
 
       const progressedEvent = windowStatuses.find(event => PROGRESS_STATUSES.has(event.status) && event.status !== 'Замер');
+      if (!measurer) measurer = getTaskMeasurer(task) || '';
+      if (!measurer || measurer === UNKNOWN_MANAGER) measurer = getTaskMeasurer(task) || measurer;
       const contractEvent = windowStatuses.find(event => event.status === CONTRACT_STATUS);
       const workEvent = windowStatuses.find(event => WORK_STATUSES.has(event.status));
       const closedEvent = windowStatuses.find(event => CLOSED_LOST_STATUSES.has(event.status));
-      const latestMeaningful = [...windowComments].reverse().find(comment => isMeaningfulText(comment.text || comment.transcription || ''));
-      const latestEvent = [...windowComments].reverse()[0] || null;
+      const latestResult = pickLatestResultComment(scopedComments);
+      const latestEvent = latestResult.comment || [...scopedComments].reverse()[0] || [...windowComments].reverse()[0] || null;
       const lastRelevantActivityAt = latestEvent?.date || base.date;
+      const inferredStatusDate = lastRelevantActivityAt || reportDate || base.date;
+      const currentStatusIsWork = WORK_STATUSES.has(currentDealStatus);
+      const currentStatusIsContract = currentDealStatus === CONTRACT_STATUS;
+      const currentStatusIsProgressed = PROGRESS_STATUSES.has(currentDealStatus) && currentDealStatus !== 'Замер';
+      const resolvedWorkDate = workEvent?.date || (currentStatusIsWork ? inferredStatusDate : null);
+      const resolvedContractDate = contractEvent?.date || (currentStatusIsContract ? inferredStatusDate : null) || (resolvedWorkDate || null);
+      const resolvedProgressedDate = progressedEvent?.date || ((currentStatusIsProgressed || currentStatusIsContract || currentStatusIsWork) ? inferredStatusDate : null);
+      const resolvedProgressedStatus = progressedEvent?.status || ((currentStatusIsProgressed || currentStatusIsContract || currentStatusIsWork) ? currentDealStatus : '');
+      const latestResultIsRobotOnly = !!latestResult.comment && !isHumanOwner(latestResult.comment.owner) && !isCallComment(latestResult.comment);
 
       let latestResultText = '';
-      if (latestMeaningful) {
-        latestResultText = clip(stripHtml(latestMeaningful.text || latestMeaningful.transcription || ''));
+      if (latestResult.text) {
+        latestResultText = latestResult.text;
       } else if (workEvent) {
         latestResultText = `Статус переведен в ${workEvent.status}`;
       } else if (contractEvent) {
@@ -513,9 +777,9 @@ function buildMeasurementsData({
       }
 
       let outcome = 'unknown';
-      if (workEvent) outcome = 'to_work';
-      else if (contractEvent) outcome = 'to_contract';
-      else if (progressedEvent) outcome = 'progressed';
+      if (resolvedWorkDate) outcome = 'to_work';
+      else if (resolvedContractDate) outcome = 'to_contract';
+      else if (resolvedProgressedDate) outcome = 'progressed';
       else if (closedEvent) outcome = 'closed_lost';
       else {
         const diff = dateDiffDays(lastRelevantActivityAt || base.date, reportDate);
@@ -584,16 +848,16 @@ function buildMeasurementsData({
         counterparty,
         dealCreatedAt,
         dealSum,
-        manager: managerName,
-        managerAlias,
+        manager: managerInfo.name,
+        managerAlias: managerInfo.alias,
         measurer,
         measurementCreatedAt: base.date,
         scheduledAt: scheduledAt || null,
         currentDealStatus,
         outcome,
-        contractDate: contractEvent?.date || null,
-        workDate: workEvent?.date || null,
-        progressedDate: progressedEvent?.date || null,
+        contractDate: resolvedContractDate,
+        workDate: resolvedWorkDate,
+        progressedDate: resolvedProgressedDate,
         closedDate: closedEvent?.date || null,
         lastRelevantActivityAt,
         latestResultText,
@@ -607,11 +871,20 @@ function buildMeasurementsData({
   return {
     measurements,
     measurementsSummary,
-    measurementsComparison: measurementsSummary.compare30d,
+    measurementsComparison: buildMeasurementsComparison(
+      measurements.filter(item => {
+        if (managerAlias) return item.managerAlias === managerAlias;
+        if (managerName) return item.manager === managerName;
+        return true;
+      }),
+      reportDate,
+    ),
   };
 }
 
 module.exports = {
   buildMeasurementsData,
+  buildMeasurementsComparison,
   extractStatusChange,
+  isMeasurementTaskLike,
 };

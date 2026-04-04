@@ -4,13 +4,17 @@
 
 const { fs, TRANSCRIPTION_CACHE_FILE, AI_CACHE_FILE } = require('../utils/config');
 
-function loadTranscriptionCache() {
+function loadTranscriptionCache(silent = false) {
   try {
     const data = JSON.parse(fs.readFileSync(TRANSCRIPTION_CACHE_FILE, 'utf8'));
-    console.log(`  📝 Кэш транскрибаций: ${Object.keys(data).length} записей (${TRANSCRIPTION_CACHE_FILE})`);
+    if (!silent) {
+      console.log(`  📝 Кэш транскрибаций: ${Object.keys(data).length} записей (${TRANSCRIPTION_CACHE_FILE})`);
+    }
     return data;
   } catch {
-    console.log(`  📝 Кэш транскрибаций: пустой (файл не найден)`);
+    if (!silent) {
+      console.log(`  📝 Кэш транскрибаций: пустой (файл не найден)`);
+    }
     return {};
   }
 }

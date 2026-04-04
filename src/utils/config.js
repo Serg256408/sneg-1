@@ -43,7 +43,7 @@ function isTimeUp() { return timeLeft() < 5 * 60 * 1000; }
 
 const CALL_TAG = 15900;
 const ANALYSIS_TAG = 15920;
-const DEAL_FIELDS = 'id,name,parent,status,dateTime,counterparty,dataTags,template,assignees,67906,76880,76866,76868,76872,76874,76876,76878';
+const DEAL_FIELDS = 'id,name,parent,status,dateTime,counterparty,dataTags,template,assignees,67906,76880,76866,76868,76872,76874,76876,76878,76672,75760,67892,67894,76678,76826,76828';
 const ALLOWED_TEMPLATES = ['Сделка', 'Вывоз снега'];
 const SKIP_STATUSES = ['Сделанная', 'Завершённая', 'Сделка завершена'];
 const NEW_STATUSES = ['Новая', 'Обработка'];

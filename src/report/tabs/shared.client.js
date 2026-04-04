@@ -1,25 +1,18 @@
 function navTo(alias){
-  var loc=window.location.pathname||'';
-  // Если мы внутри deploy/xxx/index.html — переходим к ../alias/index.html
-  if(loc.indexOf('/deploy/')>=0||loc.indexOf('\\deploy\\')>=0){
-    if(alias==='index')window.location.href='../index.html';
-    else window.location.href='../'+alias+'/index.html';
-  } else {
-    // Из корня (report.html) — переходим в deploy/
-    if(alias==='index')window.location.href='deploy/index.html';
-    else window.location.href='deploy/'+alias+'/index.html';
-  }
-}
-function navTo(alias){
-  var loc=window.location.pathname||'';
+  var loc=(window.location.pathname||'').replace(/\\/g,'/').toLowerCase();
   var hash=alias==='index'?'':(window.location.hash||'');
-  if(loc.indexOf('/deploy/')>=0||loc.indexOf('\\deploy\\')>=0){
-    if(alias==='index')window.location.href='../index.html';
-    else window.location.href='../'+alias+'/index.html'+hash;
-  } else {
-    if(alias==='index')window.location.href='deploy/index.html';
-    else window.location.href='deploy/'+alias+'/index.html'+hash;
+  var target='';
+
+  if(loc.indexOf('/deploy/')>=0){
+    target=alias==='index'?'../index.html':'../'+alias+'/index.html';
+  }else if(loc.indexOf('/reports/')>=0){
+    target=alias==='index'?'../deploy/index.html':'../deploy/'+alias+'/index.html';
+  }else{
+    target=alias==='index'?'deploy/index.html':'deploy/'+alias+'/index.html';
   }
+
+  window.location.href=target+hash;
+  return false;
 }
 
 function buildRecommendationText(taskId){

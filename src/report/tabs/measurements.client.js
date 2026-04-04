@@ -2,6 +2,7 @@ let measurePreset='30d';
 let measureFrom='';
 let measureTo='';
 let measureSearch='';
+let measureManager='all';
 let measureMeasurer='all';
 let measureOutcome='all';
 let measureOnlyScheduled=false;
@@ -99,6 +100,7 @@ function formatMeasurementDate(d){
 }
 function resetMeasurementFilters(){
   measureSearch='';
+  measureManager='all';
   measureMeasurer='all';
   measureOutcome='all';
   measureOnlyScheduled=false;
@@ -126,8 +128,9 @@ function measurementMatchesQuery(item){
   return hay.includes(q);
 }
 function measurementMatchesFilters(item){
-  if(!measurementRelevantToRange(item))return false;
+  if(!measurementDateInRange(item.measurementCreatedAt))return false;
   if(!measurementMatchesQuery(item))return false;
+  if(measureManager!=='all'&&(item.manager||'Не указан')!==measureManager)return false;
   if(measureMeasurer!=='all'&&(item.measurer||'Не указан')!==measureMeasurer)return false;
   if(measureOutcome!=='all'&&item.outcome!==measureOutcome)return false;
   if(measureOnlyScheduled&&!item.scheduledAt)return false;
@@ -158,49 +161,42 @@ function measurementEventCounts(items){
     if(measurementDateInRange(item.progressedDate))counts.progressed++;
     if(measurementDateInRange(item.contractDate))counts.toContract++;
     if(measurementDateInRange(item.workDate))counts.toWork++;
-    if(item.outcome==='stalled'&&measurementRelevantToRange(item))counts.stalled++;
+    if(item.outcome==='stalled')counts.stalled++;
   });
   counts.contractRate=counts.entered?Math.round(counts.toContract/counts.entered*100):0;
   counts.workRate=counts.entered?Math.round(counts.toWork/counts.entered*100):0;
   return counts;
 }
 function measurementDailyRows(items){
-  const source=(D.measurementsSummary&&D.measurementsSummary.daily)||[];
-  const rows=source
-    .filter(function(day){return measurementDateInRange(day.date);})
-    .map(function(day){
-      return {
-        date:day.date,
-        dealsCreated:day.dealsCreated||0,
-        enteredMeasurement:0,
-        scheduledMeasurements:0,
-        progressed:0,
-        toContract:0,
-        toWork:0
-      };
-    });
   const byDate={};
-  rows.forEach(function(row){byDate[row.date]=row;});
+  const createdKeys={};
+  function ensure(date){
+    if(!date)return null;
+    if(!byDate[date])byDate[date]={date:date,dealsCreated:0,enteredMeasurement:0,scheduledMeasurements:0,progressed:0,toContract:0,toWork:0};
+    return byDate[date];
+  }
   items.forEach(function(item){
+    if(measurementDateInRange(item.dealCreatedAt)){
+      var createdKey=String(item.dealId)+'_'+String(item.dealCreatedAt||'');
+      if(!createdKeys[createdKey]){
+        createdKeys[createdKey]=true;
+        ensure(item.dealCreatedAt).dealsCreated++;
+      }
+    }
     if(measurementDateInRange(item.measurementCreatedAt)){
-      if(!byDate[item.measurementCreatedAt])byDate[item.measurementCreatedAt]={date:item.measurementCreatedAt,dealsCreated:0,enteredMeasurement:0,scheduledMeasurements:0,progressed:0,toContract:0,toWork:0};
-      byDate[item.measurementCreatedAt].enteredMeasurement++;
+      ensure(item.measurementCreatedAt).enteredMeasurement++;
     }
     if(measurementDateInRange(item.scheduledAt)){
-      if(!byDate[item.scheduledAt])byDate[item.scheduledAt]={date:item.scheduledAt,dealsCreated:0,enteredMeasurement:0,scheduledMeasurements:0,progressed:0,toContract:0,toWork:0};
-      byDate[item.scheduledAt].scheduledMeasurements++;
+      ensure(item.scheduledAt).scheduledMeasurements++;
     }
     if(measurementDateInRange(item.progressedDate)){
-      if(!byDate[item.progressedDate])byDate[item.progressedDate]={date:item.progressedDate,dealsCreated:0,enteredMeasurement:0,scheduledMeasurements:0,progressed:0,toContract:0,toWork:0};
-      byDate[item.progressedDate].progressed++;
+      ensure(item.progressedDate).progressed++;
     }
     if(measurementDateInRange(item.contractDate)){
-      if(!byDate[item.contractDate])byDate[item.contractDate]={date:item.contractDate,dealsCreated:0,enteredMeasurement:0,scheduledMeasurements:0,progressed:0,toContract:0,toWork:0};
-      byDate[item.contractDate].toContract++;
+      ensure(item.contractDate).toContract++;
     }
     if(measurementDateInRange(item.workDate)){
-      if(!byDate[item.workDate])byDate[item.workDate]={date:item.workDate,dealsCreated:0,enteredMeasurement:0,scheduledMeasurements:0,progressed:0,toContract:0,toWork:0};
-      byDate[item.workDate].toWork++;
+      ensure(item.workDate).toWork++;
     }
   });
   return Object.keys(byDate)
@@ -236,6 +232,7 @@ function renderMeasurements(){
   const counts=measurementEventCounts(filtered);
   const daily=measurementDailyRows(filtered);
   const measurers=measurementByMeasurer(filtered);
+  const uniqueManagers=[...new Set((D.measurementsSummary&&D.measurementsSummary.managerNames||all.map(function(item){return item.manager||'Не указан';})).filter(Boolean))].sort(function(a,b){return a.localeCompare(b,'ru');});
   const uniqueMeasurers=[...new Set((D.measurementsSummary&&D.measurementsSummary.measurers||all.map(function(item){return item.measurer||'Не указан';})).filter(Boolean))].sort(function(a,b){return a.localeCompare(b,'ru');});
 
   let h='';
@@ -253,8 +250,14 @@ function renderMeasurements(){
   h+='<span style="font-size:11px;color:#6b7280">по</span>';
   h+='<input id="measureTo" type="date" value="'+(measureTo||'')+'" onchange="onMeasurementDateChange()" style="background:#fff;border:1px solid rgba(0,0,0,.1);color:#1a1a2e;padding:4px 8px;border-radius:6px;font-size:11px;font-family:inherit">';
   h+='</div>';
-  h+='<div style="display:grid;grid-template-columns:minmax(220px,2fr) repeat(3,minmax(150px,1fr)) 180px;gap:10px;margin-top:12px">';
+  h+='<div style="display:grid;grid-template-columns:minmax(220px,2fr) repeat(4,minmax(150px,1fr)) 180px;gap:10px;margin-top:12px">';
   h+='<input value="'+measurementEsc(measureSearch)+'" oninput="measureSearch=this.value;renderMeasurements()" placeholder="Поиск по сделке, ID, клиенту, результату" style="padding:10px 12px;border-radius:10px;border:1px solid #d1d5db;background:#fff;color:#1a1a2e;font-size:13px;font-family:inherit">';
+  h+='<select onchange="measureManager=this.value;renderMeasurements()" style="padding:10px 12px;border-radius:10px;border:1px solid #d1d5db;background:#fff;color:#1a1a2e;font-size:13px;font-family:inherit">';
+  h+='<option value="all">Все менеджеры</option>';
+  uniqueManagers.forEach(function(name){
+    h+='<option value="'+measurementEsc(name)+'"'+(measureManager===name?' selected':'')+'>'+measurementEsc(name)+'</option>';
+  });
+  h+='</select>';
   h+='<select onchange="measureMeasurer=this.value;renderMeasurements()" style="padding:10px 12px;border-radius:10px;border:1px solid #d1d5db;background:#fff;color:#1a1a2e;font-size:13px;font-family:inherit">';
   h+='<option value="all">Все замерщики</option>';
   uniqueMeasurers.forEach(function(name){

@@ -61,7 +61,6 @@ for (const mgr of managers) {
 
   test(`${mgr}: есть dealCards[]`, () => {
     assert(Array.isArray(data.dealCards), 'dealCards не массив');
-    assert(data.dealCards.length > 0, 'dealCards пустой');
   });
 
   test(`${mgr}: есть manager`, () => {
@@ -74,6 +73,10 @@ for (const mgr of managers) {
   });
 
   test(`${mgr}: структура dealCard`, () => {
+    if (!data.dealCards.length) {
+      assert(data.reportDate, 'нет reportDate для пустого дня');
+      return;
+    }
     const card = data.dealCards[0];
     assert(card.id, 'нет id');
     assert(card.name, 'нет name');
@@ -81,6 +84,11 @@ for (const mgr of managers) {
   });
 
   test(`${mgr}: есть звонки или комментарии`, () => {
+    if (!data.dealCards.length) {
+      const noDayActivity = (data.dailyActivity.newDeals || []).length === 0 && (data.dailyActivity.workedDeals || []).length === 0;
+      assert(noDayActivity, 'dealCards пустой, но dailyActivity не пустой');
+      return;
+    }
     const hasData = data.dealCards.some(c =>
       (c.calls && c.calls.length > 0) || (c.comments && c.comments.length > 0)
     );

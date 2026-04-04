@@ -48,3 +48,6 @@ Use this skill for report rebuilds, data refreshes, and debugging the generation
 - `report.html` is generated, not the long-term source file.
 - `deploy/index.html` should mirror `report.html` after a successful rebuild.
 - If browser output breaks, extract the inline script from `report.html` and syntax-check it with Node.
+- Before a daily report is considered ready, same-day call recordings without inline text must be pre-transcribed.
+- Reuse transcript history from both `ai_cache.json` and `transcriptions_cache.json` before calling Whisper again.
+- Avoid duplicate audio transcription by matching not only Planfix `fileId`, but also a stable signature derived from the audio file name.

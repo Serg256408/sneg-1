@@ -2,15 +2,25 @@
 // whisper.js — Транскрибация через Whisper (Polza.ai)
 // ============================================================
 
+const crypto = require('crypto');
 const { fs, path, os, API_URL, TOKEN, POLZA_KEY, isTimeUp } = require('../utils/config');
-const { saveAiCache, loadAiCache } = require('../core/cache');
+const {
+  saveAiCache, loadAiCache, loadTranscriptionCache, saveTranscriptionCache,
+} = require('../core/cache');
 
 const MAX_WHISPER_PER_RUN = 70;
 let whisperCallsThisRun = 0;
 const AUDIO_EXT_RE = /\.(mp3|mpga|mpeg|m4a|mp4|wav|webm|ogg|oga|flac)$/i;
+const inFlightTranscriptions = new Map();
 
 function getFileName(file) {
   return String(file?.name || file?.fileName || '').trim();
+}
+
+function buildAudioSignature(file) {
+  const normalized = getFileName(file).toLowerCase().replace(/\s+/g, ' ').trim();
+  if (!normalized) return '';
+  return crypto.createHash('sha1').update(normalized).digest('hex');
 }
 
 function findCallAudioFile(files) {
@@ -19,6 +29,39 @@ function findCallAudioFile(files) {
     if (!name) return false;
     return name.includes('запись звонка') || AUDIO_EXT_RE.test(name);
   }) || null;
+}
+
+function getCachedTranscription(cache, audioFile) {
+  const fileId = String(audioFile?.id || '');
+  if (fileId && cache[fileId]) return cache[fileId];
+
+  const signature = buildAudioSignature(audioFile);
+  if (signature && cache[`sig:${signature}`]) {
+    if (fileId) cache[fileId] = cache[`sig:${signature}`];
+    return cache[`sig:${signature}`];
+  }
+
+  return null;
+}
+
+function persistTranscription(cache, audioFile, text) {
+  if (!audioFile || !text) return;
+
+  const fileId = String(audioFile.id || '');
+  const signature = buildAudioSignature(audioFile);
+
+  if (fileId) cache[fileId] = text;
+  if (signature) cache[`sig:${signature}`] = text;
+
+  const aiCache = loadAiCache();
+  if (fileId) aiCache[`whisper_${fileId}`] = text;
+  if (signature) aiCache[`whisper_sig_${signature}`] = text;
+  saveAiCache(aiCache);
+
+  const transcriptionCache = loadTranscriptionCache(true);
+  if (fileId) transcriptionCache[fileId] = text;
+  if (signature) transcriptionCache[`sig:${signature}`] = text;
+  saveTranscriptionCache(transcriptionCache);
 }
 
 function looksLikeHtmlOrError(buf) {
@@ -101,27 +144,52 @@ async function transcribeCallIfNeeded(comment, cache, allowNew) {
   const files = comment.files || [];
   const audioFile = findCallAudioFile(files);
   if (!audioFile) return null;
-  const cacheKey = String(audioFile.id);
-  if (cache[cacheKey]) return cache[cacheKey]; // из кэша
-  // Новые транскрибации — только если явно разрешено (звонки за день отчёта)
+
+  const cached = getCachedTranscription(cache, audioFile);
+  if (cached) {
+    const fileId = String(audioFile.id || '');
+    const signature = buildAudioSignature(audioFile);
+    const hasFileId = fileId && cache[fileId];
+    const hasSignature = signature && cache[`sig:${signature}`];
+    if (!hasFileId || !hasSignature) persistTranscription(cache, audioFile, cached);
+    return cached;
+  }
+
   if (!allowNew) return null;
   if (isTimeUp()) return null;
   if (whisperCallsThisRun >= MAX_WHISPER_PER_RUN) return null;
+
+  const lockKey = String(audioFile.id || '') || `sig:${buildAudioSignature(audioFile)}` || getFileName(audioFile);
+  if (inFlightTranscriptions.has(lockKey)) {
+    return inFlightTranscriptions.get(lockKey);
+  }
+
   whisperCallsThisRun++;
-  if (whisperCallsThisRun === 1) console.log(`    🎤 Whisper: новых транскрибаций (лимит ${MAX_WHISPER_PER_RUN})...`);
-  const audioPath = downloadPlanfixFile(audioFile.id);
-  if (!audioPath) { console.log(`    ⚠️ Whisper: не удалось скачать файл ${audioFile.id} (${audioFile.name})`); return null; }
-  try {
-    const text = await whisperTranscribe(audioPath);
-    if (text) {
-      cache[cacheKey] = text;
-      const aiC = loadAiCache();
-      aiC[`whisper_${audioFile.id}`] = text;
-      saveAiCache(aiC);
+  if (whisperCallsThisRun === 1) {
+    console.log(`    🎤 Whisper: новых транскрибаций (лимит ${MAX_WHISPER_PER_RUN})...`);
+  }
+
+  const run = (async () => {
+    const audioPath = downloadPlanfixFile(audioFile.id);
+    if (!audioPath) {
+      console.log(`    ⚠️ Whisper: не удалось скачать файл ${audioFile.id} (${audioFile.name})`);
+      return null;
     }
-    return text;
+
+    try {
+      const text = await whisperTranscribe(audioPath);
+      if (text) persistTranscription(cache, audioFile, text);
+      return text;
+    } finally {
+      try { fs.unlinkSync(audioPath); } catch {}
+    }
+  })();
+
+  inFlightTranscriptions.set(lockKey, run);
+  try {
+    return await run;
   } finally {
-    try { fs.unlinkSync(audioPath); } catch {}
+    inFlightTranscriptions.delete(lockKey);
   }
 }
 
@@ -130,5 +198,6 @@ module.exports = {
   whisperTranscribe,
   transcribeCallIfNeeded,
   findCallAudioFile,
+  buildAudioSignature,
   MAX_WHISPER_PER_RUN,
 };
