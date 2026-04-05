@@ -2,63 +2,115 @@
 
 ## Что это
 Приложение для ежедневной аналитики продаж компании ТрансКом (вывоз снега, асфальтирование).
-Модульная структура в `src/` (~13 файлов) генерирует self-contained HTML-отчёт с ИИ-оценкой каждой сделки.
+Модульная структура в `src/` (~30 файлов) генерирует self-contained HTML-отчёт с ИИ-оценкой каждой сделки.
 
 ## Владелец
 Сергей (spezavtoteh@gmail.com) — владелец компании ТрансКом.
 
 ## Архитектура
 ```
-analytics.js              — обёртка (require('./src/index'))
+analytics.js                        — обёртка (require('./src/index'))
 src/
   utils/
-    config.js    (~65)    — env vars, константы, менеджеры
-    helpers.js   (~100)   — sleep, pad2, parsePfDate, stripHtml, utcToMsk
+    config.js          (65)         — env vars, константы, менеджеры
+    helpers.js         (112)        — sleep, pad2, parsePfDate, stripHtml, utcToMsk, normalizePhone
   api/
-    planfix.js   (~140)   — httpPost/Get, pf(), getAllTasks, getComments
-    whisper.js   (~85)    — downloadFile, transcribe, rate limiting
-    deepseek.js  (~75)    — openaiChat с fallback (DeepSeek → Polza.ai)
+    planfix.js         (198)        — httpPost/Get, pf(), getAllTasks, getActiveTasks, getLightTasks, getComments
+    whisper.js         (203)        — downloadFile, transcribe, rate limiting
+    deepseek.js        (76)         — openaiChat с fallback (DeepSeek → Polza.ai)
   core/
-    cache.js     (~30)    — load/save AI + transcription кэш
-    transcription.js (~15) — extractTranscription
-    scoring.js   (~60)    — calculateSalaryScore (баллы ЗП)
-    deals.js     (~1280)  — AI-оценка, buildDealCards, воронка
+    cache.js           (35)         — load/save AI + transcription кэш
+    history.js         (73)         — load/save deal_history.json (история сделок)
+    transcription.js   (64)         — extractTranscription, фильтр мусора Planfix AI
+    scoring.js         (62)         — calculateSalaryScore (баллы ЗП)
+    deals.js           (1705)       — buildDealCards, загрузка данных, фильтрация, активность
+    assessment.js      (411)        — ИИ-оценка сделки (промпт, парсинг, валидация)
+    manager-report.js  (189)        — ИИ итог дня + отчёт руководителя (день/неделя/месяц)
+    funnel.js          (49)         — снимки воронки, сравнение
+    measurements.js    (890)        — замеры и анализ замеров
   report/
-    html.js      (~2320)  — generateHtml (CSS + клиентский JS встроены)
-    dashboard.js (~140)   — мульти-менеджерский дашборд
-  index.js       (~220)   — CLI, runForManager, main()
+    html.js            (878)        — обёртка HTML, CSS, склейка вкладок, навигация
+    dashboard.js       (475)        — мульти-менеджерский дашборд
+    tabs/
+      shared.js / shared.client.js  — общие клиентские функции (439 строк клиента)
+      day.js / day.client.js        — вкладка "День" (398 строк клиента)
+      deals.js / deals.client.js    — вкладка "Все сделки" (286 строк клиента)
+      quality.js / quality.client.js — вкладка "Качество" (73 строки клиента)
+      daily.js / daily.client.js    — вкладка "Ежедневные" (15 строк клиента)
+      funnel.js / funnel.client.js  — вкладка "Воронка" (120 строк клиента)
+      stats.js / stats.client.js    — вкладка "Статистика" (462 строки клиента)
+      incoming.js / incoming.client.js — вкладка "Входящие" (99 строк клиента)
+      manager.js / manager.client.js — вкладка "Руководитель" (373 строки клиента)
+      measurements.client.js        — вкладка "Замеры" (375 строк клиента)
+  index.js             (381)        — CLI, runForManager, main(), автоотправка
 ```
-- **Planfix API** — источник данных: сделки, комментарии, звонки
+
+### Архитектура вкладок
+Каждая вкладка разделена на 2 файла:
+- `tabs/имя.js` — серверная обёртка (~9 строк), читает `.client.js` и оборачивает в `<script>`
+- `tabs/имя.client.js` — клиентский JavaScript, встраивается в HTML-отчёт
+
+### Внешние сервисы
+- **Planfix API** — источник данных: сделки, комментарии, звонки (домен: `transkom.planfix.ru`)
 - **DeepSeek AI** — оценка качества работы менеджера, nextStep, отчёт руководителя
 - **OpenAI Whisper** — транскрибация звонков
-- **GitHub Actions** — автоматический запуск каждый день в 18:00 МСК
+- **Telegram Bot API** — отправка результатов верификации отчёта
+- **GitHub Actions** — автоматический запуск ежедневно в 16:00 UTC (19:00 МСК)
 - **GitHub Pages** — публикация отчёта: https://serg256408.github.io/sneg-1/
 
+## Менеджеры
+Список в `managers.json`:
+- `borovaya` — Ия Боровая (userId: 41)
+- `mikhail` — Михаил (userId: 42)
+- `guzairov` — Артем Гузаиров (userId: 44)
+
+Для каждого менеджера генерируются отдельные файлы:
+- `reports/{alias}.html` — отчёт
+- `data/{alias}_latest.json` — данные
+- `deploy/{alias}/index.html` — копия для GitHub Pages
+
 ## Файлы данных (хранятся в репо, обновляются автоматически)
-- `ai_cache.json` — кэш всех ИИ-оценок (ключ: `assess_{dealId}_{date}_v{N}`)
+- `ai_cache.json` — кэш ИИ-оценок (ключи: `day_*`, `mgr_*`, `sent_*`)
+- `deal_history.json` — полная история сделок (комментарии, транскрибации, ИИ-оценки)
 - `latest_data.json` — данные последнего отчёта
 - `funnel_snapshot.json` — снимок воронки для отслеживания изменений
 - `daily_log.txt` — лог запусков
 - `report.html` — последний сгенерированный отчёт
-- `deploy/index.html` — копия отчёта для GitHub Pages
+- `deploy/index.html` — дашборд для GitHub Pages
+- `deploy/{alias}/index.html` — отчёт менеджера для GitHub Pages
 
 ## Как запускать
 ```bash
 # Полный отчёт за сегодня (с отправкой в Planfix)
-.tools/node-v24.14.0-win-x64/node.exe analytics.js borovaya 16-03-2026
+node analytics.js borovaya 16-03-2026
 
 # Без отправки в Planfix
-.tools/node-v24.14.0-win-x64/node.exe analytics.js borovaya 16-03-2026 --no-send
+node analytics.js borovaya 16-03-2026 --no-send
 
 # Только перегенерация HTML из кэша (без API)
-.tools/node-v24.14.0-win-x64/node.exe analytics.js borovaya --html
+node analytics.js borovaya --html
+
+# Верификация отчёта (сверка с Planfix + Telegram)
+node verify.js borovaya 05-04-2026
+node verify.js --all                     # все менеджеры, за сегодня
 ```
-Node.js портативный: `.tools/node-v24.14.0-win-x64/node.exe` (не в PATH).
+
+## Верификатор отчёта (`verify.js`)
+Автоматический аудитор: после генерации отчёта идёт в Planfix по каждой сделке менеджера и проверяет:
+1. **Полнота сделок** — все ли сделки из реестра активности попали в отчёт
+2. **Полнота звонков** — по каждой сделке загружает комментарии из сделки, подзадач, контрагента и сверяет с отчётом
+3. **Транскрибации** — все ли звонки транскрибированы
+4. **ИИ-оценки** — у каждой сделки есть оценка с вердиктом и баллами
+5. **Автоотправка** — рекомендации отправлены в Planfix
+6. **HTML-файлы** — отчёты существуют и валидны
+
+Результат отправляется в Telegram (нужны секреты `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`).
+В CI запускается автоматически после генерации отчётов.
 
 ## Два типа сделок
-- **"Вывоз снега"** — определяется по `deal.name.startsWith('вывоз снега')`, кэш v18
-- **"Сделка" (асфальт)** — все остальные, кэш v18a
-- Разные критерии устной презентации для каждого типа
+- **"Вывоз снега"** — определяется по `deal.name.startsWith('вывоз снега')`, кэш v20
+- **"Сделка" (асфальт)** — все остальные, кэш v20a
+- Разные критерии устной презентации для каждого типа (подробности в `SALES_SCRIPT_RULES.md`)
 
 ## Вкладки отчёта
 0. **День** — обзор дня: ИИ-итог, метрики, карточки сделок с оценками
@@ -67,7 +119,9 @@ Node.js портативный: `.tools/node-v24.14.0-win-x64/node.exe` (не в
 3. **Ежедневные** — сравнение дней
 4. **Воронка** — визуализация воронки продаж
 5. **Статистика** — графики и тренды
-6. **Руководитель** — AI-выжимка за день/неделю/месяц для РОПа
+6. **Входящие** — входящие звонки и обращения
+7. **Руководитель** — AI-выжимка за день/неделю/месяц для РОПа
+8. **Замеры** — анализ замеров
 
 ## ИИ-оценка сделки включает
 - `overallVerdict` — общий вердикт
@@ -75,6 +129,7 @@ Node.js портативный: `.tools/node-v24.14.0-win-x64/node.exe` (не в
 - `recommendations` — рекомендации менеджеру
 - `nextStep` — конкретный следующий шаг
 - `dealType` — тип сделки ('snow' / 'asphalt')
+- `dealSituation` — краткая соль по сделке (1-2 предложения)
 - Подитоги: приветствие, потребности, презентация, возражения, закрытие
 
 ## Автоотправка ИИ-рекомендаций в Planfix (ЖЕЛЕЗНОЕ ПРАВИЛО)
@@ -100,9 +155,17 @@ Node.js портативный: `.tools/node-v24.14.0-win-x64/node.exe` (не в
 - Или просто пушить в обе ветки
 
 ## Обязательное чтение
-- **Перед началом работы** прочитай `CONVENTIONS.md` — там все принятые решения и правила
+- **`CONVENTIONS.md`** — все принятые решения и правила (ЖЕЛЕЗНЫЕ)
+- **`SALES_SCRIPT_RULES.md`** — правила оценки скрипта продаж, критерии баллов
+- **`TASKS.md`** — единый лог задач для всех чатов
 - Если изменение противоречит `CONVENTIONS.md` — СТОП, спроси у пользователя
 - Новые решения записывай в `CONVENTIONS.md`
+
+## Зависимости (package.json)
+- `axios` — HTTP-запросы
+- `dotenv` — переменные окружения
+- `@popstas/planfix-mcp-server` — Planfix MCP
+- Dev: `@playwright/test`, `eslint`
 
 ## Правила работы при доработке
 
@@ -120,8 +183,8 @@ Node.js портативный: `.tools/node-v24.14.0-win-x64/node.exe` (не в
 4. **Декомпозиция** — разбить на микрозадачи (TodoWrite), каждая — минимальное изменение
 5. **Выполнение** — по одной задаче за раз:
    - Изменить код (минимально, только то что нужно)
-   - Запустить тесты: `.tools/node-v24.14.0-win-x64/node.exe test.js`
-   - Перегенерировать HTML: `analytics.js borovaya --html`
+   - Запустить тесты: `node test.js`
+   - Перегенерировать HTML: `node analytics.js borovaya --html`
    - Проверить в браузере через Playwright (если UI изменился)
    - Отметить задачу выполненной
 6. **Показать результат** — показать что изменилось, дождаться подтверждения
@@ -131,7 +194,7 @@ Node.js портативный: `.tools/node-v24.14.0-win-x64/node.exe` (не в
 - Максимум **500 строк** на файл. Если файл растёт больше — разбить на модули
 - Новая функциональность = новый файл, НЕ дописывание в существующий большой файл
 - Один файл = одна ответственность (загрузка данных, ИИ-оценка, вкладка отчёта и т.д.)
-- При добавлении вкладки — создать `src/report/tabs/имя.js`, подключить в `html.js`
+- При добавлении вкладки — создать `src/report/tabs/имя.js` + `имя.client.js`, подключить в `html.js`
 - При добавлении ИИ-логики — в `assessment.js` или `manager-report.js`, НЕ в `deals.js`
 
 ### Правило кэширования данных (ЖЕЛЕЗНОЕ, НЕ ОБСУЖДАЕТСЯ)
@@ -150,43 +213,10 @@ Node.js портативный: `.tools/node-v24.14.0-win-x64/node.exe` (не в
 - НЕ додумывать требования — спрашивать
 
 ### Тестирование
-- `node test.js` — 36 проверок (синтаксис, данные, HTML, шаблоны, deploy, навигация)
+- `node test.js` — проверки (синтаксис, данные, HTML, шаблоны, deploy, навигация)
 - Хук автоматически запускает тесты после Edit/Write в `analytics.js` или `src/`
 - `watch-test.js` — следит за файлами и запускает тесты из любого чата/IDE
 - Все тесты должны быть зелёными перед показом результата
-
-### Структура проекта (v10.0 модульная, макс ~500 строк/файл)
-```
-analytics.js                    — обёртка: require('./src/index')
-src/
-  utils/config.js         (64)  — константы, ALLOWED_TEMPLATES, DEAL_FIELDS
-  utils/helpers.js        (112) — утилиты, normalizePhone
-  api/planfix.js          (138) — Planfix API, getAllTasks
-  api/whisper.js          (84)  — транскрибация Whisper
-  api/deepseek.js         (76)  — ИИ-чат (DeepSeek/Polza)
-  core/cache.js           (31)  — кэш AI + транскрибаций
-  core/transcription.js   (16)  — extractTranscription
-  core/scoring.js         (62)  — баллы ЗП
-  core/deals.js           (711) — buildDealCards, загрузка, фильтрация
-  core/assessment.js      (399) — ИИ-оценка сделки (промпт, парсинг)
-  core/manager-report.js  (179) — ИИ итог дня + отчёт руководителя
-  core/funnel.js          (50)  — снимки воронки, сравнение
-  report/html.js          (285) — обёртка HTML, CSS, склейка вкладок
-  report/dashboard.js     (140) — мульти-менеджерский дашборд
-  report/tabs/shared.js         — общие клиентские функции
-  report/tabs/day.js            — вкладка "День"
-  report/tabs/deals.js          — вкладка "Все сделки"
-  report/tabs/quality.js        — вкладка "Качество"
-  report/tabs/daily.js          — вкладка "Ежедневные"
-  report/tabs/funnel.js         — вкладка "Воронка"
-  report/tabs/stats.js          — вкладка "Статистика"
-  report/tabs/incoming.js       — вкладка "Входящие"
-  report/tabs/manager.js        — вкладка "Руководитель"
-  index.js                (259) — CLI, main()
-test.js                         — тесты (36 проверок)
-watch-test.js                   — file watcher для автотестов
-TASKS.md                        — план задач (читать перед работой!)
-```
 
 ### Общие правила
 - Все долгие команды запускать в фоне (run_in_background)

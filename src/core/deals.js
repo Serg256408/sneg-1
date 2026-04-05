@@ -1702,4 +1702,4 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
   };
 }
 
-module.exports = { getManagerDeals, getDealComments, buildDealCards, buildCompanyMeasurementsBundle };
+module.exports = { getManagerDeals, getDealComments, parseComment, buildDealCards, buildCompanyMeasurementsBundle };
