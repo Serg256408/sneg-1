@@ -61,6 +61,18 @@ jobs:
             node analytics.js "$MANAGER" "$TODAY"
           fi
 
+      - name: Verify reports
+        if: always()
+        continue-on-error: true
+        env:
+          PLANFIX_URL: ${{ secrets.PLANFIX_URL }}
+          PLANFIX_TOKEN: ${{ secrets.PLANFIX_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          TODAY=$(TZ=Europe/Moscow date +%d-%m-%Y)
+          node verify.js --all "$TODAY"
+
       - name: Commit data files
         if: always()
         run: |

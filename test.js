@@ -192,6 +192,32 @@ for (const mgr of managers) {
   });
 }
 
+// ============ 7. Верификатор ============
+
+test('7.1 verify.js — с��нтаксис', () => {
+  require('child_process').execSync('node --check verify.js');
+});
+
+test('7.2 src/core/verify.js — синтаксис', () => {
+  require('child_process').execSync('node --check src/core/verify.js');
+});
+
+test('7.3 src/api/telegram.js — синтаксис', () => {
+  require('child_process').execSync('node --check src/api/telegram.js');
+});
+
+test('7.4 verify.js — экспорты', () => {
+  const v = require('./src/core/verify');
+  assert(typeof v.verifyManagerReport === 'function', 'verifyManagerReport не экспортирован');
+  assert(typeof v.formatTelegram === 'function', 'formatTelegram не экспортирован');
+});
+
+test('7.5 telegram.js — экспорты', () => {
+  const t = require('./src/api/telegram');
+  assert(typeof t.sendTelegramMessage === 'function', 'sendTelegramMessage не экспортирован');
+  assert(typeof t.isTelegramConfigured === 'function', 'isTelegramConfigured не экспортирова��');
+});
+
 // ИТОГО
 console.log('\n' + results.join('\n'));
 console.log(`\n${'='.repeat(40)}`);

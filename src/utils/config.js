@@ -15,6 +15,8 @@ const TOKEN = (process.env.PLANFIX_TOKEN || '').trim();
 const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
 const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY || '';
 const POLZA_KEY = process.env.POLZA_API_KEY || OPENAI_KEY;
+const TELEGRAM_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
+const TELEGRAM_CHAT_ID = (process.env.TELEGRAM_CHAT_ID || '').trim();
 
 const TRANSCRIPTION_CACHE_FILE = path.join(ROOT_DIR, 'transcriptions_cache.json');
 const AI_CACHE_FILE = path.join(ROOT_DIR, 'ai_cache.json');
@@ -55,6 +57,7 @@ const FUNNEL_ORDER = [
 
 module.exports = {
   ROOT_DIR, API_URL, TOKEN, OPENAI_KEY, DEEPSEEK_KEY, POLZA_KEY, AUTH,
+  TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
   TRANSCRIPTION_CACHE_FILE, AI_CACHE_FILE,
   MANAGERS_FILE, MANAGERS_LIST, MANAGERS,
   CONCURRENCY, START_TIME, isCI, TIME_LIMIT_MS, MAX_DAYS_CI,
