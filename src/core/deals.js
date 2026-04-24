@@ -1068,35 +1068,57 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
 
     const rawComments = [];
     let offset = 0;
+    let hadFatalError = false;
 
-    try {
-      while (true) {
-        const d = await pf(`/contact/${contactId}/comments/list`, {
-          offset,
-          pageSize: 100,
-          fields: 'id,description,dateTime,owner,files',
-        });
-
-        const comments = d.comments || [];
-        rawComments.push(...comments);
-        if (comments.length < 100) break;
-        offset += 100;
+    while (true) {
+      let d = null;
+      for (let attempt = 1; attempt <= 4; attempt++) {
+        try {
+          d = await pf(`/contact/${contactId}/comments/list`, {
+            offset,
+            pageSize: 100,
+            fields: 'id,description,dateTime,owner,files',
+          });
+          break;
+        } catch (e) {
+          if (attempt < 4) {
+            await sleep(1500 * attempt);
+            continue;
+          }
+          const msg = e?.message || e;
+          if (!offset) {
+            console.log(`    ⚠️ Contact ${contactId}: не удалось загрузить комментарии (${msg})`);
+            hadFatalError = true;
+          } else {
+            console.log(`    ⚠️ Contact ${contactId}: остановка на offset=${offset} (${msg}), использую частичные данные`);
+          }
+        }
       }
 
-      await preloadReportDayCallTranscriptions(rawComments, reportDate, transcriptionCache, transcriptionStats);
-      const parsedCalls = [];
-      for (const c of rawComments) {
-        const parsed = await parseComment(c, reportDate, transcriptionCache, true);
-        if (parsed.type !== 'outCall' && parsed.type !== 'inCall' && parsed.type !== 'ndz') continue;
-        parsedCalls.push({ ...parsed, source: 'contact' });
-      }
+      if (!d) break;
 
-      contactCallCache[contactId] = parsedCalls;
-      return parsedCalls;
-    } catch {
+      const comments = d.comments || [];
+      rawComments.push(...comments);
+      if (comments.length < 100) break;
+      offset += 100;
+      await sleep(250);
+    }
+
+    if (hadFatalError || !rawComments.length) {
       contactCallCache[contactId] = [];
       return [];
     }
+
+    await preloadReportDayCallTranscriptions(rawComments, reportDate, transcriptionCache, transcriptionStats);
+    const parsedCalls = [];
+    for (const c of rawComments) {
+      const parsed = await parseComment(c, reportDate, transcriptionCache, true);
+      if (parsed.type !== 'outCall' && parsed.type !== 'inCall' && parsed.type !== 'ndz') continue;
+      parsedCalls.push({ ...parsed, source: 'contact' });
+    }
+
+    contactCallCache[contactId] = parsedCalls;
+    return parsedCalls;
   }
 
   async function loadContactCalls(contactId, taskId) {
