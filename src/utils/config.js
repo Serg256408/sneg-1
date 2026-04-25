@@ -12,9 +12,9 @@ const ROOT_DIR = path.join(__dirname, '..', '..');
 
 const API_URL = (process.env.PLANFIX_URL || '').trim().replace(/\/+$/, '');
 const TOKEN = (process.env.PLANFIX_TOKEN || '').trim();
-const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
-const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY || '';
-const POLZA_KEY = process.env.POLZA_API_KEY || OPENAI_KEY;
+const OPENAI_KEY = (process.env.OPENAI_API_KEY || '').trim();
+const DEEPSEEK_KEY = (process.env.DEEPSEEK_API_KEY || '').trim();
+const POLZA_KEY = (process.env.POLZA_API_KEY || '').trim();
 const TELEGRAM_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
 const TELEGRAM_CHAT_ID = (process.env.TELEGRAM_CHAT_ID || '').trim();
 
