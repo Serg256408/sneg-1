@@ -2,7 +2,7 @@
 // html.js — Генерация HTML-отчёта
 // ============================================================
 
-const { API_URL, TOKEN } = require('../utils/config');
+const { API_URL, TOKEN, FUNNEL_ORDER } = require('../utils/config');
 const { loadAiCache } = require('../core/cache');
 
 
@@ -61,6 +61,160 @@ function buildStatsFromMultiDay(multiDayActivity) {
   }));
 }
 
+function dmyToTime(date) {
+  const m = String(date || '').match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (!m) return 0;
+  return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1])).getTime();
+}
+
+function movementDirection(from, to) {
+  const fromIdx = FUNNEL_ORDER.indexOf(from);
+  const toIdx = FUNNEL_ORDER.indexOf(to);
+  if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return 'unknown';
+  return toIdx > fromIdx ? 'forward' : 'backward';
+}
+
+function createMovementDay(date) {
+  return {
+    date,
+    dealIds: new Set(),
+    newDealIds: new Set(),
+    oldDealIds: new Set(),
+    outCalls: 0,
+    inCalls: 0,
+    ndz: 0,
+    movedForward: 0,
+    movedBackward: 0,
+    movedUnknown: 0,
+    statusCounts: {},
+  };
+}
+
+function addUniqueMovement(movements, seen, movement) {
+  if (!movement.dealId || !movement.to) return;
+  const key = `${movement.date || ''}|${movement.dealId}|${movement.from || ''}|${movement.to || ''}`;
+  if (seen.has(key)) return;
+  seen.add(key);
+  movements.push(movement);
+}
+
+function buildDealMovementData(data) {
+  const daily = {};
+  const movements = [];
+  const movementSeen = new Set();
+  const lastByDeal = new Map();
+  const dealLatest = new Map();
+  const multiDay = data.multiDayActivity || {};
+  const dates = Object.keys(multiDay).sort((a, b) => dmyToTime(a) - dmyToTime(b));
+
+  for (const date of dates) {
+    const entries = multiDay[date] || [];
+    if (!daily[date]) daily[date] = createMovementDay(date);
+    const day = daily[date];
+
+    for (const entry of entries) {
+      const deal = entry?.deal || {};
+      const dealId = Number(deal.id || 0);
+      if (!dealId) continue;
+
+      const status = deal.status || '?';
+      const dateCreated = deal.dateCreated || '';
+      const isNew = !!entry.isNew || (dateCreated && dateCreated === date);
+      const sum = Number(deal.dealSum || 0) || 0;
+
+      day.dealIds.add(dealId);
+      if (isNew) day.newDealIds.add(dealId);
+      else day.oldDealIds.add(dealId);
+      day.statusCounts[status] = (day.statusCounts[status] || 0) + 1;
+
+      dealLatest.set(dealId, {
+        id: dealId,
+        name: deal.name || '?',
+        status,
+        counterparty: deal.counterparty || '',
+        sum,
+        lastDate: date,
+        dateCreated,
+      });
+
+      for (const action of (entry.actions || [])) {
+        if (action.type === 'outCall') day.outCalls++;
+        else if (action.type === 'inCall') day.inCalls++;
+        else if (action.type === 'ndz') day.ndz++;
+      }
+
+      const prev = lastByDeal.get(dealId);
+      if (prev && prev.status && status && prev.status !== status) {
+        const direction = movementDirection(prev.status, status);
+        addUniqueMovement(movements, movementSeen, {
+          date,
+          dealId,
+          dealName: deal.name || prev.name || '?',
+          counterparty: deal.counterparty || prev.counterparty || '',
+          sum,
+          from: prev.status,
+          to: status,
+          direction,
+          source: 'history',
+        });
+        if (direction === 'forward') day.movedForward++;
+        else if (direction === 'backward') day.movedBackward++;
+        else day.movedUnknown++;
+      }
+
+      lastByDeal.set(dealId, {
+        status,
+        name: deal.name || '?',
+        counterparty: deal.counterparty || '',
+      });
+    }
+  }
+
+  const reportDate = data.reportDate || dates[dates.length - 1] || '';
+  if (reportDate && !daily[reportDate]) daily[reportDate] = createMovementDay(reportDate);
+  for (const change of (data.funnelChanges || [])) {
+    const direction = change.direction || movementDirection(change.from, change.to);
+    const date = reportDate;
+    addUniqueMovement(movements, movementSeen, {
+      date,
+      dealId: Number(change.dealId || 0),
+      dealName: change.dealName || '?',
+      counterparty: change.counterparty || '',
+      sum: Number(change.dealSum || change.sum || 0) || 0,
+      from: change.from || '',
+      to: change.to || '',
+      direction,
+      source: 'snapshot',
+    });
+    if (daily[date]) {
+      if (direction === 'forward') daily[date].movedForward++;
+      else if (direction === 'backward') daily[date].movedBackward++;
+      else daily[date].movedUnknown++;
+    }
+  }
+
+  const dailyArray = Object.values(daily)
+    .map(day => ({
+      date: day.date,
+      dealsWorked: day.dealIds.size,
+      newDeals: day.newDealIds.size,
+      oldDeals: day.oldDealIds.size,
+      outCalls: day.outCalls,
+      inCalls: day.inCalls,
+      ndz: day.ndz,
+      movedForward: day.movedForward,
+      movedBackward: day.movedBackward,
+      movedUnknown: day.movedUnknown,
+      dealIds: [...day.dealIds],
+      newDealIds: [...day.newDealIds],
+      statusCounts: day.statusCounts,
+    }))
+    .sort((a, b) => dmyToTime(a.date) - dmyToTime(b.date));
+
+  const latestDeals = [...dealLatest.values()].sort((a, b) => dmyToTime(b.lastDate) - dmyToTime(a.lastDate));
+  return { daily: dailyArray, movements, latestDeals, statusOrder: FUNNEL_ORDER };
+}
+
 function generateHtml(managerName, data, allManagers, navMode = 'root') {
   // Статистика из multiDayActivity (ИИ-оценки) + операционные данные
   const statsData = buildStatsFromMultiDay(data.multiDayActivity);
@@ -100,7 +254,8 @@ function generateHtml(managerName, data, allManagers, navMode = 'root') {
       const dealId = da.deal ? da.deal.id : 0;
       if (os.dealsWorked.has(dealId)) continue; // уже из dealCards
       os.dealsWorked.add(dealId);
-      os.oldDeals.add(dealId);
+      const isNewOnDay = !!da.isNew || da.deal?.dateCreated === date;
+      if (isNewOnDay) os.newDeals.add(dealId); else os.oldDeals.add(dealId);
       for (const a of (da.actions || [])) {
         if (a.type === 'outCall') os.outCalls++;
         else if (a.type === 'inCall') os.inCalls++;
@@ -118,9 +273,11 @@ function generateHtml(managerName, data, allManagers, navMode = 'root') {
   });
   data.statsData = statsData;
   data.opsStats = opsArray;
+  data.dealMovementData = buildDealMovementData(data);
   // Статусы воронки для статистики
   const statusCounts = {};
-  for (const card of (data.dealCards || [])) { statusCounts[card.status] = (statusCounts[card.status] || 0) + 1; }
+  const statusSource = (data.funnelCards && data.funnelCards.length) ? data.funnelCards : (data.dealCards || []);
+  for (const card of statusSource) { statusCounts[card.status] = (statusCounts[card.status] || 0) + 1; }
   data.statusCounts = statusCounts;
   // Безопасная сериализация JSON для встраивания в <script>
   const json = JSON.stringify(data)

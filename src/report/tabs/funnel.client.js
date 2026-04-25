@@ -1,9 +1,10 @@
 function renderFunnel(){
-  const funnel={};D.dealCards.forEach(d=>{funnel[d.status]=(funnel[d.status]||0)+1});
+  const funnelSource=(D.funnelCards&&D.funnelCards.length)?D.funnelCards:D.dealCards;
+  const funnel={};funnelSource.forEach(d=>{funnel[d.status]=(funnel[d.status]||0)+1});
   const order=['Новая','Обработка','В работе','Коммерческое предложение','Вывезли/Нашли поставщика','Дожим','Договор и оплата','Выполнение Работы','Сделанная','Сделка завершена'];
   const max=Math.max(...Object.values(funnel),1);
 
-  let h='<div class="sec"><h3>📊 Воронка ('+D.dealCards.length+')</h3>';
+  let h='<div class="sec"><h3>📊 Воронка ('+funnelSource.length+')</h3>';
   [...order,...Object.keys(funnel).filter(k=>!order.includes(k))].forEach(s=>{
     const n=funnel[s]||0;if(!n)return;
     const pct=Math.round(n/max*100);const good=['Договор и оплата','Выполнение Работы','Сделка завершена','Сделанная'].includes(s);

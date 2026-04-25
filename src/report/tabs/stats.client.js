@@ -13,6 +13,36 @@ function extractMovedStatus(text){
 
 function collectMovedToStatuses(){
   var movedTo={};
+  var movementData=D.dealMovementData||{};
+  var movements=(movementData.movements||[]).filter(function(m){return inStatRange(m.date);});
+  if(movements.length){
+    movements.forEach(function(m){
+      var status=m.to||'?';
+      var dealId=m.dealId||0;
+      if(!status||!dealId)return;
+      if(!movedTo[status])movedTo[status]={count:0,sum:0,deals:[],ids:{}};
+      var key=dealId+'_'+(m.from||'')+'_'+status+'_'+(m.date||'');
+      if(movedTo[status].ids[key])return;
+      movedTo[status].ids[key]=true;
+      movedTo[status].count++;
+      movedTo[status].sum+=(m.sum||0);
+      movedTo[status].deals.push({
+        id:dealId,
+        name:m.dealName||'?',
+        sum:m.sum||0,
+        counterparty:m.counterparty||'',
+        moveDate:m.date||'',
+        from:m.from||'',
+        to:status,
+        direction:m.direction||'unknown'
+      });
+    });
+    return Object.keys(movedTo).reduce(function(acc,status){
+      var item=movedTo[status];
+      acc[status]={count:item.count,sum:item.sum,deals:item.deals};
+      return acc;
+    },{});
+  }
   var dealLookup={};
   (D.dealCards||[]).forEach(function(card){dealLookup[card.id]=card;});
 
@@ -91,6 +121,15 @@ function renderStats(){
   // Фильтрация по выбранному периоду
   const st=stAll.filter(s=>inStatRange(s.date));
   const ops=opsAll.filter(o=>inStatRange(o.date));
+  const movementData=D.dealMovementData||{};
+  const movementDaily=(movementData.daily||[]).filter(d=>inStatRange(d.date));
+  const movementRows=(movementData.movements||[]).filter(m=>inStatRange(m.date));
+  const periodDealIds={};
+  const periodNewIds={};
+  movementDaily.forEach(function(d){
+    (d.dealIds||[]).forEach(function(id){periodDealIds[id]=true;});
+    (d.newDealIds||[]).forEach(function(id){periodNewIds[id]=true;});
+  });
 
   let h='';
 
@@ -105,18 +144,21 @@ function renderStats(){
   h+='<input type="date" id="st" value="'+(statTo||'')+'" onchange="statDateChanged()" style="background:#fff;border:1px solid rgba(0,0,0,.1);color:#1a1a2e;padding:4px 8px;border-radius:6px;font-size:11px;font-family:inherit">';
   h+='</div></div>';
 
-  if(!ops.length&&!st.length){
+  if(!ops.length&&!st.length&&!movementDaily.length&&!movementRows.length){
     h+='<div class="no-data">Нет данных за выбранный период</div>';
     document.getElementById('out').innerHTML=h;return;
   }
 
   // === СВОДКА ЗА ПЕРИОД ===
-  const totalOutC=ops.reduce((a,o)=>a+o.outCalls,0);
-  const totalInC=ops.reduce((a,o)=>a+o.inCalls,0);
+  const dailySource=movementDaily.length?movementDaily:ops;
+  const totalOutC=dailySource.reduce((a,o)=>a+(o.outCalls||0),0);
+  const totalInC=dailySource.reduce((a,o)=>a+(o.inCalls||0),0);
   const totalCallMin=ops.reduce((a,o)=>a+o.callMinutes,0);
-  const totalWorked=ops.reduce((a,o)=>a+o.dealsWorked,0);
-  const totalNewD=ops.reduce((a,o)=>a+o.newDeals,0);
-  const totalOldD=ops.reduce((a,o)=>a+o.oldDeals,0);
+  const totalWorked=movementDaily.length?Object.keys(periodDealIds).length:ops.reduce((a,o)=>a+o.dealsWorked,0);
+  const totalNewD=movementDaily.length?Object.keys(periodNewIds).length:ops.reduce((a,o)=>a+o.newDeals,0);
+  const totalOldD=Math.max(0,totalWorked-totalNewD);
+  const totalForward=movementRows.filter(m=>m.direction==='forward').length;
+  const totalBackward=movementRows.filter(m=>m.direction==='backward').length;
   const totalAiDeals=st.reduce((a,s)=>a+s.deals,0);
   const totalScore=st.reduce((a,s)=>a+s.totalScore,0);
   const maxScore=st.reduce((a,s)=>a+s.maxScore,0);
@@ -127,9 +169,11 @@ function renderStats(){
   h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px">';
   const mets=[
     {l:'Рабочих дней',v:ops.length,c:'#60a5fa'},
-    {l:'Обработано сделок',v:totalWorked,c:'#a78bfa'},
+    {l:'Уникальных сделок',v:totalWorked,c:'#a78bfa'},
     {l:'Новых',v:totalNewD,c:'#c084fc'},
-    {l:'Старых',v:totalOldD,c:'#818cf8'},
+    {l:'Повторных',v:totalOldD,c:'#818cf8'},
+    {l:'Вперёд по воронке',v:totalForward,c:'#16a34a'},
+    {l:'Назад/откат',v:totalBackward,c:'#ef4444'},
     {l:'Исходящих',v:totalOutC,c:'#34d399'},
     {l:'Входящих',v:totalInC,c:'#60a5fa'},
     {l:'Время звонков',v:totalCallMin+'м',c:'#818cf8'},
@@ -150,6 +194,18 @@ function renderStats(){
     if(d.dateCreated && inStatRange(d.dateCreated))return true;
     return false;
   });
+  if(!periodDeals.length && movementData.latestDeals&&movementData.latestDeals.length){
+    periodDeals=movementData.latestDeals.filter(function(d){return inStatRange(d.lastDate);}).map(function(d){
+      return {
+        id:d.id,
+        name:d.name,
+        status:d.status,
+        counterparty:d.counterparty,
+        dealSum:d.sum||0,
+        dateCreated:d.dateCreated||''
+      };
+    });
+  }
   var statusData={};
   periodDeals.forEach(function(d){
     var s=d.status||'?';
@@ -163,8 +219,9 @@ function renderStats(){
   var totalSumAll=periodDeals.reduce(function(s,d){return s+(d.dealSum||0);},0);
   var maxStCount=Math.max.apply(null,allStatuses.map(function(s){return statusData[s].count;}))||1;
 
-  h+='<div class="sec"><h3>📊 Текущие статусы сделок с активностью за период ('+totalDealsAll+' из '+D.dealCards.length+')</h3>';
-  h+='<p style="color:#6b7280;font-size:12px;margin-bottom:10px">Здесь показано текущее состояние сделок с активностью за выбранный период, а не переходы между этапами</p>';
+  var funnelTotal=(D.funnelCards&&D.funnelCards.length)?D.funnelCards.length:D.dealCards.length;
+  if(!funnelTotal)funnelTotal=totalDealsAll;
+  h+='<div class="sec"><h3>📊 Срез статусов сделок с активностью за период ('+totalDealsAll+' из '+funnelTotal+')</h3>';
   h+='<div style="overflow-x:auto"><table>';
   h+='<tr><th>Статус</th><th style="text-align:center">Сделок</th><th style="text-align:right">Сумма</th><th style="text-align:right">%</th><th style="width:30%"></th></tr>';
   for(var si=0;si<allStatuses.length;si++){
@@ -246,6 +303,7 @@ function renderStats(){
       var dd=mv.deals[di3];
       h+='<tr style="background:rgba(0,0,0,.02)"><td style="padding-left:28px;font-size:11px;color:#6b7280">';
       h+='↳ <span style="color:#60a5fa;font-weight:600">#'+dd.id+'</span> '+esc((dd.name||'').substring(0,50));
+      if(dd.from) h+=' <span style="color:#9ca3af">('+esc(dd.from)+' → '+esc(dd.to||ps.key)+')</span>';
       if(dd.counterparty) h+=' <span style="color:#9ca3af">— '+esc(dd.counterparty.substring(0,25))+'</span>';
       if(dd.moveDate) h+=' <span style="color:#9ca3af">• '+esc(dd.moveDate)+'</span>';
       h+='</td><td></td>';
@@ -265,6 +323,7 @@ function renderStats(){
       var dd2=mv.deals[di4];
       h+='<tr style="background:rgba(0,0,0,.02)"><td style="padding-left:28px;font-size:11px;color:#6b7280">';
       h+='↳ <span style="color:#60a5fa;font-weight:600">#'+dd2.id+'</span> '+esc((dd2.name||'').substring(0,50));
+      if(dd2.from) h+=' <span style="color:#9ca3af">('+esc(dd2.from)+' → '+esc(dd2.to||s)+')</span>';
       if(dd2.moveDate) h+=' <span style="color:#9ca3af">• '+esc(dd2.moveDate)+'</span>';
       h+='</td>';
       h+='<td></td><td style="text-align:right;font-size:11px;color:#fbbf24">'+(dd2.sum?fmt(dd2.sum)+' ₽':'—')+'</td></tr>';
@@ -285,29 +344,33 @@ function renderStats(){
   // === АКТИВНОСТЬ ПО ДНЯМ — большая таблица ===
   h+='<div class="sec"><h3>📅 Активность менеджера по дням</h3>';
   h+='<div style="overflow-x:auto"><table>';
-  h+='<tr><th>Дата</th><th>Сделок</th><th>Новых</th><th>Старых</th><th>📤 Исх.</th><th>📥 Вх.</th><th>⏱ Мин</th><th>Ср.балл</th></tr>';
+  h+='<tr><th>Дата</th><th>Сделок</th><th>Новых</th><th>Повторных</th><th>Вперёд</th><th>Назад</th><th>📤 Исх.</th><th>📥 Вх.</th><th>⏱ Мин</th><th>Ср.балл</th></tr>';
   // Merge ops and st by date
-  const allDates=[...new Set([...ops.map(o=>o.date),...st.map(s=>s.date)])].sort((a,b)=>{
+  const allDates=[...new Set([...dailySource.map(o=>o.date),...st.map(s=>s.date)])].sort((a,b)=>{
     const pa=a.split('-'),pb=b.split('-');
     return new Date(pa[2]+'-'+pa[1]+'-'+pa[0])-new Date(pb[2]+'-'+pb[1]+'-'+pb[0]);
   });
-  let totDeals=0,totNew=0,totOld=0,totOut=0,totIn=0,totMin=0,totScore=0,totScoreDays=0;
+  let totDeals=0,totNew=0,totOld=0,totFwd=0,totBack=0,totOut=0,totIn=0,totMin=0,totScore=0,totScoreDays=0;
   for(const date of allDates){
-    const o=ops.find(x=>x.date===date)||{outCalls:0,inCalls:0,callMinutes:0,dealsWorked:0,newDeals:0,oldDeals:0};
+    const o=dailySource.find(x=>x.date===date)||{outCalls:0,inCalls:0,callMinutes:0,dealsWorked:0,newDeals:0,oldDeals:0,movedForward:0,movedBackward:0};
+    const op=ops.find(x=>x.date===date)||{callMinutes:0};
     const s=st.find(x=>x.date===date);
     const avg=s?s.avgScore:'-';
     const col=s?(s.avgScore>=7?'#34d399':s.avgScore>=4?'#fbbf24':'#f87171'):'#64748b';
     totDeals+=o.dealsWorked;totNew+=o.newDeals;totOld+=o.oldDeals;
-    totOut+=o.outCalls;totIn+=o.inCalls;totMin+=o.callMinutes;
+    totFwd+=(o.movedForward||0);totBack+=(o.movedBackward||0);
+    totOut+=o.outCalls;totIn+=o.inCalls;totMin+=op.callMinutes||o.callMinutes||0;
     if(s){totScore+=s.avgScore;totScoreDays++;}
     h+='<tr>';
     h+='<td style="white-space:nowrap;font-weight:600">'+date+'</td>';
     h+='<td style="font-weight:700">'+o.dealsWorked+'</td>';
     h+='<td style="color:#c084fc">'+o.newDeals+'</td>';
     h+='<td style="color:#818cf8">'+o.oldDeals+'</td>';
+    h+='<td style="color:#16a34a;font-weight:700">'+(o.movedForward||0)+'</td>';
+    h+='<td style="color:#ef4444">'+(o.movedBackward||0)+'</td>';
     h+='<td style="color:#34d399;font-weight:700">'+o.outCalls+'</td>';
     h+='<td style="color:#60a5fa">'+o.inCalls+'</td>';
-    h+='<td style="color:#818cf8">'+o.callMinutes+'</td>';
+    h+='<td style="color:#818cf8">'+(op.callMinutes||o.callMinutes||0)+'</td>';
     h+='<td style="color:'+col+';font-weight:700">'+avg+'</td>';
     h+='</tr>';
   }
@@ -318,6 +381,8 @@ function renderStats(){
   h+='<td>'+totDeals+'</td>';
   h+='<td style="color:#c084fc">'+totNew+'</td>';
   h+='<td style="color:#818cf8">'+totOld+'</td>';
+  h+='<td style="color:#16a34a">'+totFwd+'</td>';
+  h+='<td style="color:#ef4444">'+totBack+'</td>';
   h+='<td style="color:#34d399">'+totOut+'</td>';
   h+='<td style="color:#60a5fa">'+totIn+'</td>';
   h+='<td style="color:#818cf8">'+totMin+'</td>';
@@ -397,7 +462,8 @@ function renderStats(){
   const allSt=[...order,...Object.keys(sc).filter(k=>!order.includes(k))].filter(k=>sc[k]);
   if(allSt.length){
     const maxSt=Math.max(...Object.values(sc),1);
-    h+='<div class="sec"><h3>📊 Воронка — текущее распределение ('+D.dealCards.length+' сделок)</h3>';
+    var funnelCount=(D.funnelCards&&D.funnelCards.length)?D.funnelCards.length:D.dealCards.length;
+    h+='<div class="sec"><h3>📊 Воронка — текущее распределение ('+funnelCount+' сделок)</h3>';
     for(const s of allSt){
       const n=sc[s]||0;
       const pct=Math.round(n/maxSt*100);

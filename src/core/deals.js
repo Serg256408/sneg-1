@@ -95,6 +95,74 @@ function taskHasMeasurementSignal(task) {
   );
 }
 
+function isAllowedDealTask(task) {
+  if (!task || task.parent?.id) return false;
+  const tplName = task.template?.name || '';
+  if (!tplName) return true;
+  return ALLOWED_TEMPLATES.some(at => tplName.toLowerCase().includes(at.toLowerCase()));
+}
+
+function getTaskDealSum(task) {
+  const cf = {};
+  for (const c of (task?.customFieldData || [])) cf[c.field.id] = { value: c.value, str: c.stringValue || '' };
+  return parseFloat(cf[67906]?.value || cf[67906]?.str || 0) || 0;
+}
+
+function makeFunnelCardFromTask(task) {
+  return {
+    id: task.id,
+    name: task.name,
+    status: task.status?.name || '?',
+    template: task.template?.name || '',
+    counterparty: task.counterparty?.name || '—',
+    dateCreated: task.dateTime?.date || task.dateCreated?.date || '',
+    dealSum: getTaskDealSum(task),
+    isActive: !SKIP_STATUSES.includes(task.status?.name || ''),
+  };
+}
+
+function upsertStatusSnapshot(dealHist, snapshot) {
+  if (!snapshot?.date || !snapshot.status) return;
+  if (!Array.isArray(dealHist.statusSnapshots)) dealHist.statusSnapshots = [];
+  const sameDate = dealHist.statusSnapshots.find(item => item.date === snapshot.date);
+  if (sameDate) {
+    Object.assign(sameDate, snapshot);
+  } else {
+    dealHist.statusSnapshots.push(snapshot);
+  }
+  dealHist.statusSnapshots.sort((a, b) => itemStamp(a) - itemStamp(b));
+}
+
+function getStatusSnapshotForDate(dealHist, dateDMY) {
+  const target = parsePfDate(dateDMY);
+  if (!target || !Array.isArray(dealHist?.statusSnapshots)) return null;
+  let best = null;
+  for (const snapshot of dealHist.statusSnapshots) {
+    const d = parsePfDate(snapshot.date);
+    if (!d || d > target) continue;
+    if (!best || d >= parsePfDate(best.date)) best = snapshot;
+  }
+  return best;
+}
+
+function rememberDealStatus(history, card, reportDate) {
+  if (!card?.id) return;
+  const deal = ensureDeal(history, card.id);
+  deal.name = card.name || deal.name || '?';
+  deal.status = card.status || deal.status || '?';
+  deal.counterparty = card.counterparty || deal.counterparty || '—';
+  deal.dateCreated = card.dateCreated || deal.dateCreated || '';
+  deal.dealSum = card.dealSum || deal.dealSum || 0;
+  upsertStatusSnapshot(deal, {
+    date: reportDate,
+    status: card.status || '?',
+    name: card.name || deal.name || '?',
+    counterparty: card.counterparty || deal.counterparty || '—',
+    dateCreated: deal.dateCreated || '',
+    dealSum: deal.dealSum || 0,
+  });
+}
+
 function collectMeasurementRelevantDealIds({ multiDayActivity, dealTasks, allManagerTasks }) {
   const ids = new Set();
 
@@ -690,19 +758,23 @@ function buildDayFromHistory(history, dateDMY, dealTasksMap, mgrPfName) {
       for (const c of (task.customFieldData || [])) cf[c.field.id] = { value: c.value };
     }
 
+    const statusSnapshot = getStatusSnapshotForDate(dealHist, dateDMY);
+    const createdDate = task?.dateTime?.date || task?.dateCreated?.date || statusSnapshot?.dateCreated || dealHist.dateCreated || '';
     const deal = task ? {
       id: task.id,
       name: task.name,
-      status: task.status?.name || '?',
+      status: statusSnapshot?.status || task.status?.name || '?',
       counterparty: task.counterparty?.name || '—',
-      dealSum: parseFloat(cf[67906]?.value || 0) || 0,
+      dateCreated: createdDate,
+      dealSum: statusSnapshot?.dealSum || parseFloat(cf[67906]?.value || 0) || 0,
       workDesc: extractWorkDesc(task.name),
     } : {
       id: Number(dealId),
-      name: dealHist.name || '?',
-      status: dealHist.status || '?',
-      counterparty: dealHist.counterparty || '—',
-      dealSum: 0,
+      name: statusSnapshot?.name || dealHist.name || '?',
+      status: statusSnapshot?.status || dealHist.status || '?',
+      counterparty: statusSnapshot?.counterparty || dealHist.counterparty || '—',
+      dateCreated: createdDate,
+      dealSum: statusSnapshot?.dealSum || dealHist.dealSum || 0,
       workDesc: '',
     };
 
@@ -721,7 +793,7 @@ function buildDayFromHistory(history, dateDMY, dealTasksMap, mgrPfName) {
 
     result.push({
       deal,
-      isNew: false,
+      isNew: !!(createdDate && createdDate === dateDMY),
       actions,
       dayCalls: actions.filter(a => a.type === 'outCall' || a.type === 'inCall' || a.type === 'ndz').length,
       planfixScript: null,
@@ -758,6 +830,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
 
   const emptyResult = {
     dealCards: [],
+    funnelCards: [],
     dailyReports: [],
     allCalls: [],
     allAnalyses: [],
@@ -813,6 +886,13 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     console.log(`  ⚠️ Все сделки менеджера не удалось загрузить: ${e.message}`);
   }
 
+  let lightTasks = [];
+  try {
+    lightTasks = await getLightTasks(userId);
+  } catch (e) {
+    console.log(`  ⚠️ Воронку не удалось загрузить полностью: ${e.message}`);
+  }
+
   if (!taskIds.length) {
     console.log('  ⚠️ Нет сделок в реестре за этот день');
     const multiDayActivity = { [reportDate]: [] };
@@ -857,13 +937,32 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       saveAiCache(aiCache);
     }
 
+    const funnelSource = lightTasks.length ? lightTasks : allManagerTasks;
+    const funnelCards = funnelSource.filter(isAllowedDealTask).map(makeFunnelCardFromTask);
+    const snapshotRoot = path.join(ROOT_DIR, 'funnel_snapshot.json');
+    let snapshotFile = snapshotRoot;
+    if (mgrAlias) {
+      const perManagerSnapshot = path.join(ROOT_DIR, 'data', `${mgrAlias}_funnel.json`);
+      if (!fs.existsSync(perManagerSnapshot) && fs.existsSync(snapshotRoot)) {
+        try { fs.copyFileSync(snapshotRoot, perManagerSnapshot); } catch {}
+      }
+      snapshotFile = perManagerSnapshot;
+    }
+    const prevSnapshot = loadPreviousSnapshot(snapshotFile);
+    const funnelChanges = computeFunnelChanges(prevSnapshot, funnelCards);
+    for (const card of funnelCards) rememberDealStatus(history, card, reportDate);
+    saveSnapshot(funnelCards, snapshotFile);
+
     const measurementData = await buildCompanyMeasurementsBundle(reportDate, history);
     saveHistory(history, reportDate);
     return {
       ...emptyResult,
+      funnelCards,
+      funnelChanges,
       multiDayActivity,
       multiDaySummary,
       managerSummaries,
+      snapshotDate: prevSnapshot?.date || null,
       ...measurementData,
       measurementsComparison: buildMeasurementsComparison(
         (measurementData.measurements || []).filter(matchesCurrentMeasurementManager),
@@ -930,18 +1029,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     }
   }
 
-  const dealTasks = [...dealTasksById.values()].filter(task => {
-    const tplName = task.template?.name || '';
-    if (!tplName) return true;
-    return ALLOWED_TEMPLATES.some(at => tplName.toLowerCase().includes(at.toLowerCase()));
-  });
-
-  let lightTasks = [];
-  try {
-    lightTasks = await getLightTasks(userId);
-  } catch (e) {
-    console.log(`  ⚠️ Воронку не удалось загрузить полностью: ${e.message}`);
-  }
+  const dealTasks = [...dealTasksById.values()].filter(isAllowedDealTask);
 
   const dailyReports = allManagerTasks
     .filter(task => !(task.parent && task.parent.id) && (task.name || '').startsWith('Отчет'))
@@ -1398,9 +1486,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
 
   for (const card of dealCards) {
     const deal = ensureDeal(history, card.id);
-    deal.name = card.name;
-    deal.status = card.status;
-    deal.counterparty = card.counterparty;
+    rememberDealStatus(history, card, reportDate);
     deal.comments = commentsByTask[card.id] || [];
     if (!deal.commentsPartial) deal.commentsLoaded = true;
     if (partialContactTasks.has(String(card.id))) {
@@ -1541,6 +1627,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
           name: card.name,
           status: card.status,
           counterparty: card.counterparty,
+          dateCreated: card.dateCreated,
           dealSum: card.dealSum || 0,
           workDesc: card.workDesc || '',
         },
@@ -1738,22 +1825,14 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     ? [
       ...dealCards,
       ...lightTasks
-        .filter(task => !activeCardIds.has(task.id) && !(task.parent && task.parent.id))
-        .filter(task => {
-          const tplName = task.template?.name || '';
-          if (!tplName) return true;
-          return ALLOWED_TEMPLATES.some(at => tplName.toLowerCase().includes(at.toLowerCase()));
-        })
-        .map(task => ({
-          id: task.id,
-          name: task.name,
-          status: task.status?.name || '?',
-          counterparty: task.counterparty?.name || '—',
-        })),
+        .filter(task => !activeCardIds.has(task.id))
+        .filter(isAllowedDealTask)
+        .map(makeFunnelCardFromTask),
     ]
     : dealCards;
 
   const funnelChanges = computeFunnelChanges(prevSnapshot, funnelCards);
+  for (const card of funnelCards) rememberDealStatus(history, card, reportDate);
   saveSnapshot(funnelCards, snapshotFile);
 
   const allCalls = dealCards.flatMap(card => card.calls);
@@ -1786,6 +1865,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     allCalls,
     allAnalyses,
     dailyActivity,
+    funnelCards,
     funnelChanges,
     scriptCompliance,
     dailyDealActivity: reportDayDeals,

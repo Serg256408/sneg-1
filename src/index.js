@@ -154,7 +154,7 @@ async function runForManager(mgr, reportDate) {
 
   const result = await buildDealCards(mgr.userId, reportDate, mgr.pfName);
   const {
-    dealCards, dailyReports, allCalls, allAnalyses, dailyActivity, funnelChanges, scriptCompliance,
+    dealCards, dailyReports, allCalls, allAnalyses, dailyActivity, funnelCards, funnelChanges, scriptCompliance,
     dailyDealActivity, aiDaySummaryText, multiDayActivity, multiDaySummary,
     measurements, measurementsSummary, measurementsComparison,
   } = result;
@@ -176,7 +176,7 @@ async function runForManager(mgr, reportDate) {
     managerPfName: mgr.pfName,
     managerAlias: mgr.alias,
     reportDate,
-    dealCards, dailyReports, dailyActivity, funnelChanges, scriptCompliance,
+    dealCards, dailyReports, dailyActivity, funnelCards: funnelCards || [], funnelChanges, scriptCompliance,
     dailyDealActivity, aiDaySummaryText,
     multiDayActivity, multiDaySummary,
     managerSummaries: result.managerSummaries || {},
