@@ -9,7 +9,7 @@ const { sleep, stripHtml, utcToMsk, timeToMinNode } = require('../utils/helpers'
 const { pf } = require('../api/planfix');
 const { loadAiCache } = require('./cache');
 const { getManagerDeals, getDealComments, parseComment } = require('./deals');
-const { extractTranscription } = require('./transcription');
+const { extractTranscription, hasCallRecordingFile } = require('./transcription');
 const { sendTelegramMessage, isTelegramConfigured } = require('../api/telegram');
 
 // ============ Утилиты ============
@@ -81,7 +81,7 @@ function classifyComment(c) {
   }
   const dt = utcToMsk(c.dateTime?.date, c.dateTime?.time);
   const transcription = extractTranscription(c.description || '');
-  const hasAudioFile = (c.files || []).some(f => /\.(mp3|mpga|mpeg|m4a|wav|ogg|oga|flac)$/i.test(f.name || ''));
+  const hasAudioFile = hasCallRecordingFile(c.files || []);
   return { id: c.id, date: dt.date, time: dt.time, type, owner: c.owner?.name || '', transcription, hasAudioFile };
 }
 
@@ -89,6 +89,7 @@ async function checkDealCallsCompleteness(reportData) {
   console.log('  🔍 Проверка 2: Полнота комментариев и звонков...');
   const dealResults = [];
   const dailyDeals = reportData.dailyDealActivity || [];
+  const reportDate = reportData.reportDate || '';
 
   for (const item of dailyDeals) {
     const dealId = item.deal?.id;
@@ -129,8 +130,9 @@ async function checkDealCallsCompleteness(reportData) {
     }
 
     // 4. Собираем ВСЕ звонки из Planfix (с дедупликацией)
-    const allPfCalls = [...pfDealCalls];
+    const allPfCalls = [...pfDealCalls].filter(call => !reportDate || call.date === reportDate);
     for (const call of [...pfSubtaskCalls, ...pfContactCalls]) {
+      if (reportDate && call.date !== reportDate) continue;
       const isDupe = allPfCalls.some(e =>
         isCallType(e.type) && e.date === call.date && Math.abs(timeToMinNode(e.time) - timeToMinNode(call.time)) < 5,
       );
@@ -139,7 +141,7 @@ async function checkDealCallsCompleteness(reportData) {
 
     // 5. Считаем звонки в отчёте
     const reportComments = item.allComments || dealCard?.comments || [];
-    const reportCalls = reportComments.filter(c => isCallType(c.type));
+    const reportCalls = reportComments.filter(c => isCallType(c.type) && (!reportDate || c.date === reportDate));
 
     // 6. Находим пропущенные
     const missingCalls = [];
@@ -160,7 +162,12 @@ async function checkDealCallsCompleteness(reportData) {
 
     dealResults.push({
       dealId, dealName,
-      planfix: { comments: pfDealParsed.length, calls: pfDealCalls.length, subtaskCalls: pfSubtaskCalls.length, contactCalls: pfContactCalls.length },
+      planfix: {
+        comments: pfDealParsed.length,
+        calls: pfDealCalls.filter(c => !reportDate || c.date === reportDate).length,
+        subtaskCalls: pfSubtaskCalls.filter(c => !reportDate || c.date === reportDate).length,
+        contactCalls: pfContactCalls.filter(c => !reportDate || c.date === reportDate).length,
+      },
       report: { comments: reportComments.length, calls: reportCalls.length },
       totalPfCalls: allPfCalls.length,
       missingCalls,
@@ -316,7 +323,7 @@ function formatTelegram(manager, reportDate, checks) {
   if (tr) {
     let detail = `${tr.transcribed} транскр.`;
     if (tr.ndz > 0) detail += `, ${tr.ndz} НДЗ`;
-    if (tr.untranscribed > 0) detail += `, ${tr.untranscribed} без записи`;
+    if (tr.untranscribed > 0) detail += `, ${tr.untranscribed} без расшифровки`;
     lines.push(`${statusIcon(tr.status)} Транскрибации: ${detail}`);
   }
 
