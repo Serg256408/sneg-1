@@ -48,6 +48,19 @@ function tagTaskComments(comments, task, source, parentId = null) {
   }));
 }
 
+function mergeCommentsById(baseComments, incomingComments) {
+  const byId = new Map();
+  for (const comment of baseComments || []) {
+    if (comment?.id == null) continue;
+    byId.set(String(comment.id), comment);
+  }
+  for (const comment of incomingComments || []) {
+    if (comment?.id == null) continue;
+    byId.set(String(comment.id), comment);
+  }
+  return [...byId.values()];
+}
+
 function firstDayOfYear(dateStr) {
   const d = parsePfDate(dateStr);
   if (!d || Number.isNaN(d.getTime())) return '01-01-1970';
@@ -242,15 +255,19 @@ async function parseCommentsForMeasurementReport(rawComments, reportDate, transc
 
 async function loadRootDealCommentsForMeasurements(task, history, reportDate, transcriptionCache) {
   const deal = ensureDeal(history, task.id);
-  const cached = deal.commentsLoaded && Array.isArray(deal.comments)
+  const existing = Array.isArray(deal.comments)
     ? tagTaskComments(deal.comments.filter(comment => !isAiComment(comment.text)), task, 'deal')
-    : null;
+    : [];
+  const cached = deal.commentsLoaded && existing.length ? existing : null;
   const cachedIds = new Set((deal.comments || []).map(comment => String(comment.id)));
   const junkRe = /закончились ai-кредит|не могу выполнить операцию|добавить ai-кредит/i;
 
   let raw = [];
+  let complete = true;
   try {
-    raw = await getDealComments(task.id);
+    const loaded = await getDealCommentsResult(task.id);
+    raw = loaded.comments;
+    complete = loaded.complete;
   } catch {}
 
   const needsWhisper = cached
@@ -260,25 +277,36 @@ async function loadRootDealCommentsForMeasurements(task, history, reportDate, tr
       hasCallRecordingFile(comment.files || []))
     : [];
 
-  if (cached && raw.length && raw.every(comment => cachedIds.has(String(comment.id))) && !needsWhisper.length) {
+  if (cached && complete && raw.length && raw.every(comment => cachedIds.has(String(comment.id))) && !needsWhisper.length) {
     return cached;
   }
 
-  if (!raw.length && cached) return cached;
+  if (!raw.length && (cached || existing.length)) return cached || existing;
 
   await preloadReportDayCallTranscriptions(raw, reportDate, transcriptionCache);
   const parsed = tagTaskComments(await parseCommentsForMeasurementReport(raw, reportDate, transcriptionCache), task, 'deal');
-  deal.comments = parsed;
-  deal.commentsLoaded = true;
-  return parsed;
+  deal.comments = complete ? parsed : mergeCommentsById(existing, parsed);
+  deal.commentsLoaded = complete;
+  deal.commentsPartial = !complete;
+  return deal.comments;
 }
 
 async function mergeMeasurementSubtaskComments({ rootTask, subtask, commentsByTask, reportDate, transcriptionCache, history }) {
   let raw = [];
+  let complete = true;
   try {
-    raw = await getDealComments(subtask.id);
+    const loaded = await getDealCommentsResult(subtask.id);
+    raw = loaded.comments;
+    complete = loaded.complete;
   } catch {}
-  if (!raw.length) return;
+  if (!raw.length) {
+    if (!complete) {
+      const deal = ensureDeal(history, rootTask.id);
+      deal.commentsLoaded = false;
+      deal.commentsPartial = true;
+    }
+    return;
+  }
 
   await preloadReportDayCallTranscriptions(raw, reportDate, transcriptionCache);
   const parsed = tagTaskComments(
@@ -297,7 +325,8 @@ async function mergeMeasurementSubtaskComments({ rootTask, subtask, commentsByTa
 
   const deal = ensureDeal(history, rootTask.id);
   deal.comments = commentsByTask[rootTask.id];
-  deal.commentsLoaded = true;
+  if (!complete) deal.commentsPartial = true;
+  deal.commentsLoaded = complete && deal.commentsLoaded !== false;
 }
 
 async function loadCompanyMeasurementSubtasks(rootTask, subtasksById, commentsByTask, reportDate, transcriptionCache, history) {
@@ -458,7 +487,7 @@ async function getManagerDeals(userId, reportDate) {
   return all;
 }
 
-async function getDealComments(taskId) {
+async function getDealCommentsResult(taskId) {
   const all = [];
   let offset = 0;
   while (true) {
@@ -477,7 +506,7 @@ async function getDealComments(taskId) {
           continue;
         }
         console.log(`    ⚠️ Комментарии #${taskId}: ${e.message}`);
-        return all;
+        return { comments: all, complete: false };
       }
     }
     const comments = d.comments || [];
@@ -486,12 +515,17 @@ async function getDealComments(taskId) {
     offset += 100;
     await sleep(300);
   }
-  return all;
+  return { comments: all, complete: true };
+}
+
+async function getDealComments(taskId) {
+  return (await getDealCommentsResult(taskId)).comments;
 }
 
 async function parseComment(c, reportDate, transcriptionCache, allowWhisper) {
   const desc = stripHtml(c.description);
   const dt = utcToMsk(c.dateTime?.date, c.dateTime?.time);
+  const allowNewTranscription = !!allowWhisper && dt.date === reportDate;
   let type = 'note';
   const descLow = desc.toLowerCase();
 
@@ -512,7 +546,7 @@ async function parseComment(c, reportDate, transcriptionCache, allowWhisper) {
   if (type === 'outCall' || type === 'inCall') {
     transcription = extractTranscription(c.description);
     if (!transcription && (POLZA_KEY || OPENAI_KEY) && transcriptionCache) {
-      transcription = await transcribeCallIfNeeded({ transcription, files: c.files || [] }, transcriptionCache, !!allowWhisper);
+      transcription = await transcribeCallIfNeeded({ transcription, files: c.files || [] }, transcriptionCache, allowNewTranscription);
     }
   }
 
@@ -521,7 +555,7 @@ async function parseComment(c, reportDate, transcriptionCache, allowWhisper) {
     const hasCallRecording = !!findCallAudioFile(cFiles);
     if (hasCallRecording) {
       type = 'inCall';
-      transcription = await transcribeCallIfNeeded({ transcription: null, files: cFiles }, transcriptionCache, !!allowWhisper);
+      transcription = await transcribeCallIfNeeded({ transcription: null, files: cFiles }, transcriptionCache, allowNewTranscription);
     }
   }
 
@@ -953,9 +987,10 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
 
     if (dealHist && dealHist.commentsLoaded && dealHist.comments && dealHist.comments.length) {
       const cached = tagTaskComments(dealHist.comments.filter(c => !isAiComment(c.text)), task, 'deal');
-      const cachedIds = new Set(cached.map(c => c.id));
-      const raw = await getDealComments(task.id);
-      const newComments = raw.filter(c => !cachedIds.has(c.id));
+      const cachedIds = new Set(cached.map(c => String(c.id)));
+      const loaded = await getDealCommentsResult(task.id);
+      const raw = loaded.comments;
+      const newComments = raw.filter(c => !cachedIds.has(String(c.id)));
       const junkRe = /закончились ai-кредит|не могу выполнить операцию|добавить ai-кредит/i;
       const needsWhisper = cached.filter(c =>
         (c.type === 'outCall' || c.type === 'inCall') &&
@@ -963,23 +998,31 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
         hasCallRecordingFile(c.files || []),
       );
 
-      if (newComments.length || needsWhisper.length) {
+      if (newComments.length || needsWhisper.length || !loaded.complete) {
         await preloadReportDayCallTranscriptions(raw, reportDate, transcriptionCache, transcriptionStats);
-        commentsByTask[task.id] = tagTaskComments(await parseAll(raw), task, 'deal');
+        const parsed = tagTaskComments(await parseAll(raw), task, 'deal');
+        commentsByTask[task.id] = loaded.complete ? parsed : mergeCommentsById(cached, parsed);
         const deal = ensureDeal(history, task.id);
         deal.comments = commentsByTask[task.id];
-        deal.commentsLoaded = true;
+        deal.commentsLoaded = loaded.complete;
+        deal.commentsPartial = !loaded.complete;
       } else {
         commentsByTask[task.id] = cached;
       }
       fromCache++;
     } else {
-      const raw = await getDealComments(task.id);
+      const existing = dealHist?.comments
+        ? tagTaskComments(dealHist.comments.filter(c => !isAiComment(c.text)), task, 'deal')
+        : [];
+      const loaded = await getDealCommentsResult(task.id);
+      const raw = loaded.comments;
       await preloadReportDayCallTranscriptions(raw, reportDate, transcriptionCache, transcriptionStats);
-      commentsByTask[task.id] = tagTaskComments(await parseAll(raw), task, 'deal');
+      const parsed = tagTaskComments(await parseAll(raw), task, 'deal');
+      commentsByTask[task.id] = loaded.complete ? parsed : mergeCommentsById(existing, parsed);
       const deal = ensureDeal(history, task.id);
       deal.comments = commentsByTask[task.id];
-      deal.commentsLoaded = true;
+      deal.commentsLoaded = loaded.complete;
+      deal.commentsPartial = !loaded.complete;
       fromApi++;
     }
 
@@ -994,22 +1037,32 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
   console.log('  📎 Подзадачи...');
   const loadedSubtaskIds = new Set();
   const walkedSubtaskParents = new Set();
+  const partialSubtaskRootIds = new Set();
 
   async function mergeSubtaskComments(subtask) {
     const parentId = subtask.parent?.id;
     if (!parentId || !dealTasksById.has(parentId)) return;
-    const raw = await getDealComments(subtask.id);
+    const loaded = await getDealCommentsResult(subtask.id);
+    const raw = loaded.comments;
     await preloadReportDayCallTranscriptions(raw, reportDate, transcriptionCache, transcriptionStats);
     const parsed = tagTaskComments(await parseAll(raw), subtask, 'subtask', parentId);
-    if (!parsed.length) return;
     if (!commentsByTask[parentId]) commentsByTask[parentId] = [];
+    if (!loaded.complete) {
+      const priorSubtaskComments = (history.deals[String(parentId)]?.comments || [])
+        .filter(c => String(c.sourceTaskId || '') === String(subtask.id));
+      commentsByTask[parentId] = mergeCommentsById(commentsByTask[parentId], priorSubtaskComments);
+      const deal = ensureDeal(history, parentId);
+      deal.commentsLoaded = false;
+      deal.commentsPartial = true;
+    }
+    if (!parsed.length) return;
     const parsedIds = new Set(parsed.map(c => String(c.id)));
     commentsByTask[parentId] = commentsByTask[parentId]
       .filter(c => !parsedIds.has(String(c.id)))
       .concat(parsed);
   }
 
-  async function loadChildSubtasksRecursive(parentId) {
+  async function loadChildSubtasksRecursive(parentId, rootId = parentId) {
     if (!parentId || walkedSubtaskParents.has(parentId)) return;
     walkedSubtaskParents.add(parentId);
 
@@ -1024,6 +1077,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
           fields: 'id,name,parent,status,dateTime,dataTags,template,assignees',
         });
       } catch {
+        partialSubtaskRootIds.add(String(rootId));
         return;
       }
 
@@ -1034,7 +1088,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
           loadedSubtaskIds.add(subtask.id);
           await mergeSubtaskComments(subtask);
         }
-        await loadChildSubtasksRecursive(subtask.id);
+        await loadChildSubtasksRecursive(subtask.id, rootId);
       }
 
       if (subtasks.length < 100) break;
@@ -1043,7 +1097,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
   }
 
   for (const task of dealTasks) {
-    await loadChildSubtasksRecursive(task.id);
+    await loadChildSubtasksRecursive(task.id, task.id);
   }
 
   for (const subtask of subtasksById.values()) {
@@ -1051,24 +1105,34 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       loadedSubtaskIds.add(subtask.id);
       await mergeSubtaskComments(subtask);
     }
-    await loadChildSubtasksRecursive(subtask.id);
+    await loadChildSubtasksRecursive(subtask.id, subtask.parent?.id || subtask.id);
   }
 
   for (const task of dealTasks) {
+    if (partialSubtaskRootIds.has(String(task.id))) {
+      const existing = history.deals[String(task.id)]?.comments || [];
+      commentsByTask[task.id] = mergeCommentsById(existing, commentsByTask[task.id] || []);
+    }
     commentsByTask[task.id] = (commentsByTask[task.id] || []).sort((a, b) => itemStamp(a) - itemStamp(b));
+    if (partialSubtaskRootIds.has(String(task.id))) {
+      const deal = ensureDeal(history, task.id);
+      deal.commentsLoaded = false;
+      deal.commentsPartial = true;
+    }
   }
   console.log('    ✅');
 
   console.log('  👤 Контрагенты...');
   const contactCallsByTask = {};
   const contactCallCache = {};
+  const partialContactTasks = new Set();
 
   async function getCachedContactCalls(contactId) {
     if (contactCallCache[contactId]) return contactCallCache[contactId];
 
     const rawComments = [];
     let offset = 0;
-    let hadFatalError = false;
+    let complete = true;
 
     while (true) {
       let d = null;
@@ -1088,9 +1152,10 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
           const msg = e?.message || e;
           if (!offset) {
             console.log(`    ⚠️ Contact ${contactId}: не удалось загрузить комментарии (${msg})`);
-            hadFatalError = true;
+            complete = false;
           } else {
             console.log(`    ⚠️ Contact ${contactId}: остановка на offset=${offset} (${msg}), использую частичные данные`);
+            complete = false;
           }
         }
       }
@@ -1104,9 +1169,9 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       await sleep(250);
     }
 
-    if (hadFatalError || !rawComments.length) {
-      contactCallCache[contactId] = [];
-      return [];
+    if (!rawComments.length) {
+      contactCallCache[contactId] = { calls: [], complete };
+      return contactCallCache[contactId];
     }
 
     await preloadReportDayCallTranscriptions(rawComments, reportDate, transcriptionCache, transcriptionStats);
@@ -1117,12 +1182,13 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       parsedCalls.push({ ...parsed, source: 'contact' });
     }
 
-    contactCallCache[contactId] = parsedCalls;
-    return parsedCalls;
+    contactCallCache[contactId] = { calls: parsedCalls, complete };
+    return contactCallCache[contactId];
   }
 
   async function loadContactCalls(contactId, taskId) {
-    const parsedCalls = await getCachedContactCalls(contactId);
+    const { calls: parsedCalls, complete } = await getCachedContactCalls(contactId);
+    if (!complete) partialContactTasks.add(String(taskId));
 
     for (const parsedBase of parsedCalls) {
       const parsed = { ...parsedBase };
@@ -1177,6 +1243,13 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
 
   for (const taskId of Object.keys(contactCallsByTask)) {
     contactCallsByTask[taskId].sort((a, b) => itemStamp(a) - itemStamp(b));
+  }
+
+  for (const taskId of partialContactTasks) {
+    const deal = history.deals[String(taskId)];
+    if (!deal?.contactCalls?.length) continue;
+    contactCallsByTask[taskId] = mergeCommentsById(deal.contactCalls, contactCallsByTask[taskId] || [])
+      .sort((a, b) => itemStamp(a) - itemStamp(b));
   }
   console.log('    ✅');
   console.log(`  🎤 Звонки дня без текста: ${transcriptionStats.queued} новых, ${transcriptionStats.transcribed} расшифровано, ${transcriptionStats.cached} взято из базы`);
@@ -1329,8 +1402,14 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     deal.status = card.status;
     deal.counterparty = card.counterparty;
     deal.comments = commentsByTask[card.id] || [];
-    deal.commentsLoaded = true;
-    deal.contactCalls = contactCallsByTask[card.id] || [];
+    if (!deal.commentsPartial) deal.commentsLoaded = true;
+    if (partialContactTasks.has(String(card.id))) {
+      deal.contactCalls = mergeCommentsById(deal.contactCalls || [], contactCallsByTask[card.id] || []);
+      deal.contactCallsPartial = true;
+    } else {
+      deal.contactCalls = contactCallsByTask[card.id] || [];
+      deal.contactCallsPartial = false;
+    }
   }
 
   const totalActive = lightTasks.length

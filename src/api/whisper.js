@@ -1,17 +1,14 @@
-// ============================================================
-// whisper.js — Транскрибация через Whisper (Polza.ai)
-// ============================================================
-
 const crypto = require('crypto');
-const { fs, path, os, API_URL, TOKEN, POLZA_KEY, isTimeUp } = require('../utils/config');
+const { fs, path, os, API_URL, TOKEN, OPENAI_KEY, POLZA_KEY, isTimeUp } = require('../utils/config');
 const {
   saveAiCache, loadAiCache, loadTranscriptionCache, saveTranscriptionCache,
 } = require('../core/cache');
 
-const MAX_WHISPER_PER_RUN = 70;
+const MAX_WHISPER_PER_RUN = parseInt(process.env.MAX_WHISPER_PER_RUN || '150', 10) || 150;
 let whisperCallsThisRun = 0;
 const AUDIO_EXT_RE = /\.(mp3|mpga|mpeg|m4a|mp4|wav|webm|ogg|oga|flac)$/i;
 const inFlightTranscriptions = new Map();
+let warnedNoTranscriptionProvider = false;
 
 function getFileName(file) {
   return String(file?.name || file?.fileName || '').trim();
@@ -103,8 +100,25 @@ function downloadPlanfixFile(fileId) {
   return null;
 }
 
-async function whisperTranscribe(audioPath) {
-  if (!POLZA_KEY) return null;
+function parseTranscriptionResponse(result, provider, model) {
+  const trimmed = String(result || '').trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed.error) {
+        console.log(`    Warning: ${provider} error (${model}): ${(parsed.error.message || '').substring(0, 100)}`);
+        return null;
+      }
+      const text = (parsed.text || parsed.transcription || '').trim();
+      return text || null;
+    } catch {}
+  }
+  if (trimmed.includes('"error"') || trimmed.includes('invalid_api_key') || trimmed.includes('Incorrect API key')) return null;
+  return trimmed;
+}
+
+async function polzaTranscribe(audioPath) {
   const { execFileSync } = require('child_process');
   const models = ['openai/whisper-1', 'openai/gpt-4o-mini-transcribe'];
   for (const model of models) {
@@ -118,23 +132,46 @@ async function whisperTranscribe(audioPath) {
         '-F', 'language=ru',
         '-F', 'response_format=json',
       ], { encoding: 'utf8', timeout: 120000 });
-      const trimmed = result.trim();
-      if (!trimmed) continue;
-      if (trimmed.startsWith('{')) {
-        try {
-          const parsed = JSON.parse(trimmed);
-          if (parsed.error) {
-            console.log(`    ⚠️ Whisper error (${model}): ${(parsed.error.message || '').substring(0, 80)}`);
-            continue;
-          }
-          const text = (parsed.text || parsed.transcription || '').trim();
-          if (text) return text;
-          continue;
-        } catch {}
-      }
-      if (trimmed.includes('"error"') || trimmed.includes('invalid_api_key') || trimmed.includes('Incorrect API key')) continue;
-      return trimmed;
+      const text = parseTranscriptionResponse(result, 'Polza Whisper', model);
+      if (text) return text;
     } catch {}
+  }
+  return null;
+}
+
+async function openaiTranscribe(audioPath) {
+  const { execFileSync } = require('child_process');
+  const models = ['gpt-4o-mini-transcribe', 'whisper-1'];
+  for (const model of models) {
+    try {
+      const result = execFileSync('curl', [
+        '-s', '-L', '--ssl-no-revoke',
+        'https://api.openai.com/v1/audio/transcriptions',
+        '-H', `Authorization: Bearer ${OPENAI_KEY}`,
+        '-F', `file=@${audioPath}`,
+        '-F', `model=${model}`,
+        '-F', 'language=ru',
+        '-F', 'response_format=json',
+      ], { encoding: 'utf8', timeout: 120000 });
+      const text = parseTranscriptionResponse(result, 'OpenAI Whisper', model);
+      if (text) return text;
+    } catch {}
+  }
+  return null;
+}
+
+async function whisperTranscribe(audioPath) {
+  if (POLZA_KEY) {
+    const text = await polzaTranscribe(audioPath);
+    if (text) return text;
+  }
+  if (OPENAI_KEY) {
+    const text = await openaiTranscribe(audioPath);
+    if (text) return text;
+  }
+  if (!POLZA_KEY && !OPENAI_KEY && !warnedNoTranscriptionProvider) {
+    console.log('    Warning: POLZA_API_KEY or OPENAI_API_KEY is not set, new calls cannot be transcribed');
+    warnedNoTranscriptionProvider = true;
   }
   return null;
 }
@@ -166,13 +203,13 @@ async function transcribeCallIfNeeded(comment, cache, allowNew) {
 
   whisperCallsThisRun++;
   if (whisperCallsThisRun === 1) {
-    console.log(`    🎤 Whisper: новых транскрибаций (лимит ${MAX_WHISPER_PER_RUN})...`);
+    console.log(`    Whisper: new transcriptions, limit ${MAX_WHISPER_PER_RUN}...`);
   }
 
   const run = (async () => {
     const audioPath = downloadPlanfixFile(audioFile.id);
     if (!audioPath) {
-      console.log(`    ⚠️ Whisper: не удалось скачать файл ${audioFile.id} (${audioFile.name})`);
+      console.log(`    Warning: failed to download Planfix file ${audioFile.id} (${audioFile.name})`);
       return null;
     }
 
