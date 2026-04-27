@@ -292,8 +292,121 @@ function checkHtmlFiles(alias, reportDate) {
 
 function statusIcon(s) { return s === 'pass' ? '✅' : s === 'warn' ? '⚠️' : '❌'; }
 
-function formatTelegram(manager, reportDate, checks) {
+function normalizeCallType(type) {
+  const t = String(type || '').toLowerCase();
+  if (t === 'outcall' || t.includes('исход')) return 'out';
+  if (t === 'incall' || t.includes('вход')) return 'in';
+  return 'other';
+}
+
+function formatDuration(seconds) {
+  const total = Math.max(0, Math.round(Number(seconds) || 0));
+  const minutes = Math.floor(total / 60);
+  const rest = total % 60;
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}ч ${String(mins).padStart(2, '0')}м`;
+  }
+  return `${minutes}м ${String(rest).padStart(2, '0')}с`;
+}
+
+function idSet(items, pickId) {
+  const ids = new Set();
+  for (const item of items || []) {
+    const id = pickId(item);
+    if (id) ids.add(String(id));
+  }
+  return ids;
+}
+
+function buildProductivitySummary(reportData, reportDate) {
+  if (!reportData) return null;
+
+  const calls = { outCount: 0, inCount: 0, otherCount: 0, outSeconds: 0, inSeconds: 0, totalSeconds: 0 };
+  for (const card of (reportData.dealCards || [])) {
+    for (const call of (card.calls || [])) {
+      if (call.date && call.date !== reportDate) continue;
+      const seconds = Number(call.duration || 0) || 0;
+      const type = normalizeCallType(call.type);
+      calls.totalSeconds += seconds;
+      if (type === 'out') {
+        calls.outCount += 1;
+        calls.outSeconds += seconds;
+      } else if (type === 'in') {
+        calls.inCount += 1;
+        calls.inSeconds += seconds;
+      } else {
+        calls.otherCount += 1;
+      }
+    }
+  }
+
+  const todayDeals = reportData.multiDayActivity?.[reportDate] || [];
+  if (!calls.outCount && !calls.inCount && todayDeals.length) {
+    for (const dayDeal of todayDeals) {
+      for (const action of (dayDeal.actions || [])) {
+        if (action.type === 'outCall') calls.outCount += 1;
+        else if (action.type === 'inCall') calls.inCount += 1;
+        else if (action.type === 'ndz') calls.otherCount += 1;
+      }
+    }
+  }
+
+  const daily = reportData.dailyActivity || {};
+  let newIds = idSet(daily.newDeals, d => d.id);
+  let workedIds = idSet([...(daily.newDeals || []), ...(daily.workedDeals || [])], d => d.id);
+  let newDeals = newIds.size;
+  let workedDeals = workedIds.size;
+  let oldDeals = [...workedIds].filter(id => !newIds.has(id)).length;
+
+  if (!workedDeals && todayDeals.length) {
+    newIds = idSet(todayDeals.filter(d => d.isNew), d => d.deal?.id);
+    workedIds = idSet(todayDeals, d => d.deal?.id);
+    newDeals = newIds.size;
+    workedDeals = workedIds.size;
+    oldDeals = [...workedIds].filter(id => !newIds.has(id)).length;
+  }
+
+  if (!workedDeals && (reportData.dailyDealActivity || []).length) {
+    newIds = idSet((reportData.dailyDealActivity || []).filter(d => d.isNew), d => d.deal?.id);
+    workedIds = idSet(reportData.dailyDealActivity, d => d.deal?.id);
+    newDeals = newIds.size;
+    workedDeals = workedIds.size;
+    oldDeals = [...workedIds].filter(id => !newIds.has(id)).length;
+  }
+
+  const movement = { total: 0, forward: 0, backward: 0, unknown: 0 };
+  for (const change of (reportData.funnelChanges || [])) {
+    movement.total += 1;
+    if (change.direction === 'forward') movement.forward += 1;
+    else if (change.direction === 'backward') movement.backward += 1;
+    else movement.unknown += 1;
+  }
+
+  return { calls, workedDeals, newDeals, oldDeals, movement };
+}
+
+function formatProductivityBlock(reportData, reportDate) {
+  const p = buildProductivitySummary(reportData, reportDate);
+  if (!p) return [];
+
+  const lines = ['<b>Результативность за день</b>'];
+  lines.push(`Сделки: обработано ${p.workedDeals}, новые ${p.newDeals}, старые ${p.oldDeals}`);
+  lines.push(`Звонки: исходящие ${p.calls.outCount} (${formatDuration(p.calls.outSeconds)}), входящие ${p.calls.inCount} (${formatDuration(p.calls.inSeconds)})`);
+  if (p.calls.otherCount > 0) lines.push(`НДЗ/прочие звонки: ${p.calls.otherCount}`);
+  lines.push(`Время разговоров: ${formatDuration(p.calls.totalSeconds)}`);
+  lines.push(`Продвижение сделок: ${p.movement.total} изменений, вперёд ${p.movement.forward}, назад ${p.movement.backward}, прочее ${p.movement.unknown}`);
+  return lines;
+}
+
+function formatTelegram(manager, reportDate, checks, reportData = null) {
   const lines = [`<b>📊 Верификация: ${manager.name} (${reportDate})</b>`, ''];
+
+  const productivityLines = formatProductivityBlock(reportData, reportDate);
+  if (productivityLines.length) {
+    lines.push(...productivityLines, '');
+  }
 
   // 1. Сделки
   const dc = checks.find(c => c.name === 'dealCompleteness');
@@ -428,7 +541,7 @@ async function verifyManagerReport(alias, reportDate) {
 
   // Отправка в Telegram
   if (isTelegramConfigured()) {
-    const msg = formatTelegram(manager, reportDate, checks);
+    const msg = formatTelegram(manager, reportDate, checks, reportData);
     await sendTelegramMessage(msg);
   }
 
