@@ -279,6 +279,7 @@ function generateHtml(managerName, data, allManagers, navMode = 'root') {
   const statusSource = (data.funnelCards && data.funnelCards.length) ? data.funnelCards : (data.dealCards || []);
   for (const card of statusSource) { statusCounts[card.status] = (statusCounts[card.status] || 0) + 1; }
   data.statusCounts = statusCounts;
+  data.navMode = navMode;
   // Безопасная сериализация JSON для встраивания в <script>
   const json = JSON.stringify(data)
     .replace(/<\/script/gi, '<\\/script')

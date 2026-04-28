@@ -1,11 +1,11 @@
 function navTo(alias){
-  var loc=(window.location.pathname||'').replace(/\\/g,'/').toLowerCase();
   var hash=alias==='index'?'':(window.location.hash||'');
+  var mode=(typeof D!=='undefined'&&D.navMode)||'root';
   var target='';
 
-  if(loc.indexOf('/deploy/')>=0){
+  if(mode==='deploy'){
     target=alias==='index'?'../index.html':'../'+alias+'/index.html';
-  }else if(loc.indexOf('/reports/')>=0){
+  }else if(mode==='reports'){
     target=alias==='index'?'../deploy/index.html':'../deploy/'+alias+'/index.html';
   }else{
     target=alias==='index'?'deploy/index.html':'deploy/'+alias+'/index.html';
