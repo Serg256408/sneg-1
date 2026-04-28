@@ -944,16 +944,85 @@ tr:hover td{background:rgba(255,248,240,.92)}
   background:rgba(255,255,255,.86);
 }
 .deal-caption{font-size:12px;color:var(--muted)}
+.deal-command{border-radius:12px;padding:16px;box-shadow:none}
+.deal-view-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.deal-view-actions .is-active{background:var(--brand-soft);border-color:rgba(154,79,8,.28);color:var(--brand-strong)}
+.deal-summary-strip{grid-template-columns:repeat(5,minmax(120px,1fr));min-width:0}
+.deal-summary-strip .deal-chip{min-height:64px;border-radius:8px;padding:10px 12px;box-shadow:none}
+.deal-summary-strip .deal-chip strong{font-size:22px;margin-top:4px}
+.deal-summary-strip .deal-chip span{font-size:11px;color:var(--muted)}
+.deal-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(360px,.9fr);gap:14px;align-items:start}
+.deal-register,.deal-detail{background:rgba(255,255,255,.92);border:1px solid rgba(154,79,8,.10);border-radius:8px}
+.deal-register{overflow:hidden}
+.deal-register-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line-soft)}
+.deal-register-head b{font-size:15px;color:var(--text)}
+.deal-register-head span{display:block;margin-top:3px;font-size:12px;color:var(--muted)}
+.deal-grid-table{min-width:1080px;table-layout:fixed}
+.deal-grid-table th:nth-child(1){width:32%}
+.deal-grid-table th:nth-child(2){width:17%}
+.deal-grid-table th:nth-child(3){width:11%}
+.deal-grid-table th:nth-child(4){width:8%}
+.deal-grid-table th:nth-child(5){width:8%}
+.deal-grid-table th:nth-child(6){width:9%}
+.deal-grid-table th:nth-child(7){width:15%}
+.deal-grid-table td{padding:11px 12px}
+.deal-grid-table td:nth-child(2),.deal-grid-table td:nth-child(7){overflow:hidden}
+.deal-grid-table .bg{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+.deal-row{cursor:pointer}
+.deal-row.is-active td{background:rgba(192,106,22,.10)}
+.deal-row:hover td{background:rgba(255,248,240,.9)}
+.deal-namecell{display:flex;flex-direction:column;gap:4px;min-width:0}
+.deal-namecell b{font-size:13px;line-height:1.35;color:var(--text)}
+.deal-namecell span,.deal-quiet{font-size:12px;color:var(--muted);line-height:1.35}
+.deal-row-flags{display:flex;gap:5px;flex-wrap:wrap;max-height:48px;overflow:hidden}
+.deal-flag{display:inline-flex;align-items:center;max-width:100%;padding:4px 7px;border-radius:999px;font-size:10px;font-weight:800;line-height:1.2;white-space:nowrap}
+.deal-flag.is-bad{background:rgba(220,38,38,.10);color:#b91c1c}
+.deal-flag.is-warn{background:var(--amber-soft);color:var(--amber)}
+.deal-flag.is-info{background:var(--blue-soft);color:var(--blue)}
+.deal-detail{position:sticky;top:190px;max-height:calc(100vh - 210px);overflow:auto}
+.deal-detail-head{padding:14px;border-bottom:1px solid var(--line-soft)}
+.deal-detail-title{font-size:17px;line-height:1.35;font-weight:800;color:var(--text)}
+.deal-detail-sub{margin-top:6px;font-size:13px;color:var(--muted);line-height:1.45}
+.deal-detail-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.deal-detail-kpis div{border:1px solid rgba(154,79,8,.10);border-radius:8px;padding:9px;background:rgba(255,249,242,.72)}
+.deal-detail-kpis b{display:block;font-size:18px;color:var(--text)}
+.deal-detail-kpis span{display:block;margin-top:2px;font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:800}
+.deal-detail-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--line-soft);background:rgba(250,248,244,.7)}
+.deal-detail-tab{border:1px solid transparent;background:transparent;border-radius:8px;padding:7px 9px;font-size:12px;font-weight:800;color:var(--muted);cursor:pointer;font-family:inherit}
+.deal-detail-tab.is-active{background:#fff;border-color:rgba(154,79,8,.16);color:var(--brand-strong)}
+.deal-detail-body{padding:14px}
+.deal-summary.compact{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.deal-summary.compact .deal-summary-item{min-height:86px;border-radius:8px;padding:10px 12px}
+.deal-panel-block{border:1px solid rgba(154,79,8,.10);background:rgba(255,255,255,.78);border-radius:8px;padding:12px;margin-bottom:12px}
+.deal-panel-block h4{margin:0 0 10px;font-size:14px;color:var(--text)}
+.deal-panel-block p{margin:8px 0;color:#374151;line-height:1.65;font-size:13px}
+.deal-panel-block ul{margin:8px 0 0 18px;padding:0;color:#374151;font-size:13px;line-height:1.6}
+.deal-issue-list,.deal-actions{display:flex;gap:8px;flex-wrap:wrap}
+.deal-checkgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0}
+.deal-checkgrid div{display:flex;gap:8px;align-items:center;padding:9px;border-radius:8px;border:1px solid rgba(154,79,8,.10);background:rgba(255,249,242,.72)}
+.deal-checkgrid b{font-size:16px}
+.deal-checkgrid .is-ok b{color:var(--green)}
+.deal-checkgrid .is-miss b{color:#dc2626}
+.deal-checkgrid span{font-size:12px;font-weight:700;color:#374151}
+.deal-event{padding:10px 0;border-bottom:1px solid rgba(239,230,218,.9)}
+.deal-event:last-child{border-bottom:0}
+.deal-event b{display:block;font-size:13px;color:var(--text)}
+.deal-event span{display:block;margin-top:3px;font-size:11px;color:var(--muted)}
+.deal-event p{margin:6px 0 0;font-size:13px;line-height:1.55;color:#374151;white-space:pre-wrap}
+.deal-transcript-row{margin-bottom:10px}
 @media(max-width:1180px){
   .hdr-in{grid-template-columns:1fr}
   .hero-meta{grid-template-columns:repeat(2,minmax(140px,1fr))}
   .tabs-wrap,.deal-tools{top:154px}
+  .deal-layout{grid-template-columns:1fr}
+  .deal-detail{position:static;max-height:none}
 }
 @media(max-width:900px){
   .cnt{padding:18px 14px 30px}
   .hdr{padding:14px 14px 12px}
   .hero-card,.hero-side,.card,.deal-card,.sec{border-radius:24px}
   .deal-tools-grid{grid-template-columns:repeat(2,minmax(160px,1fr))}
+  .deal-summary-strip{grid-template-columns:repeat(2,minmax(120px,1fr))}
   .deal-kpis{grid-template-columns:repeat(2,minmax(110px,1fr));min-width:0;width:100%}
   .deal-summary{grid-template-columns:repeat(2,minmax(140px,1fr))}
   .grid2{grid-template-columns:1fr}
