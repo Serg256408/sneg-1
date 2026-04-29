@@ -235,10 +235,45 @@ async function transcribeCallIfNeeded(comment, cache, allowNew) {
   }
 }
 
+async function transcribeExternalAudioIfNeeded(audioFile, audioPath, cache) {
+  if (!audioFile || !audioPath) return null;
+
+  const cached = getCachedTranscription(cache, audioFile);
+  if (cached) return cached;
+
+  if (isTimeUp()) return null;
+  if (whisperCallsThisRun >= MAX_WHISPER_PER_RUN) return null;
+
+  const lockKey = String(audioFile.id || '') || `sig:${buildAudioSignature(audioFile)}` || getFileName(audioFile);
+  if (inFlightTranscriptions.has(lockKey)) {
+    return inFlightTranscriptions.get(lockKey);
+  }
+
+  whisperCallsThisRun++;
+  if (whisperCallsThisRun === 1) {
+    console.log(`    Whisper: new transcriptions, limit ${MAX_WHISPER_PER_RUN}...`);
+  }
+
+  const run = (async () => {
+    const text = await whisperTranscribe(audioPath);
+    if (text) persistTranscription(cache, audioFile, text);
+    return text;
+  })();
+
+  inFlightTranscriptions.set(lockKey, run);
+  try {
+    return await run;
+  } finally {
+    inFlightTranscriptions.delete(lockKey);
+  }
+}
+
 module.exports = {
   downloadPlanfixFile,
   whisperTranscribe,
   transcribeCallIfNeeded,
+  transcribeExternalAudioIfNeeded,
+  getCachedTranscription,
   findCallAudioFile,
   buildAudioSignature,
   MAX_WHISPER_PER_RUN,

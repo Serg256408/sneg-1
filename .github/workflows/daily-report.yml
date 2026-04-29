@@ -51,6 +51,9 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
           POLZA_API_KEY: ${{ secrets.POLZA_API_KEY }}
+          MANGO_API_KEY: ${{ secrets.MANGO_API_KEY }}
+          MANGO_API_SALT: ${{ secrets.MANGO_API_SALT }}
+          MANGO_MANAGER_EXTENSIONS: ${{ secrets.MANGO_MANAGER_EXTENSIONS }}
         run: |
           TODAY=$(TZ=Europe/Moscow date +%d-%m-%Y)
           MANAGER="${{ github.event.inputs.manager || '--all' }}"

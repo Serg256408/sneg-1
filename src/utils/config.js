@@ -17,6 +17,10 @@ const DEEPSEEK_KEY = (process.env.DEEPSEEK_API_KEY || '').trim();
 const POLZA_KEY = (process.env.POLZA_API_KEY || '').trim();
 const TELEGRAM_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
 const TELEGRAM_CHAT_ID = (process.env.TELEGRAM_CHAT_ID || '').trim();
+const MANGO_API_KEY = (process.env.MANGO_API_KEY || '').trim();
+const MANGO_API_SALT = (process.env.MANGO_API_SALT || '').trim();
+const MANGO_MANAGER_EXTENSIONS = (process.env.MANGO_MANAGER_EXTENSIONS || '').trim();
+const MANGO_MATCH_WINDOW_MIN = parseInt(process.env.MANGO_MATCH_WINDOW_MIN || '7', 10) || 7;
 
 const TRANSCRIPTION_CACHE_FILE = path.join(ROOT_DIR, 'transcriptions_cache.json');
 const AI_CACHE_FILE = path.join(ROOT_DIR, 'ai_cache.json');
@@ -58,6 +62,7 @@ const FUNNEL_ORDER = [
 module.exports = {
   ROOT_DIR, API_URL, TOKEN, OPENAI_KEY, DEEPSEEK_KEY, POLZA_KEY, AUTH,
   TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
+  MANGO_API_KEY, MANGO_API_SALT, MANGO_MANAGER_EXTENSIONS, MANGO_MATCH_WINDOW_MIN,
   TRANSCRIPTION_CACHE_FILE, AI_CACHE_FILE,
   MANAGERS_FILE, MANAGERS_LIST, MANAGERS,
   CONCURRENCY, START_TIME, isCI, TIME_LIMIT_MS, MAX_DAYS_CI,

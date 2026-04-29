@@ -7,7 +7,10 @@ const {
   CONCURRENCY, SKIP_STATUSES, DEAL_FIELDS, DEEPSEEK_KEY, POLZA_KEY, OPENAI_KEY, isTimeUp,
   CALL_TAG, ANALYSIS_TAG, ALLOWED_TEMPLATES, ROOT_DIR, MANAGERS_LIST, fs, path,
 } = require('../utils/config');
-const { transcribeCallIfNeeded, findCallAudioFile, buildAudioSignature } = require('../api/whisper');
+const {
+  transcribeCallIfNeeded, transcribeExternalAudioIfNeeded, getCachedTranscription, findCallAudioFile, buildAudioSignature,
+} = require('../api/whisper');
+const { isMangoConfigured, findMangoRecordingForCall, downloadMangoRecording } = require('../api/mango');
 const { aiDealFullAssessment } = require('./assessment');
 const { aiDaySummary, aiManagerSummary } = require('./manager-report');
 const { buildMeasurementsData, buildMeasurementsComparison, isMeasurementTaskLike } = require('./measurements');
@@ -297,7 +300,71 @@ function commentFilesText(files) {
   return (files || []).map(getCommentFileName).filter(Boolean).join(' ');
 }
 
-async function preloadReportDayCallTranscriptions(rawComments, reportDate, transcriptionCache, stats = null) {
+async function tryMangoTranscriptionForComment(comment, reportDate, transcriptionCache, stats, context) {
+  if (!isMangoConfigured() || !context?.phones?.length) return null;
+
+  const dt = utcToMsk(comment?.dateTime?.date, comment?.dateTime?.time);
+  if (!dt.time) return null;
+
+  if (stats) stats.mangoTried += 1;
+  const match = await findMangoRecordingForCall({
+    reportDate,
+    time: dt.time,
+    phones: context.phones,
+    managerAlias: context.managerAlias,
+    managerName: context.managerName,
+  });
+  if (!match) return null;
+
+  if (stats) stats.mangoMatched += 1;
+  const cached = getCachedTranscription(transcriptionCache, match.audioFile);
+  if (cached) {
+    comment.mangoTranscription = cached;
+    comment.mangoRecording = {
+      recordingId: match.recordingId,
+      time: match.call.time,
+      duration: match.call.duration,
+      phone: match.call.fromNumber || match.call.toNumber || '',
+    };
+    if (stats) stats.mangoCached += 1;
+    return cached;
+  }
+
+  let audioPath = null;
+  try {
+    audioPath = await downloadMangoRecording(match.recordingId);
+    if (!audioPath) {
+      if (stats) stats.mangoFailed += 1;
+      return null;
+    }
+
+    const text = await transcribeExternalAudioIfNeeded(match.audioFile, audioPath, transcriptionCache);
+    if (text) {
+      comment.mangoTranscription = text;
+      comment.mangoRecording = {
+        recordingId: match.recordingId,
+        time: match.call.time,
+        duration: match.call.duration,
+        phone: match.call.fromNumber || match.call.toNumber || '',
+      };
+      if (stats) stats.mangoTranscribed += 1;
+      return text;
+    }
+
+    if (stats) stats.mangoFailed += 1;
+    return null;
+  } catch (e) {
+    if (stats) stats.mangoFailed += 1;
+    console.log(`    Mango: fallback failed (${String(e.message || e).substring(0, 100)})`);
+    return null;
+  } finally {
+    if (audioPath) {
+      try { fs.unlinkSync(audioPath); } catch {}
+    }
+  }
+}
+
+async function preloadReportDayCallTranscriptions(rawComments, reportDate, transcriptionCache, stats = null, context = null) {
   const queue = new Map();
   const cachedKeys = new Set();
 
@@ -322,6 +389,7 @@ async function preloadReportDayCallTranscriptions(rawComments, reportDate, trans
 
     if (!fileId) {
       if (stats) stats.noFileId += 1;
+      await tryMangoTranscriptionForComment(comment, reportDate, transcriptionCache, stats, context);
       continue;
     }
 
@@ -641,9 +709,9 @@ async function parseComment(c, reportDate, transcriptionCache, allowWhisper) {
     if (hasTranscription || hasRecording) type = 'inCall';
   }
 
-  let transcription = null;
+  let transcription = c.mangoTranscription || null;
   if (type === 'outCall' || type === 'inCall') {
-    transcription = extractTranscription(c.description);
+    transcription = transcription || extractTranscription(c.description);
     if (!transcription && (POLZA_KEY || OPENAI_KEY) && transcriptionCache) {
       transcription = await transcribeCallIfNeeded({ transcription, files: c.files || [] }, transcriptionCache, allowNewTranscription);
     }
@@ -672,6 +740,8 @@ async function parseComment(c, reportDate, transcriptionCache, allowWhisper) {
     text,
     owner: c.owner?.name || '',
     transcription,
+    transcriptionSource: c.mangoTranscription ? 'mango' : 'planfix',
+    mangoRecording: c.mangoRecording || null,
     files,
   };
 }
@@ -1083,8 +1153,47 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     .filter(report => report.date);
 
   const transcriptionCache = buildTranscriptionCacheFromAiCache();
-  const transcriptionStats = { queued: 0, cached: 0, transcribed: 0, failed: 0, noFileId: 0 };
+  const transcriptionStats = {
+    queued: 0,
+    cached: 0,
+    transcribed: 0,
+    failed: 0,
+    noFileId: 0,
+    mangoTried: 0,
+    mangoMatched: 0,
+    mangoCached: 0,
+    mangoTranscribed: 0,
+    mangoFailed: 0,
+  };
   console.log(`  📝 Кэш транскрибаций: ${Object.keys(transcriptionCache).length}`);
+
+  const managerCfg = MANAGERS_LIST.find(m => String(m.userId) === String(userId) || (m.pfName && mgrPfName.includes(m.pfName))) || {};
+  const contactInfoCache = {};
+
+  async function getContactInfo(contactId) {
+    const id = String(contactId || '').replace('contact:', '');
+    if (!id) return { phones: [] };
+    if (contactInfoCache[id]) return contactInfoCache[id];
+    try {
+      const contact = await pfGet(`/contact/${id}?fields=id,phones`);
+      const info = {
+        phones: (contact.contact?.phones || [])
+          .map(p => p.number || '')
+          .filter(Boolean),
+      };
+      contactInfoCache[id] = info;
+      return info;
+    } catch {
+      contactInfoCache[id] = { phones: [] };
+      return contactInfoCache[id];
+    }
+  }
+
+  async function getTaskPhones(task) {
+    const cpId = String(task?.counterparty?.id || '').replace('contact:', '');
+    const info = await getContactInfo(cpId);
+    return info.phones;
+  }
 
   async function parseAll(rawComments) {
     const parsed = [];
@@ -1103,6 +1212,12 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
 
   await parallelMap(dealTasks, async (task) => {
     const dealHist = history.deals[String(task.id)];
+    const taskPhones = await getTaskPhones(task);
+    const transcriptionContext = {
+      phones: taskPhones,
+      managerAlias: managerCfg.alias,
+      managerName: mgrPfName,
+    };
 
     if (dealHist && dealHist.commentsLoaded && dealHist.comments && dealHist.comments.length) {
       const cached = tagTaskComments(dealHist.comments.filter(c => !isAiComment(c.text)), task, 'deal');
@@ -1118,7 +1233,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       );
 
       if (newComments.length || needsWhisper.length || !loaded.complete) {
-        await preloadReportDayCallTranscriptions(raw, reportDate, transcriptionCache, transcriptionStats);
+        await preloadReportDayCallTranscriptions(raw, reportDate, transcriptionCache, transcriptionStats, transcriptionContext);
         const parsed = tagTaskComments(await parseAll(raw), task, 'deal');
         commentsByTask[task.id] = loaded.complete ? parsed : mergeCommentsById(cached, parsed);
         const deal = ensureDeal(history, task.id);
@@ -1135,7 +1250,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
         : [];
       const loaded = await getDealCommentsResult(task.id);
       const raw = loaded.comments;
-      await preloadReportDayCallTranscriptions(raw, reportDate, transcriptionCache, transcriptionStats);
+      await preloadReportDayCallTranscriptions(raw, reportDate, transcriptionCache, transcriptionStats, transcriptionContext);
       const parsed = tagTaskComments(await parseAll(raw), task, 'deal');
       commentsByTask[task.id] = loaded.complete ? parsed : mergeCommentsById(existing, parsed);
       const deal = ensureDeal(history, task.id);
@@ -1163,7 +1278,12 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     if (!parentId || !dealTasksById.has(parentId)) return;
     const loaded = await getDealCommentsResult(subtask.id);
     const raw = loaded.comments;
-    await preloadReportDayCallTranscriptions(raw, reportDate, transcriptionCache, transcriptionStats);
+    const parentTask = dealTasksById.get(parentId);
+    await preloadReportDayCallTranscriptions(raw, reportDate, transcriptionCache, transcriptionStats, {
+      phones: await getTaskPhones(parentTask),
+      managerAlias: managerCfg.alias,
+      managerName: mgrPfName,
+    });
     const parsed = tagTaskComments(await parseAll(raw), subtask, 'subtask', parentId);
     if (!commentsByTask[parentId]) commentsByTask[parentId] = [];
     if (!loaded.complete) {
@@ -1293,7 +1413,12 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       return contactCallCache[contactId];
     }
 
-    await preloadReportDayCallTranscriptions(rawComments, reportDate, transcriptionCache, transcriptionStats);
+    const contactInfo = await getContactInfo(contactId);
+    await preloadReportDayCallTranscriptions(rawComments, reportDate, transcriptionCache, transcriptionStats, {
+      phones: contactInfo.phones,
+      managerAlias: managerCfg.alias,
+      managerName: mgrPfName,
+    });
     const parsedCalls = [];
     for (const c of rawComments) {
       const parsed = await parseComment(c, reportDate, transcriptionCache, true);
@@ -1332,10 +1457,9 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     await loadContactCalls(cpId, task.id);
 
     try {
-      const contact = await pfGet(`/contact/${cpId}?fields=id,phones`);
-      const phones = contact.contact?.phones || [];
-      for (const p of phones) {
-        const norm = normalizePhone(p.number);
+      const contactInfo = await getContactInfo(cpId);
+      for (const phone of contactInfo.phones) {
+        const norm = normalizePhone(phone);
         if (!norm || norm.length < 10) continue;
 
         const search = await pf('/contact/list', {
@@ -1372,6 +1496,9 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
   }
   console.log('    ✅');
   console.log(`  🎤 Звонки дня без текста: ${transcriptionStats.queued} новых, ${transcriptionStats.transcribed} расшифровано, ${transcriptionStats.cached} взято из базы, ${transcriptionStats.failed} не получилось, ${transcriptionStats.noFileId} без file id`);
+  if (transcriptionStats.mangoTried || transcriptionStats.mangoMatched || transcriptionStats.mangoTranscribed) {
+    console.log(`  🥭 Mango fallback: ${transcriptionStats.mangoTried} проверено, ${transcriptionStats.mangoMatched} найдено, ${transcriptionStats.mangoTranscribed} расшифровано, ${transcriptionStats.mangoCached} из кэша, ${transcriptionStats.mangoFailed} не получилось`);
+  }
 
   const dealTaskIdSet = new Set(dealTasks.map(task => task.id));
   const callKeys = [];
