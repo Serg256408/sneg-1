@@ -26,6 +26,7 @@ const FIELD_TASK_NAME = 34140;
 const DIR_FIELDS = `key,${FIELD_DATE},${FIELD_EMPLOYEE},${FIELD_TASK_ID},${FIELD_TASK_NAME}`;
 const measurementRangeCache = new Map();
 const companyMeasurementsCache = new Map();
+const MIN_USEFUL_TRANSCRIPTION_CHARS = 20;
 
 async function taskListWithRetry(payload, label) {
   for (let attempt = 1; attempt <= 3; attempt++) {
@@ -300,32 +301,32 @@ function commentFilesText(files) {
   return (files || []).map(getCommentFileName).filter(Boolean).join(' ');
 }
 
-async function tryMangoTranscriptionForComment(comment, reportDate, transcriptionCache, stats, context) {
-  if (!isMangoConfigured() || !context?.phones?.length) return null;
+function isUsefulTranscriptionText(text) {
+  const value = String(text || '').trim();
+  if (!value) return false;
+  if (isNoAnswerTranscription(value)) return true;
+  return value.length >= MIN_USEFUL_TRANSCRIPTION_CHARS;
+}
 
-  const dt = utcToMsk(comment?.dateTime?.date, comment?.dateTime?.time);
-  if (!dt.time) return null;
+function buildMangoRecordingInfo(match) {
+  return {
+    recordingId: match.recordingId,
+    time: match.call.time,
+    duration: match.call.duration,
+    phone: match.call.fromNumber || match.call.toNumber || '',
+  };
+}
 
-  if (stats) stats.mangoTried += 1;
-  const match = await findMangoRecordingForCall({
-    reportDate,
-    time: dt.time,
-    phones: context.phones,
-    managerAlias: context.managerAlias,
-    managerName: context.managerName,
-  });
+async function transcribeMangoMatchIntoTarget(target, match, transcriptionCache, stats) {
   if (!match) return null;
 
   if (stats) stats.mangoMatched += 1;
   const cached = getCachedTranscription(transcriptionCache, match.audioFile);
   if (cached) {
-    comment.mangoTranscription = cached;
-    comment.mangoRecording = {
-      recordingId: match.recordingId,
-      time: match.call.time,
-      duration: match.call.duration,
-      phone: match.call.fromNumber || match.call.toNumber || '',
-    };
+    target.mangoTranscription = cached;
+    target.transcription = cached;
+    target.transcriptionSource = 'mango';
+    target.mangoRecording = buildMangoRecordingInfo(match);
     if (stats) stats.mangoCached += 1;
     return cached;
   }
@@ -340,13 +341,10 @@ async function tryMangoTranscriptionForComment(comment, reportDate, transcriptio
 
     const text = await transcribeExternalAudioIfNeeded(match.audioFile, audioPath, transcriptionCache);
     if (text) {
-      comment.mangoTranscription = text;
-      comment.mangoRecording = {
-        recordingId: match.recordingId,
-        time: match.call.time,
-        duration: match.call.duration,
-        phone: match.call.fromNumber || match.call.toNumber || '',
-      };
+      target.mangoTranscription = text;
+      target.transcription = text;
+      target.transcriptionSource = 'mango';
+      target.mangoRecording = buildMangoRecordingInfo(match);
       if (stats) stats.mangoTranscribed += 1;
       return text;
     }
@@ -364,6 +362,32 @@ async function tryMangoTranscriptionForComment(comment, reportDate, transcriptio
   }
 }
 
+async function tryMangoTranscriptionAtTime(target, reportDate, transcriptionCache, stats, context) {
+  if (!isMangoConfigured() || !context?.phones?.length || !target?.time) return null;
+
+  if (stats) stats.mangoTried += 1;
+  const match = await findMangoRecordingForCall({
+    reportDate,
+    time: target.time,
+    phones: context.phones,
+    managerAlias: context.managerAlias,
+    managerName: context.managerName,
+  });
+  if (!match) return null;
+
+  return transcribeMangoMatchIntoTarget(target, match, transcriptionCache, stats);
+}
+
+async function tryMangoTranscriptionForComment(comment, reportDate, transcriptionCache, stats, context) {
+  if (!isMangoConfigured() || !context?.phones?.length) return null;
+
+  const dt = utcToMsk(comment?.dateTime?.date, comment?.dateTime?.time);
+  if (!dt.time) return null;
+
+  comment.time = dt.time;
+  return tryMangoTranscriptionAtTime(comment, reportDate, transcriptionCache, stats, context);
+}
+
 async function preloadReportDayCallTranscriptions(rawComments, reportDate, transcriptionCache, stats = null, context = null) {
   const queue = new Map();
   const cachedKeys = new Set();
@@ -371,7 +395,7 @@ async function preloadReportDayCallTranscriptions(rawComments, reportDate, trans
   for (const comment of rawComments || []) {
     const dt = utcToMsk(comment?.dateTime?.date, comment?.dateTime?.time);
     if (dt.date !== reportDate) continue;
-    if (extractTranscription(comment.description)) continue;
+    if (isUsefulTranscriptionText(extractTranscription(comment.description))) continue;
 
     const audioFile = findCallAudioFile(comment.files || []);
     if (!audioFile) continue;
@@ -419,6 +443,95 @@ async function preloadReportDayCallTranscriptions(rawComments, reportDate, trans
 
   if (stats) stats.transcribed += transcribed;
   return transcribed;
+}
+
+function isReportCallAction(action) {
+  return action && (action.type === 'outCall' || action.type === 'inCall');
+}
+
+function actionNeedsMangoTranscription(action) {
+  if (!isReportCallAction(action)) return false;
+  if (action.transcriptionSource === 'mango' && isUsefulTranscriptionText(action.transcription)) return false;
+  return !isUsefulTranscriptionText(action.transcription);
+}
+
+function callTimeDiff(call, time) {
+  const targetMin = timeToMinNode(time);
+  const times = String(call?.time || '').match(/\d{1,2}:\d{2}/g) || [];
+  if (!times.length) return Math.abs(timeToMinNode(call?.time) - targetMin);
+  return Math.min(...times.map(t => Math.abs(timeToMinNode(t) - targetMin)));
+}
+
+function phonesNearAction(card, action, reportDate) {
+  const dayCalls = (card.calls || []).filter(call => call.date === reportDate);
+  const close = dayCalls.filter(call => callTimeDiff(call, action.time) <= 5);
+  const source = close.length ? close : dayCalls;
+  return [...new Set(source.map(call => normalizePhone(call.phone || '')).filter(Boolean))];
+}
+
+function hasCallActionNear(card, call, reportDate) {
+  return (card.comments || []).some(action =>
+    action.date === reportDate &&
+    (action.type === 'outCall' || action.type === 'inCall' || action.type === 'ndz') &&
+    callTimeDiff(call, action.time) <= 5);
+}
+
+function buildSyntheticCallAction(card, call, reportDate) {
+  return {
+    id: `datatag:${card.id}:${call.key || call.time}`,
+    date: reportDate,
+    time: call.time,
+    type: call.type === 'Входящий' ? 'inCall' : 'outCall',
+    text: `${call.type || 'Звонок'} ${call.contact || ''} ${call.phone || ''}`.trim(),
+    owner: call.employee || '',
+    transcription: null,
+    transcriptionSource: 'datatag',
+    mangoRecording: null,
+    files: [],
+    source: 'datatag',
+    sourceTaskId: card.id,
+    sourceTaskName: card.name,
+    duration: call.duration || 0,
+  };
+}
+
+async function hydrateDealCardsWithMangoTranscriptions(dealCards, reportDate, transcriptionCache, stats, managerContext, commentsByTask) {
+  if (!isMangoConfigured()) return;
+
+  let attached = 0;
+  for (const card of dealCards || []) {
+    for (const action of card.comments || []) {
+      if (action.date !== reportDate || !actionNeedsMangoTranscription(action)) continue;
+      const phones = phonesNearAction(card, action, reportDate);
+      if (!phones.length) continue;
+      const text = await tryMangoTranscriptionAtTime(action, reportDate, transcriptionCache, stats, {
+        ...managerContext,
+        phones,
+      });
+      if (text) attached += 1;
+    }
+
+    for (const call of (card.calls || []).filter(item => item.date === reportDate)) {
+      if (hasCallActionNear(card, call, reportDate)) continue;
+      const action = buildSyntheticCallAction(card, call, reportDate);
+      const phone = normalizePhone(call.phone || '');
+      if (!phone) continue;
+      const text = await tryMangoTranscriptionAtTime(action, reportDate, transcriptionCache, stats, {
+        ...managerContext,
+        phones: [phone],
+      });
+      if (!text) continue;
+
+      card.comments.push(action);
+      card.comments.sort((a, b) => itemStamp(a) - itemStamp(b));
+      if (!commentsByTask[card.id]) commentsByTask[card.id] = [];
+      commentsByTask[card.id].push(action);
+      commentsByTask[card.id].sort((a, b) => itemStamp(a) - itemStamp(b));
+      attached += 1;
+    }
+  }
+
+  if (attached) console.log(`  🥭 Mango добавил расшифровки в сделки: ${attached}`);
 }
 
 async function parseCommentsForMeasurementReport(rawComments, reportDate, transcriptionCache) {
@@ -1648,11 +1761,16 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       redFlags: [],
     };
 
-    card.redFlags = detectRedFlags(card, mgrPfName, reportDate);
     return card;
   });
 
+  await hydrateDealCardsWithMangoTranscriptions(dealCards, reportDate, transcriptionCache, transcriptionStats, {
+    managerAlias: managerCfg.alias,
+    managerName: mgrPfName,
+  }, commentsByTask);
+
   for (const card of dealCards) {
+    card.redFlags = detectRedFlags(card, mgrPfName, reportDate);
     const deal = ensureDeal(history, card.id);
     rememberDealStatus(history, card, reportDate);
     deal.comments = commentsByTask[card.id] || [];
