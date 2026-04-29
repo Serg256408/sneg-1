@@ -93,6 +93,7 @@ let dealFrom='';
 let dealTo='';
 const cardOpenState={};
 const TAB_KEYS=['day','deals','quality','daily','funnel','stats','measurements','incoming','manager'];
+const DEFAULT_TAB_KEY='deals';
 const TAB_LABELS=function(){
   return [
     getTabName(),
@@ -112,6 +113,7 @@ function getRequestedTabKey(){
   return hash||'';
 }
 function findTabIndexByKey(key){
+  if(!key)return TAB_KEYS.indexOf(DEFAULT_TAB_KEY);
   var idx=TAB_KEYS.indexOf(key||'');
   return idx>=0?idx:0;
 }

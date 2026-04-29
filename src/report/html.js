@@ -1075,7 +1075,7 @@ tr:hover td{background:rgba(255,248,240,.92)}
   ${allManagers ? `<div class="manager-rail"><span class="manager-label">Переход по отчетам</span>${allManagers.map(m =>
     m.name === managerName
       ? `<span class="manager-pill is-active">${m.name}</span>`
-      : `<a class="manager-pill" href="${navHref(m.alias)}" onclick="return navTo('${m.alias}')">${m.name}</a>`
+      : `<a class="manager-pill" href="${navHref(m.alias)}#deals" onclick="return navTo('${m.alias}')">${m.name}</a>`
   ).join('')}<a href="${navHref('index')}" onclick="return navTo('index')" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#fbbf24;text-decoration:none;border:1px solid #d1d5db;cursor:pointer">Обзор</a></div>` : ''}
   <div class="toolbar-row">
     <div class="toolbar-copy">

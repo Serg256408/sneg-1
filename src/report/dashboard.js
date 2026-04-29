@@ -410,7 +410,7 @@ body{
   <div class="measurement-item"><b>${card.measurements.toWork}</b><span>В работу</span></div>
 </div>
 ${card.aiSummary ? `<div class="card-summary">${card.aiSummary}...</div>` : `<div class="card-summary">ИИ-сводка для этого менеджера пока не подготовлена или не попала в текущий пакет данных.</div>`}
-<a class="card-link" href="${card.alias}/index.html">Открыть полный отчет →</a>
+<a class="card-link" href="${card.alias}/index.html#deals">Открыть полный отчет →</a>
 </div>`;
   }
 
