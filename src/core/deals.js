@@ -394,17 +394,27 @@ async function preloadReportDayCallTranscriptions(rawComments, reportDate, trans
     }
 
     const queueKey = fileId || (signature ? `sig:${signature}` : '') || String(comment.id);
-    if (!queue.has(queueKey)) queue.set(queueKey, audioFile);
+    if (!queue.has(queueKey)) queue.set(queueKey, { audioFile, comment });
   }
 
   if (stats) stats.queued += queue.size;
 
   let transcribed = 0;
-  for (const audioFile of queue.values()) {
+  for (const item of queue.values()) {
     if (isTimeUp()) break;
+    const { audioFile, comment } = item;
     const text = await transcribeCallIfNeeded({ transcription: null, files: [audioFile] }, transcriptionCache, true);
-    if (text) transcribed += 1;
-    else if (stats) stats.failed += 1;
+    if (text) {
+      transcribed += 1;
+      continue;
+    }
+
+    const mangoText = await tryMangoTranscriptionForComment(comment, reportDate, transcriptionCache, stats, context);
+    if (mangoText) {
+      transcribed += 1;
+    } else if (stats) {
+      stats.failed += 1;
+    }
   }
 
   if (stats) stats.transcribed += transcribed;
