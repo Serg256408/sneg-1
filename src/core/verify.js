@@ -28,6 +28,16 @@ function isCallType(type) {
   return type === 'outCall' || type === 'inCall' || type === 'ndz';
 }
 
+function isAiGeneratedComment(desc) {
+  const t = String(desc || '').toLowerCase();
+  return t.includes('ии-оценка сделки') ||
+    t.includes('🤖 ии-оценка') ||
+    t.includes('ии-рекомендаци') ||
+    t.includes('ai-рекомендаци') ||
+    t.includes('рекомендации ии') ||
+    t.includes('баллы зп:');
+}
+
 // ============ Проверка 1: Полнота сделок ============
 
 async function checkDealCompleteness(userId, reportDate, reportData) {
@@ -68,13 +78,15 @@ function classifyComment(c) {
   const desc = stripHtml(c.description || '');
   const descLow = desc.toLowerCase();
   let type = 'note';
-  if (descLow.startsWith('исходящий звонок')) type = 'outCall';
-  else if (descLow.startsWith('входящий звонок')) type = 'inCall';
-  else if (descLow.startsWith('ндз')) type = 'ndz';
-  else if (descLow.includes('входящий звонок') || descLow.includes('исходящий звонок')) {
-    type = descLow.includes('исходящий звонок') ? 'outCall' : 'inCall';
+  if (!isAiGeneratedComment(desc)) {
+    if (descLow.startsWith('исходящий звонок')) type = 'outCall';
+    else if (descLow.startsWith('входящий звонок')) type = 'inCall';
+    else if (descLow.startsWith('ндз')) type = 'ndz';
+    else if (descLow.includes('входящий звонок') || descLow.includes('исходящий звонок')) {
+      type = descLow.includes('исходящий звонок') ? 'outCall' : 'inCall';
+    }
   }
-  if (type === 'note') {
+  if (type === 'note' && !isAiGeneratedComment(desc)) {
     const hasTranscription = desc.includes('----------') && (/[🔴🔵●]/.test(desc) || /A:.*B:/s.test(desc));
     const hasRecording = (c.files || []).some(f => (f.name || '').toLowerCase().includes('запись звонка'));
     if (hasTranscription || hasRecording) type = 'inCall';
