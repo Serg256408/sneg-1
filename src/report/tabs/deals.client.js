@@ -17,6 +17,80 @@ function dealDuration(seconds){
   return seconds + 'с';
 }
 
+function dealDmyToIso(d){
+  if(!d) return '';
+  var p = String(d).split('-');
+  if(p.length === 3 && p[2].length === 4) return p[2] + '-' + p[1] + '-' + p[0];
+  return String(d);
+}
+
+function dealIsoToDate(iso){
+  var p = String(iso || '').split('-');
+  if(p.length !== 3) return null;
+  return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+}
+
+function dealDateToIso(date){
+  if(!date || isNaN(date.getTime())) return '';
+  var y = date.getFullYear();
+  var m = String(date.getMonth() + 1).padStart(2, '0');
+  var d = String(date.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + d;
+}
+
+function dealShiftIso(iso, days){
+  var date = dealIsoToDate(iso);
+  if(!date) return '';
+  date.setDate(date.getDate() + days);
+  return dealDateToIso(date);
+}
+
+function getDealAnchorIso(){
+  return dealDmyToIso(selectedDate || D.reportDate) || dealDateToIso(new Date());
+}
+
+function getDealDateRange(){
+  var anchor = getDealAnchorIso();
+  if(dealPeriodPreset === 'day') return {from:anchor, to:anchor, label:'День'};
+  if(dealPeriodPreset === 'week') return {from:dealShiftIso(anchor, -6), to:anchor, label:'Неделя'};
+  if(dealPeriodPreset === '30') return {from:dealShiftIso(anchor, -29), to:anchor, label:'30 дней'};
+  if(dealPeriodPreset === 'month') return {from:anchor.slice(0, 8) + '01', to:anchor, label:'Месяц'};
+  if(dealPeriodPreset === 'all') return {from:'', to:'', label:'Всё'};
+  return {from:dealFrom || '', to:dealTo || '', label:'Вручную'};
+}
+
+function setDealPeriodPreset(preset){
+  dealPeriodPreset = preset || 'week';
+  if(dealPeriodPreset !== 'custom'){
+    dealFrom = '';
+    dealTo = '';
+  }
+  renderDealsV2(currentCards);
+}
+
+function setDealFrom(value){
+  var current = getDealDateRange();
+  dealFrom = value || '';
+  if(dealPeriodPreset !== 'custom') dealTo = current.to || '';
+  dealPeriodPreset = 'custom';
+  renderDealsV2(currentCards);
+}
+
+function setDealTo(value){
+  var current = getDealDateRange();
+  if(dealPeriodPreset !== 'custom') dealFrom = current.from || '';
+  dealTo = value || '';
+  dealPeriodPreset = 'custom';
+  renderDealsV2(currentCards);
+}
+
+function clearDealDates(){
+  dealFrom = '';
+  dealTo = '';
+  dealPeriodPreset = 'week';
+  renderDealsV2(currentCards);
+}
+
 function dealStatusClass(status){
   status = String(status || '');
   if(status.includes('Договор') || status.includes('Выполнение') || status.includes('Сделка')) return 'bg-g';
@@ -65,13 +139,13 @@ function getDealIssues(deal){
 }
 
 function prepareDealCards(cards){
-  var hasDealRange = !!(dealFrom || dealTo);
-  function dmyToIso(d){if(!d)return '';var p=d.split('-');return p.length===3&&p[2].length===4?p[2]+'-'+p[1]+'-'+p[0]:d;}
+  var range = getDealDateRange();
+  var hasDealRange = !!(range.from || range.to);
   function inDealRange(dateStr){
     if(!hasDealRange) return true;
-    var iso = dmyToIso(dateStr);
-    if(dealFrom && iso < dealFrom) return false;
-    if(dealTo && iso > dealTo) return false;
+    var iso = dealDmyToIso(dateStr);
+    if(range.from && iso < range.from) return false;
+    if(range.to && iso > range.to) return false;
     return true;
   }
 
@@ -162,7 +236,8 @@ function renderDealIssuePills(deal){
 }
 
 function renderDealTools(prepared, cards, statusOptions, totals){
-  var hasFilters = !!dealSearch || dealStatus !== 'all' || dealFocus !== 'all' || dealSort !== 'activity' || !!dealFrom || !!dealTo;
+  var range = getDealDateRange();
+  var hasFilters = !!dealSearch || dealStatus !== 'all' || dealFocus !== 'all' || dealSort !== 'activity' || dealPeriodPreset !== 'week' || !!dealFrom || !!dealTo;
   var h = '<div class="deal-tools deal-command">';
   h += '<div class="deal-tools-head"><div><div class="deal-tools-kicker">Рабочий реестр</div><div class="deal-tools-title">Сделки</div></div>';
   h += '<div class="deal-view-actions">';
@@ -189,10 +264,18 @@ function renderDealTools(prepared, cards, statusOptions, totals){
   h += '</select></div></div>';
 
   h += '<div class="deal-date-row"><span class="deal-caption">Период активности</span>';
-  h += '<input type="date" id="dealFrom" value="'+(dealFrom||'')+'" onchange="dealFrom=this.value;renderDealsV2(currentCards)">';
+  h += '<div class="deal-view-actions deal-period-actions">';
+  var periodOpts = [['day','День'],['week','Неделя'],['30','30 дней'],['month','Месяц'],['all','Всё']];
+  for(var po=0;po<periodOpts.length;po++){
+    h += '<button class="toggle-btn '+(dealPeriodPreset===periodOpts[po][0]?'is-active':'')+'" onclick="setDealPeriodPreset(\''+periodOpts[po][0]+'\')">'+periodOpts[po][1]+'</button>';
+  }
+  if(dealPeriodPreset === 'custom') h += '<span class="toggle-btn is-active deal-manual-pill">Вручную</span>';
+  h += '</div>';
+  h += '<input type="date" id="dealFrom" value="'+(range.from||'')+'" onchange="setDealFrom(this.value)">';
   h += '<span class="deal-caption">по</span>';
-  h += '<input type="date" id="dealTo" value="'+(dealTo||'')+'" onchange="dealTo=this.value;renderDealsV2(currentCards)">';
-  if(dealFrom || dealTo) h += '<button class="toggle-btn" onclick="dealFrom=\'\';dealTo=\'\';renderDealsV2(currentCards)">Очистить даты</button>';
+  h += '<input type="date" id="dealTo" value="'+(range.to||'')+'" onchange="setDealTo(this.value)">';
+  h += '<span class="deal-caption deal-range-caption">'+range.label+'</span>';
+  if(dealPeriodPreset !== 'week' || dealFrom || dealTo) h += '<button class="toggle-btn" onclick="clearDealDates()">Сбросить период</button>';
   h += '</div>';
 
   h += '<div class="deal-chips deal-summary-strip">';

@@ -91,6 +91,7 @@ let dealFocus='all';
 let dealSort='activity';
 let dealFrom='';
 let dealTo='';
+let dealPeriodPreset='week';
 const cardOpenState={};
 const TAB_KEYS=['day','deals','quality','daily','funnel','stats','measurements','incoming','manager'];
 const DEFAULT_TAB_KEY='deals';
@@ -244,6 +245,7 @@ function resetDealFilters(){
   dealSort='activity';
   dealFrom='';
   dealTo='';
+  dealPeriodPreset='week';
   renderDealsV2(currentCards);
 }
 
@@ -362,13 +364,19 @@ function filterCalls(calls){return calls.filter(c=>inPeriod(c.date))}
 function filterAnalyses(analyses){return analyses.filter(a=>inPeriod(a.date))}
 
 function upd(){
+  const dealCardsAll=D.dealCards.map(d=>({
+    ...d,
+    fCalls:d.calls||[],
+    fAnalyses:d.analyses||[],
+    fComments:d.comments||[],
+  })).filter(d=>d.fCalls.length||d.fAnalyses.length||d.fComments.length);
   const cards=D.dealCards.map(d=>({
     ...d,
     fCalls:filterCalls(d.calls),
     fAnalyses:filterAnalyses(d.analyses),
     fComments:d.comments.filter(c=>inPeriod(c.date)),
   })).filter(d=>d.fCalls.length||d.fAnalyses.length||d.fComments.length);
-  currentCards=cards;
+  currentCards=tab===1?dealCardsAll:cards;
 
   const allC=cards.flatMap(d=>d.fCalls);
   const allA=cards.flatMap(d=>d.fAnalyses);
@@ -390,7 +398,7 @@ function upd(){
   }
   renderMets(allC,allA,reports,cards);
   if(tab===0)renderDay();
-  else if(tab===1)renderDealsV2(cards);
+  else if(tab===1)renderDealsV2(dealCardsAll);
   else if(tab===2)renderQuality(allA,cards);
   else if(tab===3)renderDaily(reports);
   else if(tab===4)renderFunnel();

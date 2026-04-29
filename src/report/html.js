@@ -871,6 +871,9 @@ tr:hover td{background:rgba(255,248,240,.92)}
 }
 .deal-input:focus,.deal-select:focus{border-color:rgba(154,79,8,.34);box-shadow:0 0 0 4px rgba(192,106,22,.10)}
 .deal-date-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+.deal-period-actions{gap:6px;margin-right:4px}
+.deal-period-actions .toggle-btn{min-height:34px;padding:7px 12px}
+.deal-manual-pill{display:inline-flex;align-items:center;cursor:default}
 .deal-date-row input[type="date"]{
   min-height:42px;
   padding:8px 12px;
@@ -879,6 +882,13 @@ tr:hover td{background:rgba(255,248,240,.92)}
   background:rgba(255,255,255,.92);
   color:var(--text);
   font-family:inherit;
+}
+.deal-range-caption{
+  padding:6px 10px;
+  border-radius:999px;
+  background:rgba(192,106,22,.10);
+  color:var(--brand-strong);
+  font-weight:800;
 }
 .deal-tools-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px}
 .deal-chips{
