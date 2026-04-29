@@ -92,6 +92,9 @@ let dealSort='activity';
 let dealFrom='';
 let dealTo='';
 let dealPeriodPreset='week';
+let dealCreatedFrom='';
+let dealCreatedTo='';
+let dealCreatedPreset='all';
 const cardOpenState={};
 const TAB_KEYS=['day','deals','quality','daily','funnel','stats','measurements','incoming','manager'];
 const DEFAULT_TAB_KEY='deals';
@@ -246,6 +249,9 @@ function resetDealFilters(){
   dealFrom='';
   dealTo='';
   dealPeriodPreset='week';
+  dealCreatedFrom='';
+  dealCreatedTo='';
+  dealCreatedPreset='all';
   renderDealsV2(currentCards);
 }
 

@@ -958,7 +958,7 @@ tr:hover td{background:rgba(255,248,240,.92)}
 .deal-command{border-radius:12px;padding:16px;box-shadow:none}
 .deal-view-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
 .deal-view-actions .is-active{background:var(--brand-soft);border-color:rgba(154,79,8,.28);color:var(--brand-strong)}
-.deal-summary-strip{grid-template-columns:repeat(5,minmax(120px,1fr));min-width:0}
+.deal-summary-strip{grid-template-columns:repeat(6,minmax(120px,1fr));min-width:0}
 .deal-summary-strip .deal-chip{min-height:64px;border-radius:8px;padding:10px 12px;box-shadow:none}
 .deal-summary-strip .deal-chip strong{font-size:22px;margin-top:4px}
 .deal-summary-strip .deal-chip span{font-size:11px;color:var(--muted)}

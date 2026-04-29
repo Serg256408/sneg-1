@@ -91,6 +91,48 @@ function clearDealDates(){
   renderDealsV2(currentCards);
 }
 
+function getDealCreatedDateRange(){
+  var anchor = getDealAnchorIso();
+  if(dealCreatedPreset === 'day') return {from:anchor, to:anchor, label:'День'};
+  if(dealCreatedPreset === 'week') return {from:dealShiftIso(anchor, -6), to:anchor, label:'Неделя'};
+  if(dealCreatedPreset === '30') return {from:dealShiftIso(anchor, -29), to:anchor, label:'30 дней'};
+  if(dealCreatedPreset === 'month') return {from:anchor.slice(0, 8) + '01', to:anchor, label:'Месяц'};
+  if(dealCreatedPreset === 'custom') return {from:dealCreatedFrom || '', to:dealCreatedTo || '', label:'Вручную'};
+  return {from:'', to:'', label:'Любая'};
+}
+
+function setDealCreatedPreset(preset){
+  dealCreatedPreset = preset || 'all';
+  if(dealCreatedPreset !== 'custom'){
+    dealCreatedFrom = '';
+    dealCreatedTo = '';
+  }
+  renderDealsV2(currentCards);
+}
+
+function setDealCreatedFrom(value){
+  var current = getDealCreatedDateRange();
+  dealCreatedFrom = value || '';
+  if(dealCreatedPreset !== 'custom') dealCreatedTo = current.to || '';
+  dealCreatedPreset = 'custom';
+  renderDealsV2(currentCards);
+}
+
+function setDealCreatedTo(value){
+  var current = getDealCreatedDateRange();
+  if(dealCreatedPreset !== 'custom') dealCreatedFrom = current.from || '';
+  dealCreatedTo = value || '';
+  dealCreatedPreset = 'custom';
+  renderDealsV2(currentCards);
+}
+
+function clearDealCreatedDates(){
+  dealCreatedFrom = '';
+  dealCreatedTo = '';
+  dealCreatedPreset = 'all';
+  renderDealsV2(currentCards);
+}
+
 function dealStatusClass(status){
   status = String(status || '');
   if(status.includes('Договор') || status.includes('Выполнение') || status.includes('Сделка')) return 'bg-g';
@@ -141,11 +183,21 @@ function getDealIssues(deal){
 function prepareDealCards(cards){
   var range = getDealDateRange();
   var hasDealRange = !!(range.from || range.to);
+  var createdRange = getDealCreatedDateRange();
+  var hasCreatedRange = !!(createdRange.from || createdRange.to);
   function inDealRange(dateStr){
     if(!hasDealRange) return true;
     var iso = dealDmyToIso(dateStr);
     if(range.from && iso < range.from) return false;
     if(range.to && iso > range.to) return false;
+    return true;
+  }
+  function inCreatedRange(dateStr){
+    if(!hasCreatedRange) return true;
+    var iso = dealDmyToIso(dateStr);
+    if(!iso) return false;
+    if(createdRange.from && iso < createdRange.from) return false;
+    if(createdRange.to && iso > createdRange.to) return false;
     return true;
   }
 
@@ -178,6 +230,8 @@ function prepareDealCards(cards){
         maxB:maxB,
         lastTouch:lastTouch,
         lastStamp:lastTouch ? dateStamp(lastTouch.date,lastTouch.time) : 0,
+        createdIso:dealDmyToIso(d.dateCreated),
+        createdStamp:dateStamp(d.dateCreated,'00:00'),
       }
     };
     prepared.ui.issues = getDealIssues(prepared);
@@ -194,10 +248,13 @@ function prepareDealCards(cards){
     if(dealFocus === 'issues' && !d.ui.issueCount) return false;
     if(dealFocus === 'untranscribed' && !d.ui.issues.some(function(x){return x.label.indexOf('расшифровки') >= 0;})) return false;
     if(dealFocus === 'high' && !(d.dealSum >= 1000000)) return false;
+    if(!inCreatedRange(d.dateCreated)) return false;
     if(hasDealRange && !d.fCalls.length && !d.fComments.length && !d.fAnalyses.length) return false;
     return true;
   }).sort(function(a,b){
     if(dealSort === 'latest') return b.ui.lastStamp - a.ui.lastStamp || b.id - a.id;
+    if(dealSort === 'created') return b.ui.createdStamp - a.ui.createdStamp || b.id - a.id;
+    if(dealSort === 'createdAsc') return a.ui.createdStamp - b.ui.createdStamp || a.id - b.id;
     if(dealSort === 'score') return (b.ui.avgB ?? -1) - (a.ui.avgB ?? -1) || b.ui.lastStamp - a.ui.lastStamp;
     if(dealSort === 'sum') return (b.dealSum || 0) - (a.dealSum || 0) || b.ui.lastStamp - a.ui.lastStamp;
     if(dealSort === 'name') return (a.name || '').localeCompare(b.name || '', 'ru');
@@ -237,7 +294,8 @@ function renderDealIssuePills(deal){
 
 function renderDealTools(prepared, cards, statusOptions, totals){
   var range = getDealDateRange();
-  var hasFilters = !!dealSearch || dealStatus !== 'all' || dealFocus !== 'all' || dealSort !== 'activity' || dealPeriodPreset !== 'week' || !!dealFrom || !!dealTo;
+  var createdRange = getDealCreatedDateRange();
+  var hasFilters = !!dealSearch || dealStatus !== 'all' || dealFocus !== 'all' || dealSort !== 'activity' || dealPeriodPreset !== 'week' || !!dealFrom || !!dealTo || dealCreatedPreset !== 'all' || !!dealCreatedFrom || !!dealCreatedTo;
   var h = '<div class="deal-tools deal-command">';
   h += '<div class="deal-tools-head"><div><div class="deal-tools-kicker">Рабочий реестр</div><div class="deal-tools-title">Сделки</div></div>';
   h += '<div class="deal-view-actions">';
@@ -259,7 +317,7 @@ function renderDealTools(prepared, cards, statusOptions, totals){
   for(var f=0;f<focusOpts.length;f++) h += '<option value="'+focusOpts[f][0]+'"'+(dealFocus===focusOpts[f][0]?' selected':'')+'>'+focusOpts[f][1]+'</option>';
   h += '</select></div>';
   h += '<div class="deal-field"><span class="deal-label">Сортировка</span><select class="deal-select" onchange="setDealSort(this.value)">';
-  var sortOpts = [['activity','По проблемам и активности'],['latest','Последнее касание'],['score','Средний балл'],['sum','Сумма сделки'],['name','По названию']];
+  var sortOpts = [['activity','По проблемам и активности'],['latest','Последнее касание'],['created','Дата создания: новые'],['createdAsc','Дата создания: старые'],['score','Средний балл'],['sum','Сумма сделки'],['name','По названию']];
   for(var so=0;so<sortOpts.length;so++) h += '<option value="'+sortOpts[so][0]+'"'+(dealSort===sortOpts[so][0]?' selected':'')+'>'+sortOpts[so][1]+'</option>';
   h += '</select></div></div>';
 
@@ -278,11 +336,27 @@ function renderDealTools(prepared, cards, statusOptions, totals){
   if(dealPeriodPreset !== 'week' || dealFrom || dealTo) h += '<button class="toggle-btn" onclick="clearDealDates()">Сбросить период</button>';
   h += '</div>';
 
+  h += '<div class="deal-date-row"><span class="deal-caption">Дата создания</span>';
+  h += '<div class="deal-view-actions deal-period-actions">';
+  var createdOpts = [['all','Любая'],['day','День'],['week','Неделя'],['30','30 дней'],['month','Месяц']];
+  for(var co=0;co<createdOpts.length;co++){
+    h += '<button class="toggle-btn '+(dealCreatedPreset===createdOpts[co][0]?'is-active':'')+'" onclick="setDealCreatedPreset(\''+createdOpts[co][0]+'\')">'+createdOpts[co][1]+'</button>';
+  }
+  if(dealCreatedPreset === 'custom') h += '<span class="toggle-btn is-active deal-manual-pill">Вручную</span>';
+  h += '</div>';
+  h += '<input type="date" id="dealCreatedFrom" value="'+(createdRange.from||'')+'" onchange="setDealCreatedFrom(this.value)">';
+  h += '<span class="deal-caption">по</span>';
+  h += '<input type="date" id="dealCreatedTo" value="'+(createdRange.to||'')+'" onchange="setDealCreatedTo(this.value)">';
+  h += '<span class="deal-caption deal-range-caption">'+createdRange.label+'</span>';
+  if(dealCreatedPreset !== 'all' || dealCreatedFrom || dealCreatedTo) h += '<button class="toggle-btn" onclick="clearDealCreatedDates()">Сбросить создание</button>';
+  h += '</div>';
+
   h += '<div class="deal-chips deal-summary-strip">';
   h += '<div class="deal-chip">Показано <strong>'+prepared.length+'</strong><span>из '+cards.length+'</span></div>';
   h += '<div class="deal-chip">Звонки <strong>'+totals.calls+'</strong><span>'+totals.minutes+' мин</span></div>';
   h += '<div class="deal-chip">Транскрипции <strong>'+totals.transcripts+'</strong><span>доступно в деталях</span></div>';
   h += '<div class="deal-chip">Проблемные <strong>'+totals.issueDeals+'</strong><span>сделки с флагами</span></div>';
+  h += '<div class="deal-chip">Созданы <strong>'+totals.createdDeals+'</strong><span>'+createdRange.label.toLowerCase()+'</span></div>';
   h += '<div class="deal-chip">Новые <strong>'+totals.newDeals+'</strong><span>за период</span></div>';
   h += '</div></div>';
   return h;
@@ -301,6 +375,7 @@ function renderDealsV2(cards){
     minutes:prepared.reduce(function(s,d){return s + d.ui.durM;},0),
     transcripts:prepared.reduce(function(s,d){return s + d.ui.transcripts.length;},0),
     issueDeals:prepared.filter(function(d){return d.ui.issueCount > 0;}).length,
+    createdDeals:prepared.filter(function(d){return !!d.dateCreated;}).length,
     newDeals:prepared.filter(function(d){return d.isNew;}).length,
   };
 
@@ -325,7 +400,7 @@ function renderDealsV2(cards){
     var scoreColor = getScoreColor(d.ui.avgB, d.ui.maxB);
     var lastTouchLabel = d.ui.lastTouch ? formatTouch(d.ui.lastTouch.date,d.ui.lastTouch.time) : 'Нет';
     h += '<tr class="deal-row '+(active?'is-active':'')+'" onclick="setActiveDeal('+d.id+')">';
-    h += '<td><div class="deal-namecell"><b>#'+d.id+' '+esc(dealShort(d.name, 72))+'</b><span>'+esc(dealShort(d.counterparty || 'Без контрагента', 64))+'</span></div></td>';
+    h += '<td><div class="deal-namecell"><b>#'+d.id+' '+esc(dealShort(d.name, 72))+'</b><span>'+esc(dealShort(d.counterparty || 'Без контрагента', 64))+(d.dateCreated?' · создана '+esc(d.dateCreated):'')+'</span></div></td>';
     h += '<td><span class="bg '+dealStatusClass(d.status)+'">'+esc(d.status || '—')+'</span></td>';
     h += '<td><span class="deal-quiet">'+esc(lastTouchLabel)+'</span></td>';
     h += '<td><b>'+d.fCalls.length+'</b><span class="deal-quiet"> / '+d.ui.durM+'м</span></td>';
