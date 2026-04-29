@@ -7,6 +7,15 @@ const { openaiChat } = require('../api/deepseek');
 const { ensureDeal } = require('./history');
 const { hasCallRecordingFile } = require('./transcription');
 
+function getFileName(file) {
+  if (typeof file === 'string') return file.trim();
+  return String(file?.name || file?.fileName || '').trim();
+}
+
+function formatFileNames(files) {
+  return (files || []).map(getFileName).filter(Boolean).join(', ');
+}
+
 async function aiDealFullAssessment(dealActivity, reportDate, history, forceRefresh) {
   const deal = dealActivity.deal;
   const isSnow = (deal.name || '').toLowerCase().startsWith('вывоз снега');
@@ -52,7 +61,8 @@ async function aiDealFullAssessment(dealActivity, reportDate, history, forceRefr
     .filter(c => c.type === 'note' && (c.text.length > 10 || (c.files && c.files.length)))
     .map(c => {
       let line = `[КОММЕНТАРИЙ ${c.date} ${c.time}] ${c.text.substring(0, 500)}`;
-      if (c.files && c.files.length) line += ` [Файлы: ${c.files.join(', ')}]`;
+      const fileList = formatFileNames(c.files);
+      if (fileList) line += ` [Файлы: ${fileList}]`;
       return line;
     })
     .join('\n');
@@ -62,7 +72,8 @@ async function aiDealFullAssessment(dealActivity, reportDate, history, forceRefr
     const isCall = a.type === 'outCall' || a.type === 'inCall' || a.type === 'ndz';
     const tag = isCall ? 'ЗВОНОК' : 'КОММЕНТАРИЙ';
     let line = `${a.time || '?'} [${tag}] ${a.text.substring(0, 200)}`;
-    if (a.files && a.files.length) line += ` [Файлы: ${a.files.join(', ')}]`;
+    const fileList = formatFileNames(a.files);
+    if (fileList) line += ` [Файлы: ${fileList}]`;
     if (a.transcription) line += `\n  ТРАНСКРИБАЦИЯ ЗВОНКА: ${a.transcription.substring(0, 1500)}`;
     return line;
   }).join('\n\n');
@@ -82,7 +93,11 @@ async function aiDealFullAssessment(dealActivity, reportDate, history, forceRefr
   const allTexts = [];
   const allTrTexts = [];
   for (const c of allC) {
-    if (c.files && c.files.length) allFiles.push(...c.files.map(f => ({ name: f, date: c.date, type: c.type })));
+    if (c.files && c.files.length) {
+      allFiles.push(...c.files
+        .map(f => ({ name: getFileName(f), date: c.date, type: c.type }))
+        .filter(f => f.name));
+    }
     if (c.type === 'note' || c.type === 'ndz') allTexts.push((c.text || '').toLowerCase());
     if (c.transcription) allTrTexts.push(c.transcription.toLowerCase());
   }

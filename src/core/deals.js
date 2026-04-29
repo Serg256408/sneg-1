@@ -272,6 +272,31 @@ function buildTranscriptionCacheFromAiCache() {
   return transcriptionCache;
 }
 
+function getCommentFileName(file) {
+  if (typeof file === 'string') return file.trim();
+  return String(file?.name || file?.fileName || '').trim();
+}
+
+function normalizeCommentFile(file) {
+  if (typeof file === 'string') {
+    const name = file.trim();
+    return name ? name : null;
+  }
+
+  const id = String(file?.id || file?.fileId || '').trim();
+  const name = getCommentFileName(file);
+  if (!id && !name) return null;
+
+  const normalized = {};
+  if (id) normalized.id = id;
+  if (name) normalized.name = name;
+  return normalized;
+}
+
+function commentFilesText(files) {
+  return (files || []).map(getCommentFileName).filter(Boolean).join(' ');
+}
+
 async function preloadReportDayCallTranscriptions(rawComments, reportDate, transcriptionCache, stats = null) {
   const queue = new Map();
   const cachedKeys = new Set();
@@ -295,6 +320,11 @@ async function preloadReportDayCallTranscriptions(rawComments, reportDate, trans
       continue;
     }
 
+    if (!fileId) {
+      if (stats) stats.noFileId += 1;
+      continue;
+    }
+
     const queueKey = fileId || (signature ? `sig:${signature}` : '') || String(comment.id);
     if (!queue.has(queueKey)) queue.set(queueKey, audioFile);
   }
@@ -306,6 +336,7 @@ async function preloadReportDayCallTranscriptions(rawComments, reportDate, trans
     if (isTimeUp()) break;
     const text = await transcribeCallIfNeeded({ transcription: null, files: [audioFile] }, transcriptionCache, true);
     if (text) transcribed += 1;
+    else if (stats) stats.failed += 1;
   }
 
   if (stats) stats.transcribed += transcribed;
@@ -606,7 +637,7 @@ async function parseComment(c, reportDate, transcriptionCache, allowWhisper) {
 
   if (type === 'note') {
     const hasTranscription = desc.includes('----------') && (/[🔴🔵●]/.test(desc) || /A:.*B:/s.test(desc));
-    const hasRecording = (c.files || []).some(f => (f.name || '').toLowerCase().includes('запись звонка'));
+    const hasRecording = hasCallRecordingFile(c.files || []);
     if (hasTranscription || hasRecording) type = 'inCall';
   }
 
@@ -631,7 +662,7 @@ async function parseComment(c, reportDate, transcriptionCache, allowWhisper) {
     type = 'ndz';
   }
 
-  const files = (c.files || []).map(f => f.name || f.fileName || '').filter(Boolean);
+  const files = (c.files || []).map(normalizeCommentFile).filter(Boolean);
   const text = type === 'ndz' ? getNoAnswerLabel(transcription || desc) : desc.substring(0, 800);
   return {
     id: c.id,
@@ -677,7 +708,7 @@ function detectRedFlags(card, mgrPfName, reportDate) {
   if (NO_KP_STATUSES.includes(status)) {
     const hasKp = comments.some(c => {
       const t = (c.text || '').toLowerCase();
-      const f = (c.files || []).join(' ').toLowerCase();
+      const f = commentFilesText(c.files || []).toLowerCase();
       return t.includes('кп') || t.includes('коммерческое предложение') ||
         f.includes('кп') || f.includes('к.п') || f.includes('коммерческое');
     });
@@ -1052,7 +1083,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     .filter(report => report.date);
 
   const transcriptionCache = buildTranscriptionCacheFromAiCache();
-  const transcriptionStats = { queued: 0, cached: 0, transcribed: 0 };
+  const transcriptionStats = { queued: 0, cached: 0, transcribed: 0, failed: 0, noFileId: 0 };
   console.log(`  📝 Кэш транскрибаций: ${Object.keys(transcriptionCache).length}`);
 
   async function parseAll(rawComments) {
@@ -1340,7 +1371,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       .sort((a, b) => itemStamp(a) - itemStamp(b));
   }
   console.log('    ✅');
-  console.log(`  🎤 Звонки дня без текста: ${transcriptionStats.queued} новых, ${transcriptionStats.transcribed} расшифровано, ${transcriptionStats.cached} взято из базы`);
+  console.log(`  🎤 Звонки дня без текста: ${transcriptionStats.queued} новых, ${transcriptionStats.transcribed} расшифровано, ${transcriptionStats.cached} взято из базы, ${transcriptionStats.failed} не получилось, ${transcriptionStats.noFileId} без file id`);
 
   const dealTaskIdSet = new Set(dealTasks.map(task => task.id));
   const callKeys = [];

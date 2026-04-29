@@ -194,6 +194,10 @@ async function transcribeCallIfNeeded(comment, cache, allowNew) {
   }
 
   if (!allowNew) return null;
+  if (!audioFile.id) {
+    console.log(`    Warning: call audio has no Planfix file id (${getFileName(audioFile)})`);
+    return null;
+  }
   if (isTimeUp()) return null;
   if (whisperCallsThisRun >= MAX_WHISPER_PER_RUN) return null;
 
@@ -208,11 +212,6 @@ async function transcribeCallIfNeeded(comment, cache, allowNew) {
   }
 
   const run = (async () => {
-    if (!audioFile.id) {
-      console.log(`    Warning: call audio has no Planfix file id (${getFileName(audioFile)})`);
-      return null;
-    }
-
     const audioPath = downloadPlanfixFile(audioFile.id);
     if (!audioPath) {
       console.log(`    Warning: failed to download Planfix file ${audioFile.id} (${audioFile.name})`);

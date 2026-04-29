@@ -2,8 +2,8 @@ name: Daily Report
 
 on:
   schedule:
-    # 19:00 Moscow (UTC+3) = 16:00 UTC
-    - cron: '0 16 * * *'
+    # 22:00 Moscow (UTC+3) = 19:00 UTC; after late manager calls are in Planfix
+    - cron: '0 19 * * *'
   workflow_dispatch:
     inputs:
       manager:
