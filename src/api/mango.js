@@ -70,6 +70,7 @@ function unixToMskParts(value) {
 }
 
 function normalizeStatsRows(data) {
+  if (typeof data === 'string') return parseStatsCsvRows(data);
   if (!data) return null;
   if (Array.isArray(data)) return data;
   if (typeof data !== 'object') return null;
@@ -85,6 +86,30 @@ function normalizeStatsRows(data) {
   return null;
 }
 
+function parseStatsCsvRows(data) {
+  const text = String(data || '').trim();
+  if (!text) return [];
+  if (!text.includes(';')) return null;
+
+  const fields = [
+    'records', 'start', 'finish', 'answer', 'from_extension', 'from_number',
+    'to_extension', 'to_number', 'disconnect_reason', 'line_number', 'entry_id',
+  ];
+
+  return text
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => {
+      const values = line.split(';');
+      const row = {};
+      fields.forEach((field, index) => {
+        row[field] = values[index] || '';
+      });
+      return row;
+    });
+}
+
 function normalizeRecordingIds(records) {
   if (!records) return [];
   if (Array.isArray(records)) {
@@ -94,7 +119,15 @@ function normalizeRecordingIds(records) {
       .map(s => s.trim())
       .filter(Boolean);
   }
-  return String(records)
+  const raw = String(records).trim();
+  if (!raw || raw === '[]') return [];
+  const bracketed = raw.match(/\[([^\]]+)\]/g);
+  if (bracketed) {
+    return bracketed
+      .map(record => record.slice(1, -1).trim())
+      .filter(Boolean);
+  }
+  return raw
     .split(/[,\s]+/)
     .map(s => s.trim())
     .filter(Boolean);

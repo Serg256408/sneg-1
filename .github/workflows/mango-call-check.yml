@@ -1,0 +1,46 @@
+name: Mango Call Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Date in DD-MM-YYYY format'
+        required: true
+        default: '28-04-2026'
+      managers:
+        description: 'Comma-separated manager aliases'
+        required: false
+        default: 'borovaya,guzairov'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mango-call-check-${{ github.event.inputs.date }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check only missing call recordings in Mango
+        env:
+          MANGO_API_KEY: ${{ secrets.MANGO_API_KEY }}
+          MANGO_API_SALT: ${{ secrets.MANGO_API_SALT }}
+          MANGO_MANAGER_EXTENSIONS: ${{ secrets.MANGO_MANAGER_EXTENSIONS }}
+        run: node scripts/check-mango-missing-calls.js "${{ github.event.inputs.date }}" "${{ github.event.inputs.managers }}"
