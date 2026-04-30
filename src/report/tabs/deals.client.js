@@ -567,12 +567,15 @@ function renderDealNotes(deal){
 
 function renderDealHistory(deal){
   var events = [];
-  (deal.fCalls || []).forEach(function(c){events.push({stamp:dateStamp(c.date,c.time), title:'Звонок из реестра', meta:c.date+' '+c.time, text:(c.type || '')+' '+(c.contact || '')+' '+(c.phone || '')});});
-  (deal.fAnalyses || []).forEach(function(a){events.push({stamp:dateStamp(a.date,a.time), title:'Анализ звонка', meta:a.date+' '+a.time, text:(a.verdict || '')+' · баллы '+(a.totalBalls || 0)});});
-  (deal.fComments || []).forEach(function(c){events.push({stamp:dateStamp(c.date,c.time), title:dealCallKind(c.type), meta:(c.date || '')+' '+(c.time || '')+' · '+(c.owner || ''), text:c.transcription ? 'Есть транскрипция: '+dealShort(c.transcription, 220) : (c.text || '')});});
+  var allCalls = deal.calls || deal.fCalls || [];
+  var allAnalyses = deal.analyses || deal.fAnalyses || [];
+  var allComments = deal.comments || deal.fComments || [];
+  allCalls.forEach(function(c){events.push({stamp:dateStamp(c.date,c.time), title:'Звонок из реестра', meta:c.date+' '+c.time, text:(c.type || '')+' '+(c.contact || '')+' '+(c.phone || '')});});
+  allAnalyses.forEach(function(a){events.push({stamp:dateStamp(a.date,a.time), title:'Анализ звонка', meta:a.date+' '+a.time, text:(a.verdict || '')+' · баллы '+(a.totalBalls || 0)});});
+  allComments.forEach(function(c){events.push({stamp:dateStamp(c.date,c.time), title:dealCallKind(c.type), meta:(c.date || '')+' '+(c.time || '')+' · '+(c.owner || ''), text:c.transcription ? 'Есть транскрипция: '+dealShort(c.transcription, 220) : (c.text || '')});});
   events.sort(function(a,b){return b.stamp - a.stamp;});
-  if(!events.length) return '<div class="deal-empty">Истории в выбранном периоде нет.</div>';
-  var h = '<div class="deal-panel-block"><h4>Лента событий</h4>';
+  if(!events.length) return '<div class="deal-empty">Истории по сделке нет.</div>';
+  var h = '<div class="deal-panel-block"><h4>Лента событий за весь период</h4>';
   events.forEach(function(e){h += '<div class="deal-event"><b>'+esc(e.title)+'</b><span>'+esc(e.meta)+'</span><p>'+esc(e.text || '')+'</p></div>';});
   h += '</div>';
   return h;
