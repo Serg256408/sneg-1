@@ -5,8 +5,11 @@
 // подзадачи, контрагенты попали в отчёт. Отправляет результат в Telegram.
 
 const { fs, path, ROOT_DIR, MANAGERS, MANAGERS_LIST, ALLOWED_TEMPLATES } = require('../utils/config');
-const { sleep, stripHtml, utcToMsk, timeToMinNode } = require('../utils/helpers');
+const {
+  sleep, stripHtml, utcToMsk, timeToMinNode, normalizePhone,
+} = require('../utils/helpers');
 const { pf } = require('../api/planfix');
+const { isMangoConfigured, loadMangoCallsForDate } = require('../api/mango');
 const { loadAiCache } = require('./cache');
 const { getManagerDeals, getDealComments, parseComment } = require('./deals');
 const { extractTranscription, hasCallRecordingFile } = require('./transcription');
@@ -197,6 +200,16 @@ async function checkDealCallsCompleteness(reportData) {
 // ============ Проверка 3: Транскрибации ============
 
 const TRANSCRIPTION_COVER_WINDOW_MIN = 7;
+const TRANSCRIPTION_REASON_LABELS = {
+  noAudioFile: 'нет аудиофайла',
+  noPlanfixFileMangoNoRecord: 'нет файла Planfix и записи в Mango',
+  noPlanfixFileMangoNotFound: 'нет файла Planfix, Mango не нашёл звонок',
+  planfixFileMangoNoRecord: 'файл Planfix есть, в Mango записи нет',
+  planfixFileMangoNotFound: 'файл Planfix есть, Mango не нашёл звонок',
+  mangoRecordNotAttached: 'запись Mango есть, но не прикрепилась',
+  planfixFileNoText: 'файл есть, текст не получен',
+  unknown: 'причина не определена',
+};
 
 function isReportCallAction(action) {
   return action && (action.type === 'outCall' || action.type === 'inCall');
@@ -232,12 +245,94 @@ function findCoveredTranscription(actions, action) {
     actionTimeDiff(other, action) <= TRANSCRIPTION_COVER_WINDOW_MIN);
 }
 
-function checkTranscriptions(reportData, aiCache) {
+function addTranscriptionReason(reasons, reasonKey) {
+  const key = reasonKey || 'unknown';
+  reasons[key] = (reasons[key] || 0) + 1;
+}
+
+function formatTranscriptionReasons(reasons) {
+  return Object.entries(reasons || {})
+    .filter(([, count]) => count > 0)
+    .map(([key, count]) => `${count} ${TRANSCRIPTION_REASON_LABELS[key] || key}`)
+    .join(', ');
+}
+
+function extractPhonesFromText(text) {
+  const phones = new Set();
+  const matches = String(text || '').matchAll(/(?:\+?7|8)?[\s\-()]*(?:\d[\s\-()]*){10,}/g);
+  for (const match of matches) {
+    const phone = normalizePhone(match[0]);
+    if (phone && phone.length >= 10) phones.add(phone);
+  }
+  return [...phones];
+}
+
+function actionPhones(item, action) {
+  const phones = new Set();
+
+  for (const file of (action.files || [])) {
+    extractPhonesFromText(file.name || file.fileName || '').forEach(phone => phones.add(phone));
+  }
+  extractPhonesFromText(`${action.text || ''} ${item.deal?.name || ''}`).forEach(phone => phones.add(phone));
+
+  const relatedCalls = (item.allCalls || [])
+    .map(call => ({ call, diff: actionTimeDiff({ time: call.time }, action) }))
+    .filter(row => row.diff <= TRANSCRIPTION_COVER_WINDOW_MIN)
+    .sort((a, b) => a.diff - b.diff || (b.call.duration || 0) - (a.call.duration || 0));
+
+  for (const { call } of relatedCalls) {
+    const phone = normalizePhone(call.phone || '');
+    if (phone) phones.add(phone);
+  }
+
+  return [...phones];
+}
+
+function mangoCallMatchesPhones(call, phones) {
+  const wanted = new Set((phones || []).map(normalizePhone).filter(Boolean));
+  if (!wanted.size) return false;
+  return wanted.has(call.fromNumber) || wanted.has(call.toNumber) || wanted.has(call.lineNumber);
+}
+
+function findMangoCallForAction(mangoCalls, phones, action) {
+  return (mangoCalls || [])
+    .filter(call => mangoCallMatchesPhones(call, phones))
+    .map(call => ({ call, diff: actionTimeDiff({ time: call.time }, action) }))
+    .filter(row => row.diff <= TRANSCRIPTION_COVER_WINDOW_MIN)
+    .sort((a, b) => a.diff - b.diff || (b.call.duration || 0) - (a.call.duration || 0))[0]?.call || null;
+}
+
+function classifyUntranscribedAction(item, action, mangoCalls, mangoEnabled) {
+  const hasPlanfixAudio = hasCallRecordingFile(action.files || []);
+  if (!mangoEnabled) return hasPlanfixAudio ? 'planfixFileNoText' : 'noAudioFile';
+
+  const phones = actionPhones(item, action);
+  const mangoCall = phones.length ? findMangoCallForAction(mangoCalls, phones, action) : null;
+  const hasMangoRecord = !!mangoCall?.recordingIds?.length;
+
+  if (hasMangoRecord) return 'mangoRecordNotAttached';
+  if (hasPlanfixAudio && mangoCall) return 'planfixFileMangoNoRecord';
+  if (!hasPlanfixAudio && mangoCall) return 'noPlanfixFileMangoNoRecord';
+  if (hasPlanfixAudio && phones.length) return 'planfixFileMangoNotFound';
+  if (!hasPlanfixAudio && phones.length) return 'noPlanfixFileMangoNotFound';
+  return hasPlanfixAudio ? 'planfixFileNoText' : 'noAudioFile';
+}
+
+async function checkTranscriptions(reportData, aiCache) {
   console.log('  🔍 Проверка 3: Транскрибации...');
   const dailyDeals = reportData.dailyDealActivity || [];
   let totalCalls = 0, transcribed = 0, ndz = 0, coveredByTranscription = 0, untranscribed = 0;
   const untranscribedList = [];
   const coveredList = [];
+  const untranscribedReasons = {};
+  const mangoEnabled = isMangoConfigured();
+  let mangoCalls = null;
+
+  async function getMangoCalls() {
+    if (!mangoEnabled) return [];
+    if (!mangoCalls) mangoCalls = await loadMangoCallsForDate(reportData.reportDate || '');
+    return mangoCalls;
+  }
 
   for (const item of dailyDeals) {
     const actions = item.actions || [];
@@ -261,7 +356,17 @@ function checkTranscriptions(reportData, aiCache) {
       }
 
       untranscribed++;
-      untranscribedList.push({ dealId: item.deal?.id, dealName: item.deal?.name, date: a.date, time: a.time });
+      const calls = await getMangoCalls();
+      const reason = classifyUntranscribedAction(item, a, calls, mangoEnabled);
+      addTranscriptionReason(untranscribedReasons, reason);
+      untranscribedList.push({
+        dealId: item.deal?.id,
+        dealName: item.deal?.name,
+        date: a.date,
+        time: a.time,
+        reason,
+        reasonLabel: TRANSCRIPTION_REASON_LABELS[reason] || reason,
+      });
     }
   }
 
@@ -274,6 +379,8 @@ function checkTranscriptions(reportData, aiCache) {
     ndz,
     coveredByTranscription,
     untranscribed,
+    untranscribedReasons,
+    untranscribedReasonText: formatTranscriptionReasons(untranscribedReasons),
     untranscribedList,
     coveredList,
   };
@@ -512,6 +619,7 @@ function formatTelegram(manager, reportDate, checks, reportData = null) {
     if (tr.coveredByTranscription > 0) detail += `, ${tr.coveredByTranscription} уже есть в сделке`;
     if (tr.untranscribed > 0) detail += `, ${tr.untranscribed} без расшифровки`;
     lines.push(`${statusIcon(tr.status)} Транскрибации: ${detail}`);
+    if (tr.untranscribedReasonText) lines.push(`  Причины: ${tr.untranscribedReasonText}`);
   }
 
   // 4. ИИ-оценки
@@ -565,6 +673,7 @@ function formatConsole(manager, reportDate, checks) {
     if (c.name === 'transcriptions') {
       const covered = c.coveredByTranscription ? `, уже есть в сделке: ${c.coveredByTranscription}` : '';
       lines.push(`  Всего: ${c.totalCalls}, транскр: ${c.transcribed}, НДЗ: ${c.ndz}${covered}, без: ${c.untranscribed}`);
+      if (c.untranscribedReasonText) lines.push(`  Причины: ${c.untranscribedReasonText}`);
     }
     if (c.name === 'aiAssessments') {
       lines.push(`  Оценено: ${c.assessed}/${c.total}`);
@@ -600,7 +709,7 @@ async function verifyManagerReport(alias, reportDate) {
   checks.push(await checkDealCallsCompleteness(reportData));
 
   // 3. Транскрибации
-  checks.push(checkTranscriptions(reportData, aiCache));
+  checks.push(await checkTranscriptions(reportData, aiCache));
 
   // 4. ИИ-оценки
   checks.push(checkAiAssessments(reportData));

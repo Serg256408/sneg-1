@@ -79,6 +79,8 @@ jobs:
           PLANFIX_TOKEN: ${{ secrets.PLANFIX_TOKEN }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MANGO_API_KEY: ${{ secrets.MANGO_API_KEY }}
+          MANGO_API_SALT: ${{ secrets.MANGO_API_SALT }}
         run: |
           TODAY="${{ github.event.inputs.date }}"
           if [ -z "$TODAY" ]; then
