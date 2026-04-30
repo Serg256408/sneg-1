@@ -176,7 +176,7 @@ function getDealIssues(deal){
   }
   if(ai && ai.missing && ai.missing.length) flags.push({level:'bad', label:'Скрипт: '+ai.missing.length+' пропусков'});
   if(deal.redFlags && deal.redFlags.length) flags.push({level:'bad', label:'Флаги: '+deal.redFlags.length});
-  if(deal.isNew) flags.push({level:'info', label:'Новая'});
+  if(deal.isNewInRange) flags.push({level:'info', label:'Новая'});
   return flags;
 }
 
@@ -200,6 +200,13 @@ function prepareDealCards(cards){
     if(createdRange.to && iso > createdRange.to) return false;
     return true;
   }
+  function inActivityCreatedRange(dateStr){
+    var iso = dealDmyToIso(dateStr);
+    if(!iso) return false;
+    if(range.from && iso < range.from) return false;
+    if(range.to && iso > range.to) return false;
+    return true;
+  }
 
   var query = (dealSearch || '').trim().toLowerCase();
   return cards.map(function(d){
@@ -216,11 +223,13 @@ function prepareDealCards(cards){
     var avgB = aiScore ? aiScore.total : fAnalyses.length ? Math.round(fAnalyses.reduce(function(s,a){return s + a.totalBalls;},0) / fAnalyses.length * 10) / 10 : null;
     var maxB = aiScore ? aiScore.max : 29;
     var lastTouch = getLastTouch({...d, fCalls:fCalls, fComments:fComments, fAnalyses:fAnalyses});
+    var isNewInRange = inActivityCreatedRange(d.dateCreated);
     var prepared = {
       ...d,
       fCalls:fCalls,
       fComments:fComments,
       fAnalyses:fAnalyses,
+      isNewInRange:isNewInRange,
       ui:{
         aiData:aiData,
         transcripts:transcripts,
@@ -240,7 +249,7 @@ function prepareDealCards(cards){
   }).filter(function(d){
     if(!dealHasQuery(d, query)) return false;
     if(dealStatus !== 'all' && d.status !== dealStatus) return false;
-    if(dealFocus === 'new' && !d.isNew) return false;
+    if(dealFocus === 'new' && !d.isNewInRange) return false;
     if(dealFocus === 'calls' && !d.fCalls.length && !getDealCallComments(d).length) return false;
     if(dealFocus === 'analyses' && !d.fAnalyses.length) return false;
     if(dealFocus === 'transcripts' && !d.ui.transcripts.length) return false;
@@ -274,7 +283,7 @@ function setDealDetailTab(name){
 
 function renderDealPills(deal){
   var h = '<span class="bg '+dealStatusClass(deal.status)+'">'+esc(deal.status || 'Без статуса')+'</span>';
-  if(deal.isNew) h += '<span class="bg bg-p">Новая</span>';
+  if(deal.isNewInRange) h += '<span class="bg bg-p">Новая</span>';
   for(var i=0;i<Math.min(deal.ui.issues.length,3);i++){
     var f = deal.ui.issues[i];
     h += '<span class="deal-flag '+(f.level === 'bad' ? 'is-bad' : f.level === 'warn' ? 'is-warn' : 'is-info')+'">'+esc(f.label)+'</span>';
@@ -376,7 +385,7 @@ function renderDealsV2(cards){
     transcripts:prepared.reduce(function(s,d){return s + d.ui.transcripts.length;},0),
     issueDeals:prepared.filter(function(d){return d.ui.issueCount > 0;}).length,
     createdDeals:prepared.filter(function(d){return !!d.dateCreated;}).length,
-    newDeals:prepared.filter(function(d){return d.isNew;}).length,
+    newDeals:prepared.filter(function(d){return d.isNewInRange;}).length,
   };
 
   if(prepared.length && !prepared.some(function(d){return String(d.id) === String(activeDealId);})) activeDealId = prepared[0].id;

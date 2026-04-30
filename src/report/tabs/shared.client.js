@@ -369,13 +369,140 @@ function inPeriod(dateStr){
 function filterCalls(calls){return calls.filter(c=>inPeriod(c.date))}
 function filterAnalyses(analyses){return analyses.filter(a=>inPeriod(a.date))}
 
+function dealEventKey(item, kind){
+  item=item||{};
+  return [
+    kind||'event',
+    item.id||item.commentId||item.callId||'',
+    item.date||'',
+    item.time||'',
+    item.type||'',
+    item.phone||'',
+    item.text||item.transcription||item.verdict||''
+  ].join('|');
+}
+
+function mergeDealEvents(a,b,kind){
+  const out=[];
+  const seen=new Set();
+  function add(x){
+    if(!x)return;
+    const key=dealEventKey(x,kind);
+    if(seen.has(key))return;
+    seen.add(key);
+    out.push(x);
+  }
+  (a||[]).forEach(add);
+  (b||[]).forEach(add);
+  return out;
+}
+
+function dayActionToComment(action,dateStr,idx){
+  if(!action)return null;
+  return {
+    id:'mda_'+dateStr+'_'+idx+'_'+(action.type||''),
+    date:dateStr,
+    time:action.time||'',
+    type:action.type||'note',
+    owner:action.owner||'',
+    source:action.source||'history',
+    text:action.text||'',
+    transcription:action.transcription||null,
+    files:action.files||[]
+  };
+}
+
+function dayActionToCall(action,dateStr,idx){
+  if(!action)return null;
+  const type=action.type||'';
+  if(type!=='outCall'&&type!=='inCall')return null;
+  return {
+    id:'mda_call_'+dateStr+'_'+idx+'_'+type,
+    date:dateStr,
+    time:action.time||'',
+    type:type,
+    duration:Number(action.duration||0)||0,
+    employee:action.owner||'',
+    contact:action.contact||'',
+    phone:action.phone||''
+  };
+}
+
+function dayActivityToDealCard(entry,dateStr){
+  const deal=entry&&entry.deal||{};
+  const actions=entry&&entry.actions||[];
+  const comments=(entry&&entry.allComments&&entry.allComments.length)
+    ? entry.allComments
+    : actions.map(function(a,i){return dayActionToComment(a,dateStr,i);}).filter(Boolean);
+  const calls=(entry&&entry.allCalls&&entry.allCalls.length)
+    ? entry.allCalls
+    : actions.map(function(a,i){return dayActionToCall(a,dateStr,i);}).filter(Boolean);
+  const analyses=(entry&&entry.allAnalyses&&entry.allAnalyses.length)
+    ? entry.allAnalyses
+    : (entry&&entry.planfixScript ? [{...entry.planfixScript,date:entry.planfixScript.date||dateStr}] : []);
+  return {
+    id:Number(deal.id||0)||deal.id,
+    name:deal.name||'?',
+    status:deal.status||'?',
+    template:deal.template||'',
+    counterparty:deal.counterparty||'—',
+    dateCreated:deal.dateCreated||'',
+    dealSum:Number(deal.dealSum||0)||0,
+    workDesc:deal.workDesc||'',
+    isActive:deal.isActive!==false,
+    isNew:!!(entry&&entry.isNew),
+    calls:calls,
+    analyses:analyses,
+    comments:comments,
+    redFlags:deal.redFlags||[]
+  };
+}
+
+function mergeDealCard(existing,next){
+  if(!existing)return {
+    ...next,
+    calls:next.calls||[],
+    analyses:next.analyses||[],
+    comments:next.comments||[],
+    redFlags:next.redFlags||[]
+  };
+  return {
+    ...existing,
+    ...next,
+    isNew:!!(existing.isNew||next.isNew),
+    calls:mergeDealEvents(existing.calls,next.calls,'call'),
+    analyses:mergeDealEvents(existing.analyses,next.analyses,'analysis'),
+    comments:mergeDealEvents(existing.comments,next.comments,'comment'),
+    redFlags:mergeDealEvents(existing.redFlags,next.redFlags,'flag')
+  };
+}
+
+function buildAllDealCardsForDeals(){
+  const byId=new Map();
+  const dates=Object.keys(D.multiDayActivity||{}).sort(function(a,b){return dateStamp(a,'00:00')-dateStamp(b,'00:00')});
+  dates.forEach(function(dt){
+    (D.multiDayActivity[dt]||[]).forEach(function(entry){
+      const card=dayActivityToDealCard(entry,dt);
+      if(!card.id)return;
+      byId.set(String(card.id),mergeDealCard(byId.get(String(card.id)),card));
+    });
+  });
+  (D.dealCards||[]).forEach(function(card){
+    if(!card||!card.id)return;
+    byId.set(String(card.id),mergeDealCard(byId.get(String(card.id)),card));
+  });
+  return Array.from(byId.values()).map(function(d){
+    return {
+      ...d,
+      fCalls:d.calls||[],
+      fAnalyses:d.analyses||[],
+      fComments:d.comments||[]
+    };
+  }).filter(function(d){return d.fCalls.length||d.fAnalyses.length||d.fComments.length;});
+}
+
 function upd(){
-  const dealCardsAll=D.dealCards.map(d=>({
-    ...d,
-    fCalls:d.calls||[],
-    fAnalyses:d.analyses||[],
-    fComments:d.comments||[],
-  })).filter(d=>d.fCalls.length||d.fAnalyses.length||d.fComments.length);
+  const dealCardsAll=buildAllDealCardsForDeals();
   const cards=D.dealCards.map(d=>({
     ...d,
     fCalls:filterCalls(d.calls),

@@ -1180,13 +1180,140 @@ function inPeriod(dateStr){
 function filterCalls(calls){return calls.filter(c=>inPeriod(c.date))}
 function filterAnalyses(analyses){return analyses.filter(a=>inPeriod(a.date))}
 
+function dealEventKey(item, kind){
+  item=item||{};
+  return [
+    kind||'event',
+    item.id||item.commentId||item.callId||'',
+    item.date||'',
+    item.time||'',
+    item.type||'',
+    item.phone||'',
+    item.text||item.transcription||item.verdict||''
+  ].join('|');
+}
+
+function mergeDealEvents(a,b,kind){
+  const out=[];
+  const seen=new Set();
+  function add(x){
+    if(!x)return;
+    const key=dealEventKey(x,kind);
+    if(seen.has(key))return;
+    seen.add(key);
+    out.push(x);
+  }
+  (a||[]).forEach(add);
+  (b||[]).forEach(add);
+  return out;
+}
+
+function dayActionToComment(action,dateStr,idx){
+  if(!action)return null;
+  return {
+    id:'mda_'+dateStr+'_'+idx+'_'+(action.type||''),
+    date:dateStr,
+    time:action.time||'',
+    type:action.type||'note',
+    owner:action.owner||'',
+    source:action.source||'history',
+    text:action.text||'',
+    transcription:action.transcription||null,
+    files:action.files||[]
+  };
+}
+
+function dayActionToCall(action,dateStr,idx){
+  if(!action)return null;
+  const type=action.type||'';
+  if(type!=='outCall'&&type!=='inCall')return null;
+  return {
+    id:'mda_call_'+dateStr+'_'+idx+'_'+type,
+    date:dateStr,
+    time:action.time||'',
+    type:type,
+    duration:Number(action.duration||0)||0,
+    employee:action.owner||'',
+    contact:action.contact||'',
+    phone:action.phone||''
+  };
+}
+
+function dayActivityToDealCard(entry,dateStr){
+  const deal=entry&&entry.deal||{};
+  const actions=entry&&entry.actions||[];
+  const comments=(entry&&entry.allComments&&entry.allComments.length)
+    ? entry.allComments
+    : actions.map(function(a,i){return dayActionToComment(a,dateStr,i);}).filter(Boolean);
+  const calls=(entry&&entry.allCalls&&entry.allCalls.length)
+    ? entry.allCalls
+    : actions.map(function(a,i){return dayActionToCall(a,dateStr,i);}).filter(Boolean);
+  const analyses=(entry&&entry.allAnalyses&&entry.allAnalyses.length)
+    ? entry.allAnalyses
+    : (entry&&entry.planfixScript ? [{...entry.planfixScript,date:entry.planfixScript.date||dateStr}] : []);
+  return {
+    id:Number(deal.id||0)||deal.id,
+    name:deal.name||'?',
+    status:deal.status||'?',
+    template:deal.template||'',
+    counterparty:deal.counterparty||'—',
+    dateCreated:deal.dateCreated||'',
+    dealSum:Number(deal.dealSum||0)||0,
+    workDesc:deal.workDesc||'',
+    isActive:deal.isActive!==false,
+    isNew:!!(entry&&entry.isNew),
+    calls:calls,
+    analyses:analyses,
+    comments:comments,
+    redFlags:deal.redFlags||[]
+  };
+}
+
+function mergeDealCard(existing,next){
+  if(!existing)return {
+    ...next,
+    calls:next.calls||[],
+    analyses:next.analyses||[],
+    comments:next.comments||[],
+    redFlags:next.redFlags||[]
+  };
+  return {
+    ...existing,
+    ...next,
+    isNew:!!(existing.isNew||next.isNew),
+    calls:mergeDealEvents(existing.calls,next.calls,'call'),
+    analyses:mergeDealEvents(existing.analyses,next.analyses,'analysis'),
+    comments:mergeDealEvents(existing.comments,next.comments,'comment'),
+    redFlags:mergeDealEvents(existing.redFlags,next.redFlags,'flag')
+  };
+}
+
+function buildAllDealCardsForDeals(){
+  const byId=new Map();
+  const dates=Object.keys(D.multiDayActivity||{}).sort(function(a,b){return dateStamp(a,'00:00')-dateStamp(b,'00:00')});
+  dates.forEach(function(dt){
+    (D.multiDayActivity[dt]||[]).forEach(function(entry){
+      const card=dayActivityToDealCard(entry,dt);
+      if(!card.id)return;
+      byId.set(String(card.id),mergeDealCard(byId.get(String(card.id)),card));
+    });
+  });
+  (D.dealCards||[]).forEach(function(card){
+    if(!card||!card.id)return;
+    byId.set(String(card.id),mergeDealCard(byId.get(String(card.id)),card));
+  });
+  return Array.from(byId.values()).map(function(d){
+    return {
+      ...d,
+      fCalls:d.calls||[],
+      fAnalyses:d.analyses||[],
+      fComments:d.comments||[]
+    };
+  }).filter(function(d){return d.fCalls.length||d.fAnalyses.length||d.fComments.length;});
+}
+
 function upd(){
-  const dealCardsAll=D.dealCards.map(d=>({
-    ...d,
-    fCalls:d.calls||[],
-    fAnalyses:d.analyses||[],
-    fComments:d.comments||[],
-  })).filter(d=>d.fCalls.length||d.fAnalyses.length||d.fComments.length);
+  const dealCardsAll=buildAllDealCardsForDeals();
   const cards=D.dealCards.map(d=>({
     ...d,
     fCalls:filterCalls(d.calls),
@@ -1842,7 +1969,7 @@ function getDealIssues(deal){
   }
   if(ai && ai.missing && ai.missing.length) flags.push({level:'bad', label:'Скрипт: '+ai.missing.length+' пропусков'});
   if(deal.redFlags && deal.redFlags.length) flags.push({level:'bad', label:'Флаги: '+deal.redFlags.length});
-  if(deal.isNew) flags.push({level:'info', label:'Новая'});
+  if(deal.isNewInRange) flags.push({level:'info', label:'Новая'});
   return flags;
 }
 
@@ -1866,6 +1993,13 @@ function prepareDealCards(cards){
     if(createdRange.to && iso > createdRange.to) return false;
     return true;
   }
+  function inActivityCreatedRange(dateStr){
+    var iso = dealDmyToIso(dateStr);
+    if(!iso) return false;
+    if(range.from && iso < range.from) return false;
+    if(range.to && iso > range.to) return false;
+    return true;
+  }
 
   var query = (dealSearch || '').trim().toLowerCase();
   return cards.map(function(d){
@@ -1882,11 +2016,13 @@ function prepareDealCards(cards){
     var avgB = aiScore ? aiScore.total : fAnalyses.length ? Math.round(fAnalyses.reduce(function(s,a){return s + a.totalBalls;},0) / fAnalyses.length * 10) / 10 : null;
     var maxB = aiScore ? aiScore.max : 29;
     var lastTouch = getLastTouch({...d, fCalls:fCalls, fComments:fComments, fAnalyses:fAnalyses});
+    var isNewInRange = inActivityCreatedRange(d.dateCreated);
     var prepared = {
       ...d,
       fCalls:fCalls,
       fComments:fComments,
       fAnalyses:fAnalyses,
+      isNewInRange:isNewInRange,
       ui:{
         aiData:aiData,
         transcripts:transcripts,
@@ -1906,7 +2042,7 @@ function prepareDealCards(cards){
   }).filter(function(d){
     if(!dealHasQuery(d, query)) return false;
     if(dealStatus !== 'all' && d.status !== dealStatus) return false;
-    if(dealFocus === 'new' && !d.isNew) return false;
+    if(dealFocus === 'new' && !d.isNewInRange) return false;
     if(dealFocus === 'calls' && !d.fCalls.length && !getDealCallComments(d).length) return false;
     if(dealFocus === 'analyses' && !d.fAnalyses.length) return false;
     if(dealFocus === 'transcripts' && !d.ui.transcripts.length) return false;
@@ -1940,7 +2076,7 @@ function setDealDetailTab(name){
 
 function renderDealPills(deal){
   var h = '<span class="bg '+dealStatusClass(deal.status)+'">'+esc(deal.status || 'Без статуса')+'</span>';
-  if(deal.isNew) h += '<span class="bg bg-p">Новая</span>';
+  if(deal.isNewInRange) h += '<span class="bg bg-p">Новая</span>';
   for(var i=0;i<Math.min(deal.ui.issues.length,3);i++){
     var f = deal.ui.issues[i];
     h += '<span class="deal-flag '+(f.level === 'bad' ? 'is-bad' : f.level === 'warn' ? 'is-warn' : 'is-info')+'">'+esc(f.label)+'</span>';
@@ -2042,7 +2178,7 @@ function renderDealsV2(cards){
     transcripts:prepared.reduce(function(s,d){return s + d.ui.transcripts.length;},0),
     issueDeals:prepared.filter(function(d){return d.ui.issueCount > 0;}).length,
     createdDeals:prepared.filter(function(d){return !!d.dateCreated;}).length,
-    newDeals:prepared.filter(function(d){return d.isNew;}).length,
+    newDeals:prepared.filter(function(d){return d.isNewInRange;}).length,
   };
 
   if(prepared.length && !prepared.some(function(d){return String(d.id) === String(activeDealId);})) activeDealId = prepared[0].id;
