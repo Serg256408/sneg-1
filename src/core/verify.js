@@ -196,26 +196,87 @@ async function checkDealCallsCompleteness(reportData) {
 
 // ============ Проверка 3: Транскрибации ============
 
+const TRANSCRIPTION_COVER_WINDOW_MIN = 7;
+
+function isReportCallAction(action) {
+  return action && (action.type === 'outCall' || action.type === 'inCall');
+}
+
+function hasReportTranscription(action) {
+  return String(action?.transcription || '').trim().length > 0;
+}
+
+function actionTimeMinutes(action) {
+  const times = String(action?.time || '').match(/\d{1,2}:\d{2}/g) || [];
+  const minutes = times.map(timeToMinNode).filter(Number.isFinite);
+  if (minutes.length) return minutes;
+  return [timeToMinNode(action?.time)].filter(Number.isFinite);
+}
+
+function actionTimeDiff(a, b) {
+  const left = actionTimeMinutes(a);
+  const right = actionTimeMinutes(b);
+  if (!left.length || !right.length) return Infinity;
+  let best = Infinity;
+  for (const l of left) {
+    for (const r of right) best = Math.min(best, Math.abs(l - r));
+  }
+  return best;
+}
+
+function findCoveredTranscription(actions, action) {
+  return (actions || []).find(other =>
+    other !== action &&
+    isReportCallAction(other) &&
+    hasReportTranscription(other) &&
+    actionTimeDiff(other, action) <= TRANSCRIPTION_COVER_WINDOW_MIN);
+}
+
 function checkTranscriptions(reportData, aiCache) {
   console.log('  🔍 Проверка 3: Транскрибации...');
   const dailyDeals = reportData.dailyDealActivity || [];
-  let totalCalls = 0, transcribed = 0, ndz = 0, untranscribed = 0;
+  let totalCalls = 0, transcribed = 0, ndz = 0, coveredByTranscription = 0, untranscribed = 0;
   const untranscribedList = [];
+  const coveredList = [];
 
   for (const item of dailyDeals) {
     const actions = item.actions || [];
     for (const a of actions) {
       if (a.type === 'ndz') { ndz++; totalCalls++; continue; }
-      if (a.type !== 'outCall' && a.type !== 'inCall') continue;
+      if (!isReportCallAction(a)) continue;
       totalCalls++;
-      if (a.transcription) { transcribed++; continue; }
+      if (hasReportTranscription(a)) { transcribed++; continue; }
+
+      const coveredBy = findCoveredTranscription(actions, a);
+      if (coveredBy) {
+        coveredByTranscription++;
+        coveredList.push({
+          dealId: item.deal?.id,
+          dealName: item.deal?.name,
+          date: a.date,
+          time: a.time,
+          coveredByTime: coveredBy.time,
+        });
+        continue;
+      }
+
       untranscribed++;
       untranscribedList.push({ dealId: item.deal?.id, dealName: item.deal?.name, date: a.date, time: a.time });
     }
   }
 
   const status = untranscribed === 0 ? 'pass' : untranscribed <= Math.ceil(totalCalls * 0.2) ? 'warn' : 'fail';
-  return { name: 'transcriptions', status, totalCalls, transcribed, ndz, untranscribed, untranscribedList };
+  return {
+    name: 'transcriptions',
+    status,
+    totalCalls,
+    transcribed,
+    ndz,
+    coveredByTranscription,
+    untranscribed,
+    untranscribedList,
+    coveredList,
+  };
 }
 
 // ============ Проверка 4: ИИ-оценки ============
@@ -448,6 +509,7 @@ function formatTelegram(manager, reportDate, checks, reportData = null) {
   if (tr) {
     let detail = `${tr.transcribed} транскр.`;
     if (tr.ndz > 0) detail += `, ${tr.ndz} НДЗ`;
+    if (tr.coveredByTranscription > 0) detail += `, ${tr.coveredByTranscription} уже есть в сделке`;
     if (tr.untranscribed > 0) detail += `, ${tr.untranscribed} без расшифровки`;
     lines.push(`${statusIcon(tr.status)} Транскрибации: ${detail}`);
   }
@@ -501,7 +563,8 @@ function formatConsole(manager, reportDate, checks) {
       }
     }
     if (c.name === 'transcriptions') {
-      lines.push(`  Всего: ${c.totalCalls}, транскр: ${c.transcribed}, НДЗ: ${c.ndz}, без: ${c.untranscribed}`);
+      const covered = c.coveredByTranscription ? `, уже есть в сделке: ${c.coveredByTranscription}` : '';
+      lines.push(`  Всего: ${c.totalCalls}, транскр: ${c.transcribed}, НДЗ: ${c.ndz}${covered}, без: ${c.untranscribed}`);
     }
     if (c.name === 'aiAssessments') {
       lines.push(`  Оценено: ${c.assessed}/${c.total}`);
