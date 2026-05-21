@@ -198,6 +198,10 @@ async function transcribeCallIfNeeded(comment, cache, allowNew) {
     console.log(`    Warning: call audio has no Planfix file id (${getFileName(audioFile)})`);
     return null;
   }
+  if (!POLZA_KEY && !OPENAI_KEY) {
+    await whisperTranscribe(null);
+    return null;
+  }
   if (isTimeUp()) return null;
   if (whisperCallsThisRun >= MAX_WHISPER_PER_RUN) return null;
 
@@ -241,6 +245,10 @@ async function transcribeExternalAudioIfNeeded(audioFile, audioPath, cache) {
   const cached = getCachedTranscription(cache, audioFile);
   if (cached) return cached;
 
+  if (!POLZA_KEY && !OPENAI_KEY) {
+    await whisperTranscribe(null);
+    return null;
+  }
   if (isTimeUp()) return null;
   if (whisperCallsThisRun >= MAX_WHISPER_PER_RUN) return null;
 

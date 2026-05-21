@@ -65,6 +65,32 @@ function mergeCommentsById(baseComments, incomingComments) {
   return [...byId.values()];
 }
 
+function callHistoryKey(call) {
+  if (call?.key != null) return `key:${call.key}`;
+  return [
+    call?.date || '',
+    call?.time || '',
+    call?.type || '',
+    call?.phone || '',
+    call?.duration || '',
+  ].join('|');
+}
+
+function mergeCallsByKey(baseCalls, incomingCalls) {
+  const byKey = new Map();
+  for (const call of baseCalls || []) {
+    const key = callHistoryKey(call);
+    if (!key) continue;
+    byKey.set(key, call);
+  }
+  for (const call of incomingCalls || []) {
+    const key = callHistoryKey(call);
+    if (!key) continue;
+    byKey.set(key, call);
+  }
+  return [...byKey.values()].sort((a, b) => itemStamp(a) - itemStamp(b));
+}
+
 function firstDayOfYear(dateStr) {
   const d = parsePfDate(dateStr);
   if (!d || Number.isNaN(d.getTime())) return '01-01-1970';
@@ -329,6 +355,10 @@ async function transcribeMangoMatchIntoTarget(target, match, transcriptionCache,
     target.mangoRecording = buildMangoRecordingInfo(match);
     if (stats) stats.mangoCached += 1;
     return cached;
+  }
+  if (!POLZA_KEY && !OPENAI_KEY) {
+    if (stats) stats.mangoFailed += 1;
+    return null;
   }
 
   let audioPath = null;
@@ -961,6 +991,53 @@ function itemStamp(item) {
   return dt.getTime() + (timeToMinNode(item?.time || '') * 60000);
 }
 
+function buildUnlinkedCallActivity(dateDMY, calls, mgrPfName) {
+  const dayCalls = (calls || [])
+    .filter(call => call.date === dateDMY)
+    .filter(call => !mgrPfName || ((call.employee || '').includes(mgrPfName)));
+  if (!dayCalls.length) return [];
+
+  const actions = dayCalls.map(call => ({
+    type: call.type === 'Входящий' ? 'inCall' : 'outCall',
+    time: call.time,
+    text: `${call.type || 'Звонок'} ${call.contact || ''} ${call.phone || ''}`.trim(),
+    owner: call.employee || '',
+    transcription: null,
+    source: 'datatag-unlinked',
+    duration: call.duration,
+  })).sort((a, b) => timeToMinNode(a.time) - timeToMinNode(b.time));
+
+  return [{
+    deal: {
+      id: `unlinked-${dateDMY}`,
+      name: 'Непривязанные звонки Planfix',
+      status: 'Без сделки',
+      counterparty: 'Проверьте привязку звонков',
+      dateCreated: dateDMY,
+      dealSum: 0,
+      workDesc: 'звонки без привязки к сделке',
+    },
+    isNew: false,
+    actions,
+    dayCalls: actions.length,
+    planfixScript: null,
+    allComments: [],
+    allCalls: dayCalls,
+    allAnalyses: [],
+    scriptHistory: {
+      total: 0,
+      everHowWeWork: false,
+      everCallToAction: false,
+      everSentInvoice: false,
+      everAllFour: false,
+      bestScore: 0,
+      customerKnowsCompany: false,
+    },
+    aiAssessment: null,
+    isUnlinkedCalls: true,
+  }];
+}
+
 function buildDayFromHistory(history, dateDMY, dealTasksMap, mgrPfName) {
   const result = [];
 
@@ -971,10 +1048,12 @@ function buildDayFromHistory(history, dateDMY, dealTasksMap, mgrPfName) {
     ].sort((a, b) => itemStamp(a) - itemStamp(b));
 
     const dayComments = allComments.filter(c => c.date === dateDMY);
-    if (!dayComments.length) continue;
+    const dayDataTagCalls = (dealHist.calls || []).filter(call => call.date === dateDMY);
+    if (!dayComments.length && !dayDataTagCalls.length) continue;
 
     const hasMgrActivity = dayComments.some(c => c.owner && c.owner.includes(mgrPfName));
-    if (!hasMgrActivity) continue;
+    const hasMgrCalls = dayDataTagCalls.some(call => call.employee && call.employee.includes(mgrPfName));
+    if (!hasMgrActivity && !hasMgrCalls) continue;
 
     const task = dealTasksMap[Number(dealId)];
     const cf = {};
@@ -1012,6 +1091,25 @@ function buildDayFromHistory(history, dateDMY, dealTasksMap, mgrPfName) {
       files: c.files || [],
     }));
 
+    for (const call of dayDataTagCalls) {
+      const isDupe = actions.some(a =>
+        (a.type === 'outCall' || a.type === 'inCall' || a.type === 'ndz') &&
+        Math.abs(timeToMinNode(a.time) - timeToMinNode(call.time)) < 5,
+      );
+      if (!isDupe) {
+        actions.push({
+          type: call.type === 'Входящий' ? 'inCall' : 'outCall',
+          time: call.time,
+          text: `${call.type || 'Звонок'} ${call.contact || ''} ${call.phone || ''}`.trim(),
+          owner: call.employee || '',
+          transcription: null,
+          source: 'datatag',
+          duration: call.duration,
+        });
+      }
+    }
+    actions.sort((a, b) => timeToMinNode(a.time) - timeToMinNode(b.time));
+
     const isSnow = (deal.name || '').toLowerCase().startsWith('вывоз снега');
     const assessKey = `assess_${dealId}_${dateDMY}_${isSnow ? 'v20' : 'v20a'}`;
 
@@ -1022,7 +1120,7 @@ function buildDayFromHistory(history, dateDMY, dealTasksMap, mgrPfName) {
       dayCalls: actions.filter(a => a.type === 'outCall' || a.type === 'inCall' || a.type === 'ndz').length,
       planfixScript: null,
       allComments,
-      allCalls: [],
+      allCalls: dealHist.calls || [],
       allAnalyses: [],
       scriptHistory: {
         total: 0,
@@ -1701,6 +1799,27 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     });
   }
 
+  const linkedCallKeys = new Set(Object.values(callsByTask).flat().map(call => String(call.key)));
+  const unlinkedManagerCalls = Object.entries(allCallEntries)
+    .map(([key, call]) => ({
+      key,
+      date: call['Дата'] || '',
+      time: call['Время'] || '',
+      type: call['Тип'] || '',
+      duration: parseInt(call['Продолжительность (сек.)'] || '0', 10) || 0,
+      employee: call['Сотрудник'] || '',
+      contact: call['Контакт'] || '',
+      phone: call['Номер контакта'] || '',
+      source: 'datatag-unlinked',
+    }))
+    .filter(call => (call.employee || '').includes(mgrPfName))
+    .filter(call => !linkedCallKeys.has(String(call.key)));
+
+  if (unlinkedManagerCalls.length) {
+    console.log(`  ⚠️ Непривязанные звонки DataTag: ${unlinkedManagerCalls.length}`);
+    history.unlinkedCalls = mergeCallsByKey(history.unlinkedCalls || [], unlinkedManagerCalls);
+  }
+
   const analysisByTask = {};
   for (const { taskId, key } of analysisKeys) {
     const analysis = allAnalysisEntries[key];
@@ -1774,6 +1893,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     const deal = ensureDeal(history, card.id);
     rememberDealStatus(history, card, reportDate);
     deal.comments = commentsByTask[card.id] || [];
+    deal.calls = mergeCallsByKey(deal.calls || [], card.calls || []);
     if (!deal.commentsPartial) deal.commentsLoaded = true;
     if (partialContactTasks.has(String(card.id))) {
       deal.contactCalls = mergeCommentsById(deal.contactCalls || [], contactCallsByTask[card.id] || []);
@@ -1936,28 +2056,30 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
   const multiDayActivity = {};
   const multiDaySummary = {};
   const reportDayDeals = buildDayActivityServer(reportDate);
+  reportDayDeals.push(...buildUnlinkedCallActivity(reportDate, unlinkedManagerCalls, mgrPfName));
 
   console.log(`  🤖 День отчета ${reportDate}: ${reportDayDeals.length} сделок`);
   if (reportDayDeals.length && (DEEPSEEK_KEY || POLZA_KEY)) {
     const isSnow = name => (name || '').toLowerCase().startsWith('вывоз снега');
-    const cached = reportDayDeals.filter(da => {
+    const aiEligibleReportDayDeals = reportDayDeals.filter(da => !da.isUnlinkedCalls);
+    const cached = aiEligibleReportDayDeals.filter(da => {
       const dealHist = history.deals[String(da.deal.id)];
       const key = `assess_${da.deal.id}_${reportDate}_${isSnow(da.deal.name) ? 'v20' : 'v20a'}`;
       return dealHist?.assessments?.[key];
     }).length;
-    const needAi = reportDayDeals.length - cached;
+    const needAi = aiEligibleReportDayDeals.length - cached;
 
     if (needAi > 0) {
-      console.log(`  🤖 ИИ-оценка ${reportDayDeals.length} сделок за ${reportDate} (${cached} из истории)...`);
+      console.log(`  🤖 ИИ-оценка ${aiEligibleReportDayDeals.length} сделок за ${reportDate} (${cached} из истории)...`);
     } else {
-      process.stdout.write(`  🤖 ${reportDate}: ${reportDayDeals.length} сделок (история) `);
+      process.stdout.write(`  🤖 ${reportDate}: ${aiEligibleReportDayDeals.length} сделок (история) `);
     }
 
     let aiIdx = 0;
-    await parallelMap(reportDayDeals, async (dealActivity) => {
+    await parallelMap(aiEligibleReportDayDeals, async (dealActivity) => {
       if (!isTimeUp()) dealActivity.aiAssessment = await aiDealFullAssessment(dealActivity, reportDate, history, true);
       aiIdx++;
-      if (needAi > 0) process.stdout.write(`\r    [${aiIdx}/${reportDayDeals.length}]`);
+      if (needAi > 0) process.stdout.write(`\r    [${aiIdx}/${aiEligibleReportDayDeals.length}]`);
     }, CONCURRENCY);
 
     if (needAi > 0) console.log('\n    ✅');
@@ -1982,17 +2104,27 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       if (daysAgo > 0 && daysAgo <= 30) historyDatesSet.add(c.date);
     }
   }
+  for (const call of history.unlinkedCalls || []) {
+    if (!call.date || call.date === reportDate || !reportDateObj) continue;
+    const d = parsePfDate(call.date);
+    if (!d) continue;
+    const daysAgo = (reportDateObj - d) / 86400000;
+    if (daysAgo > 0 && daysAgo <= 30) historyDatesSet.add(call.date);
+  }
 
   const pastDays = [...historyDatesSet].sort((a, b) => parsePfDate(b) - parsePfDate(a));
   console.log(`  📚 Прошлые дни из истории: ${pastDays.length}`);
 
   let pastAiGenerated = 0;
   for (const dayDMY of pastDays) {
-    const dayDeals = buildDayFromHistory(history, dayDMY, dealTasksMap, mgrPfName);
+    const dayDeals = [
+      ...buildDayFromHistory(history, dayDMY, dealTasksMap, mgrPfName),
+      ...buildUnlinkedCallActivity(dayDMY, history.unlinkedCalls || [], mgrPfName),
+    ];
     if (!dayDeals.length) continue;
 
     if ((DEEPSEEK_KEY || POLZA_KEY) && !isTimeUp()) {
-      const needAi = dayDeals.filter(da => !da.aiAssessment);
+      const needAi = dayDeals.filter(da => !da.isUnlinkedCalls && !da.aiAssessment);
       if (needAi.length) {
         if (!pastAiGenerated) console.log('  🤖 Догенерация ИИ-оценок за прошлые дни...');
         process.stdout.write(`    ${dayDMY}: ${needAi.length} сделок...`);
