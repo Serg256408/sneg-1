@@ -1,9 +1,9 @@
 {
-  "generated": "2026-05-22T19:56:20.940Z",
+  "generated": "2026-05-23T19:51:35.554Z",
   "manager": "Михаил",
   "managerPfName": "Михаил",
   "managerAlias": "mikhail",
-  "reportDate": "22-05-2026",
+  "reportDate": "23-05-2026",
   "dealCards": [],
   "dailyReports": [],
   "dailyActivity": {
@@ -41,7 +41,7 @@
   "dailyDealActivity": [],
   "aiDaySummaryText": null,
   "multiDayActivity": {
-    "22-05-2026": [],
+    "23-05-2026": [],
     "20-05-2026": [
       {
         "deal": {
@@ -2991,7 +2991,7 @@
     "month": null
   },
   "incomingByDate": {},
-  "snapshotDate": "2026-05-18T20:13:13.429Z",
+  "snapshotDate": "2026-05-22T19:56:20.684Z",
   "measurements": [
     {
       "id": 33217,
@@ -3093,8 +3093,8 @@
       "workDate": null,
       "progressedDate": null,
       "closedDate": null,
-      "lastRelevantActivityAt": "22-05-2026",
-      "latestResultText": "жду кп",
+      "lastRelevantActivityAt": "23-05-2026",
+      "latestResultText": "Что с замером? Перенести сделку &quot;желательно в ожидаем оплату&quot;",
       "timeline": [
         {
           "type": "measurement",
@@ -3110,9 +3110,9 @@
         },
         {
           "type": "result",
-          "label": "жду кп",
-          "date": "22-05-2026",
-          "time": "14:22"
+          "label": "Что с замером? Перенести сделку &quot;желательно в ожидаем оплату&quot;",
+          "date": "23-05-2026",
+          "time": "12:17"
         }
       ]
     },
@@ -4060,47 +4060,6 @@
       ]
     },
     {
-      "id": 32498,
-      "dealId": 22526,
-      "dealName": "Аитов Валерий Харисович/ в Истринском р/05-02-2025",
-      "counterparty": "Аитов Валерий Харисович",
-      "dealCreatedAt": "05-02-2025",
-      "dealSum": 5853800,
-      "manager": "Артем Гузаиров",
-      "managerAlias": "guzairov",
-      "measurer": "Саша Бригадир",
-      "measurementCreatedAt": "16-04-2026",
-      "scheduledAt": "16-04-2026",
-      "currentDealStatus": "Клиент принимает решение",
-      "outcome": "progressed",
-      "contractDate": null,
-      "workDate": null,
-      "progressedDate": "04-05-2026",
-      "closedDate": null,
-      "lastRelevantActivityAt": "04-05-2026",
-      "latestResultText": "Звонил ему?",
-      "timeline": [
-        {
-          "type": "measurement",
-          "label": "Замер создан",
-          "date": "16-04-2026",
-          "time": "07:57"
-        },
-        {
-          "type": "scheduled",
-          "label": "Замер назначен",
-          "date": "16-04-2026",
-          "time": ""
-        },
-        {
-          "type": "result",
-          "label": "Звонил ему?",
-          "date": "04-05-2026",
-          "time": "18:24"
-        }
-      ]
-    },
-    {
       "id": 32512,
       "dealId": 32511,
       "dealName": "Андрей / трещины 500мп/ООО «ТД -ВИК»/ 16-04-2026",
@@ -4138,6 +4097,47 @@
           "label": "Сделка перешла в статус Коммерческое предложение",
           "date": "16-04-2026",
           "time": "14:52"
+        }
+      ]
+    },
+    {
+      "id": 32498,
+      "dealId": 22526,
+      "dealName": "Аитов Валерий Харисович/ в Истринском р/05-02-2025",
+      "counterparty": "Аитов Валерий Харисович",
+      "dealCreatedAt": "05-02-2025",
+      "dealSum": 5853800,
+      "manager": "Артем Гузаиров",
+      "managerAlias": "guzairov",
+      "measurer": "Саша Бригадир",
+      "measurementCreatedAt": "16-04-2026",
+      "scheduledAt": "16-04-2026",
+      "currentDealStatus": "Клиент принимает решение",
+      "outcome": "progressed",
+      "contractDate": null,
+      "workDate": null,
+      "progressedDate": "04-05-2026",
+      "closedDate": null,
+      "lastRelevantActivityAt": "04-05-2026",
+      "latestResultText": "Звонил ему?",
+      "timeline": [
+        {
+          "type": "measurement",
+          "label": "Замер создан",
+          "date": "16-04-2026",
+          "time": "07:57"
+        },
+        {
+          "type": "scheduled",
+          "label": "Замер назначен",
+          "date": "16-04-2026",
+          "time": ""
+        },
+        {
+          "type": "result",
+          "label": "Звонил ему?",
+          "date": "04-05-2026",
+          "time": "18:24"
         }
       ]
     },
@@ -4687,7 +4687,7 @@
       "measurementCreatedAt": "01-04-2026",
       "scheduledAt": "01-04-2026",
       "currentDealStatus": "Сделка завершена",
-      "outcome": "unknown",
+      "outcome": "stalled",
       "contractDate": null,
       "workDate": null,
       "progressedDate": null,
@@ -4851,7 +4851,7 @@
       "measurementCreatedAt": "30-03-2026",
       "scheduledAt": "30-03-2026",
       "currentDealStatus": "Сделка завершена",
-      "outcome": "unknown",
+      "outcome": "stalled",
       "contractDate": null,
       "workDate": null,
       "progressedDate": null,
@@ -4876,6 +4876,47 @@
           "label": "Добрый день, Владимир Алексеевич По благоустройству в Новой Риге уже выбрали подрядчика, было решение? По любым вопросам звоните или пишите, буду рада вам помочь! Компания ООО «Тр…",
           "date": "12-05-2026",
           "time": "17:25"
+        }
+      ]
+    },
+    {
+      "id": 32126,
+      "dealId": 32125,
+      "dealName": "ТСН \"ЗЕЛЕНАЯ УСАДЬБА\" / Ямочный ремонт / Жилые комплесы Дворы/Тротуары/100 30-03-2026",
+      "counterparty": "ТСН \"ЗЕЛЕНАЯ УСАДЬБА\"",
+      "dealCreatedAt": "30-03-2026",
+      "dealSum": 159500,
+      "manager": "Анна Васильцова",
+      "managerAlias": "анна_васильцова",
+      "measurer": "Артем Бригадир",
+      "measurementCreatedAt": "30-03-2026",
+      "scheduledAt": "30-03-2026",
+      "currentDealStatus": "Сделка завершена",
+      "outcome": "stalled",
+      "contractDate": null,
+      "workDate": null,
+      "progressedDate": null,
+      "closedDate": null,
+      "lastRelevantActivityAt": "12-05-2026",
+      "latestResultText": "Уважаемый заказчик ТСН \"ЗЕЛЕНАЯ УСАДЬБА\"! 🌿 Спасибо, что выбрали «Транском» для благоустройства! Будем благодарны, если оставите короткий отзыв — это займёт 1 минуту и очень помо…",
+      "timeline": [
+        {
+          "type": "measurement",
+          "label": "Замер создан",
+          "date": "30-03-2026",
+          "time": "10:35"
+        },
+        {
+          "type": "scheduled",
+          "label": "Замер назначен",
+          "date": "30-03-2026",
+          "time": ""
+        },
+        {
+          "type": "result",
+          "label": "Уважаемый заказчик ТСН \"ЗЕЛЕНАЯ УСАДЬБА\"! 🌿 Спасибо, что выбрали «Транском» для благоустройства! Будем благодарны, если оставите короткий отзыв — это займёт 1 минуту и очень помо…",
+          "date": "12-05-2026",
+          "time": "10:42"
         }
       ]
     },
@@ -4917,47 +4958,6 @@
           "label": "Здесь все случилось или какая задача?",
           "date": "23-04-2026",
           "time": "16:03"
-        }
-      ]
-    },
-    {
-      "id": 32126,
-      "dealId": 32125,
-      "dealName": "ТСН \"ЗЕЛЕНАЯ УСАДЬБА\" / Ямочный ремонт / Жилые комплесы Дворы/Тротуары/100 30-03-2026",
-      "counterparty": "ТСН \"ЗЕЛЕНАЯ УСАДЬБА\"",
-      "dealCreatedAt": "30-03-2026",
-      "dealSum": 159500,
-      "manager": "Анна Васильцова",
-      "managerAlias": "анна_васильцова",
-      "measurer": "Артем Бригадир",
-      "measurementCreatedAt": "30-03-2026",
-      "scheduledAt": "30-03-2026",
-      "currentDealStatus": "Сделка завершена",
-      "outcome": "unknown",
-      "contractDate": null,
-      "workDate": null,
-      "progressedDate": null,
-      "closedDate": null,
-      "lastRelevantActivityAt": "12-05-2026",
-      "latestResultText": "Уважаемый заказчик ТСН \"ЗЕЛЕНАЯ УСАДЬБА\"! 🌿 Спасибо, что выбрали «Транском» для благоустройства! Будем благодарны, если оставите короткий отзыв — это займёт 1 минуту и очень помо…",
-      "timeline": [
-        {
-          "type": "measurement",
-          "label": "Замер создан",
-          "date": "30-03-2026",
-          "time": "10:35"
-        },
-        {
-          "type": "scheduled",
-          "label": "Замер назначен",
-          "date": "30-03-2026",
-          "time": ""
-        },
-        {
-          "type": "result",
-          "label": "Уважаемый заказчик ТСН \"ЗЕЛЕНАЯ УСАДЬБА\"! 🌿 Спасибо, что выбрали «Транском» для благоустройства! Будем благодарны, если оставите короткий отзыв — это займёт 1 минуту и очень помо…",
-          "date": "12-05-2026",
-          "time": "10:42"
         }
       ]
     },
@@ -5536,11 +5536,11 @@
       "Саша Бригадир"
     ],
     "outcomeCounts": {
-      "unknown": 10,
+      "unknown": 7,
       "progressed": 38,
       "to_contract": 3,
       "to_work": 4,
-      "stalled": 5
+      "stalled": 8
     },
     "byMeasurer": [
       {
@@ -5550,7 +5550,7 @@
         "progressed": 26,
         "toContract": 3,
         "toWork": 1,
-        "stalled": 1,
+        "stalled": 2,
         "sum": 97998648.69999999
       },
       {
@@ -5560,7 +5560,7 @@
         "progressed": 6,
         "toContract": 1,
         "toWork": 1,
-        "stalled": 3,
+        "stalled": 4,
         "sum": 24569880
       },
       {
@@ -5570,7 +5570,7 @@
         "progressed": 6,
         "toContract": 2,
         "toWork": 2,
-        "stalled": 0,
+        "stalled": 1,
         "sum": 36668500
       },
       {
@@ -11382,6 +11382,15 @@
         "progressed": 9,
         "toContract": 0,
         "toWork": 0
+      },
+      {
+        "date": "23-05-2026",
+        "dealsCreated": 0,
+        "enteredMeasurement": 1,
+        "scheduledMeasurements": 1,
+        "progressed": 0,
+        "toContract": 0,
+        "toWork": 0
       }
     ],
     "totals": {
@@ -11390,17 +11399,17 @@
       "progressed": 45,
       "toContract": 7,
       "toWork": 4,
-      "stalled": 5
+      "stalled": 8
     },
     "compare30d": {
-      "enteredMeasurement": 21,
-      "scheduledMeasurements": 22,
-      "progressed": 37,
-      "toContract": 6,
+      "enteredMeasurement": 20,
+      "scheduledMeasurements": 21,
+      "progressed": 36,
+      "toContract": 5,
       "toWork": 4,
-      "stalled": 2,
-      "contractRate": 29,
-      "workRate": 19
+      "stalled": 4,
+      "contractRate": 25,
+      "workRate": 20
     }
   },
   "measurementsComparison": {
