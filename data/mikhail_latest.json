@@ -1,9 +1,9 @@
 {
-  "generated": "2026-05-23T19:51:35.554Z",
+  "generated": "2026-05-24T19:53:37.976Z",
   "manager": "Михаил",
   "managerPfName": "Михаил",
   "managerAlias": "mikhail",
-  "reportDate": "23-05-2026",
+  "reportDate": "24-05-2026",
   "dealCards": [],
   "dailyReports": [],
   "dailyActivity": {
@@ -41,7 +41,7 @@
   "dailyDealActivity": [],
   "aiDaySummaryText": null,
   "multiDayActivity": {
-    "23-05-2026": [],
+    "24-05-2026": [],
     "20-05-2026": [
       {
         "deal": {
@@ -2991,7 +2991,7 @@
     "month": null
   },
   "incomingByDate": {},
-  "snapshotDate": "2026-05-22T19:56:20.684Z",
+  "snapshotDate": "2026-05-23T19:51:35.328Z",
   "measurements": [
     {
       "id": 33217,
@@ -4019,14 +4019,14 @@
       ]
     },
     {
-      "id": 32476,
-      "dealId": 32163,
-      "dealName": "Александр / Пирог тер Сыроварня Олега Сироты 9500 м2/Истринский р д Дубровкое/31.03.2026",
-      "counterparty": "Александр",
-      "dealCreatedAt": "31-03-2026",
-      "dealSum": 15966200,
-      "manager": "Ия Боровая",
-      "managerAlias": "borovaya",
+      "id": 32498,
+      "dealId": 22526,
+      "dealName": "Аитов Валерий Харисович/ в Истринском р/05-02-2025",
+      "counterparty": "Аитов Валерий Харисович",
+      "dealCreatedAt": "05-02-2025",
+      "dealSum": 5853800,
+      "manager": "Артем Гузаиров",
+      "managerAlias": "guzairov",
       "measurer": "Саша Бригадир",
       "measurementCreatedAt": "16-04-2026",
       "scheduledAt": "16-04-2026",
@@ -4034,16 +4034,16 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "21-05-2026",
+      "progressedDate": "04-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "21-05-2026",
-      "latestResultText": "В мах читает и ничего пока не отвечает",
+      "lastRelevantActivityAt": "04-05-2026",
+      "latestResultText": "Звонил ему?",
       "timeline": [
         {
           "type": "measurement",
           "label": "Замер создан",
           "date": "16-04-2026",
-          "time": "08:10"
+          "time": "07:57"
         },
         {
           "type": "scheduled",
@@ -4053,9 +4053,9 @@
         },
         {
           "type": "result",
-          "label": "В мах читает и ничего пока не отвечает",
-          "date": "21-05-2026",
-          "time": "17:15"
+          "label": "Звонил ему?",
+          "date": "04-05-2026",
+          "time": "18:24"
         }
       ]
     },
@@ -4101,14 +4101,14 @@
       ]
     },
     {
-      "id": 32498,
-      "dealId": 22526,
-      "dealName": "Аитов Валерий Харисович/ в Истринском р/05-02-2025",
-      "counterparty": "Аитов Валерий Харисович",
-      "dealCreatedAt": "05-02-2025",
-      "dealSum": 5853800,
-      "manager": "Артем Гузаиров",
-      "managerAlias": "guzairov",
+      "id": 32476,
+      "dealId": 32163,
+      "dealName": "Александр / Пирог тер Сыроварня Олега Сироты 9500 м2/Истринский р д Дубровкое/31.03.2026",
+      "counterparty": "Александр",
+      "dealCreatedAt": "31-03-2026",
+      "dealSum": 15966200,
+      "manager": "Ия Боровая",
+      "managerAlias": "borovaya",
       "measurer": "Саша Бригадир",
       "measurementCreatedAt": "16-04-2026",
       "scheduledAt": "16-04-2026",
@@ -4116,16 +4116,16 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "04-05-2026",
+      "progressedDate": "21-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "04-05-2026",
-      "latestResultText": "Звонил ему?",
+      "lastRelevantActivityAt": "21-05-2026",
+      "latestResultText": "В мах читает и ничего пока не отвечает",
       "timeline": [
         {
           "type": "measurement",
           "label": "Замер создан",
           "date": "16-04-2026",
-          "time": "07:57"
+          "time": "08:10"
         },
         {
           "type": "scheduled",
@@ -4135,9 +4135,9 @@
         },
         {
           "type": "result",
-          "label": "Звонил ему?",
-          "date": "04-05-2026",
-          "time": "18:24"
+          "label": "В мах читает и ничего пока не отвечает",
+          "date": "21-05-2026",
+          "time": "17:15"
         }
       ]
     },
@@ -4880,47 +4880,6 @@
       ]
     },
     {
-      "id": 32126,
-      "dealId": 32125,
-      "dealName": "ТСН \"ЗЕЛЕНАЯ УСАДЬБА\" / Ямочный ремонт / Жилые комплесы Дворы/Тротуары/100 30-03-2026",
-      "counterparty": "ТСН \"ЗЕЛЕНАЯ УСАДЬБА\"",
-      "dealCreatedAt": "30-03-2026",
-      "dealSum": 159500,
-      "manager": "Анна Васильцова",
-      "managerAlias": "анна_васильцова",
-      "measurer": "Артем Бригадир",
-      "measurementCreatedAt": "30-03-2026",
-      "scheduledAt": "30-03-2026",
-      "currentDealStatus": "Сделка завершена",
-      "outcome": "stalled",
-      "contractDate": null,
-      "workDate": null,
-      "progressedDate": null,
-      "closedDate": null,
-      "lastRelevantActivityAt": "12-05-2026",
-      "latestResultText": "Уважаемый заказчик ТСН \"ЗЕЛЕНАЯ УСАДЬБА\"! 🌿 Спасибо, что выбрали «Транском» для благоустройства! Будем благодарны, если оставите короткий отзыв — это займёт 1 минуту и очень помо…",
-      "timeline": [
-        {
-          "type": "measurement",
-          "label": "Замер создан",
-          "date": "30-03-2026",
-          "time": "10:35"
-        },
-        {
-          "type": "scheduled",
-          "label": "Замер назначен",
-          "date": "30-03-2026",
-          "time": ""
-        },
-        {
-          "type": "result",
-          "label": "Уважаемый заказчик ТСН \"ЗЕЛЕНАЯ УСАДЬБА\"! 🌿 Спасибо, что выбрали «Транском» для благоустройства! Будем благодарны, если оставите короткий отзыв — это займёт 1 минуту и очень помо…",
-          "date": "12-05-2026",
-          "time": "10:42"
-        }
-      ]
-    },
-    {
       "id": 32115,
       "dealId": 32114,
       "dealName": "Юрий Кфс / Бортовой камень/ \nМосква, Ленинградское шоссе, 71Бс2",
@@ -4958,6 +4917,47 @@
           "label": "Здесь все случилось или какая задача?",
           "date": "23-04-2026",
           "time": "16:03"
+        }
+      ]
+    },
+    {
+      "id": 32126,
+      "dealId": 32125,
+      "dealName": "ТСН \"ЗЕЛЕНАЯ УСАДЬБА\" / Ямочный ремонт / Жилые комплесы Дворы/Тротуары/100 30-03-2026",
+      "counterparty": "ТСН \"ЗЕЛЕНАЯ УСАДЬБА\"",
+      "dealCreatedAt": "30-03-2026",
+      "dealSum": 159500,
+      "manager": "Анна Васильцова",
+      "managerAlias": "анна_васильцова",
+      "measurer": "Артем Бригадир",
+      "measurementCreatedAt": "30-03-2026",
+      "scheduledAt": "30-03-2026",
+      "currentDealStatus": "Сделка завершена",
+      "outcome": "stalled",
+      "contractDate": null,
+      "workDate": null,
+      "progressedDate": null,
+      "closedDate": null,
+      "lastRelevantActivityAt": "12-05-2026",
+      "latestResultText": "Уважаемый заказчик ТСН \"ЗЕЛЕНАЯ УСАДЬБА\"! 🌿 Спасибо, что выбрали «Транском» для благоустройства! Будем благодарны, если оставите короткий отзыв — это займёт 1 минуту и очень помо…",
+      "timeline": [
+        {
+          "type": "measurement",
+          "label": "Замер создан",
+          "date": "30-03-2026",
+          "time": "10:35"
+        },
+        {
+          "type": "scheduled",
+          "label": "Замер назначен",
+          "date": "30-03-2026",
+          "time": ""
+        },
+        {
+          "type": "result",
+          "label": "Уважаемый заказчик ТСН \"ЗЕЛЕНАЯ УСАДЬБА\"! 🌿 Спасибо, что выбрали «Транском» для благоустройства! Будем благодарны, если оставите короткий отзыв — это займёт 1 минуту и очень помо…",
+          "date": "12-05-2026",
+          "time": "10:42"
         }
       ]
     },
@@ -11391,6 +11391,15 @@
         "progressed": 0,
         "toContract": 0,
         "toWork": 0
+      },
+      {
+        "date": "24-05-2026",
+        "dealsCreated": 0,
+        "enteredMeasurement": 0,
+        "scheduledMeasurements": 0,
+        "progressed": 0,
+        "toContract": 0,
+        "toWork": 0
       }
     ],
     "totals": {
@@ -11402,14 +11411,14 @@
       "stalled": 8
     },
     "compare30d": {
-      "enteredMeasurement": 20,
-      "scheduledMeasurements": 21,
+      "enteredMeasurement": 19,
+      "scheduledMeasurements": 20,
       "progressed": 36,
       "toContract": 5,
       "toWork": 4,
       "stalled": 4,
-      "contractRate": 25,
-      "workRate": 20
+      "contractRate": 26,
+      "workRate": 21
     }
   },
   "measurementsComparison": {
