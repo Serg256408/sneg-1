@@ -1,9 +1,9 @@
 {
-  "generated": "2026-05-24T19:53:37.976Z",
+  "generated": "2026-05-25T20:07:58.557Z",
   "manager": "Михаил",
   "managerPfName": "Михаил",
   "managerAlias": "mikhail",
-  "reportDate": "24-05-2026",
+  "reportDate": "25-05-2026",
   "dealCards": [],
   "dailyReports": [],
   "dailyActivity": {
@@ -41,7 +41,1624 @@
   "dailyDealActivity": [],
   "aiDaySummaryText": null,
   "multiDayActivity": {
-    "24-05-2026": [],
+    "25-05-2026": [],
+    "22-05-2026": [
+      {
+        "deal": {
+          "id": 33210,
+          "name": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+          "status": "Коммерческое предложение",
+          "counterparty": "Михаил",
+          "dateCreated": "21-05-2026",
+          "dealSum": 0,
+          "workDesc": ""
+        },
+        "isNew": false,
+        "actions": [
+          {
+            "type": "note",
+            "time": "09:00",
+            "text": "Сегодня необходимо совершить целевое действие по сделке:\n\nи назначить новое целевое действие",
+            "owner": "Robot-3",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "note",
+            "time": "11:29",
+            "text": "Михаил, добрый день! В ысылаю вам ознакомительное коммерческое предложение. Прошу учесть, что точный расчёт будет возможен после осмотра объекта и согласования сроков\n \nПо любым вопросам звоните или пишите, буду рада вам помочь! \n\n \n  \n   \n   \n  \n  \n   \n     \n    Компания ООО «Транском»Специалист по работе с клиентами Миронова Екатерина  8-977-422-46-31\n 8-499-450-72-73ekaterina.mir-transkom@yandex.ruhttps://asfaltsneg.ruАдрес офиса: 143902, Московская область, городБалашиха, Советская улица, дом 36 литера\"в7\", помещение №1 /часть/",
+            "owner": "Екатерина Миронова",
+            "transcription": null,
+            "source": "deal",
+            "files": [
+              {
+                "id": "1732574",
+                "name": "КП_КП-001_Строгино Средн.pdf"
+              },
+              {
+                "id": "1732572",
+                "name": "КП_КП-001_Строгино Эконом.pdf"
+              }
+            ]
+          },
+          {
+            "type": "note",
+            "time": "11:30",
+            "text": "вернусь с ответом",
+            "owner": "Михаил",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "note",
+            "time": "11:30",
+            "text": "Добрый день",
+            "owner": "Михаил",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "note",
+            "time": "11:30",
+            "text": "Сделка перешла в статус Коммерческое предложение",
+            "owner": "Robot-3",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "note",
+            "time": "11:31",
+            "text": "Хорошо. Будем ждать информацию",
+            "owner": "Екатерина Миронова",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          }
+        ],
+        "dayCalls": 0,
+        "planfixScript": null,
+        "allComments": [
+          {
+            "id": 12355850,
+            "date": "21-05-2026",
+            "time": "14:23",
+            "type": "note",
+            "text": "Новая заявка (перезвонить клиенту)\nСообщение отправлено со страницы:\n Замена асфальта\nИмя: Михаил\n Телефон: +7(963) 766-8227\nПараметры сессии\nutm_source - yandex\nutm_medium -\nutm_campaign - organic",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355848,
+            "date": "21-05-2026",
+            "time": "14:23",
+            "type": "inCall",
+            "text": "Входящий звонок----------Не могу выполнить операцию, закончились AI-кредиты.Ответственный за оплату ПланФикса может добавить AI-кредиты в разделе \"Подписка\"",
+            "owner": "Сергей Терехов",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1732522",
+                "name": "Запись звонка Михаил - Сергей Терехов 21-05-2026 14:24.mp3"
+              }
+            ],
+            "source": "contact"
+          },
+          {
+            "id": 12355898,
+            "date": "21-05-2026",
+            "time": "14:28",
+            "type": "note",
+            "text": "Сделка перешла в статус Обработка",
+            "owner": "Robot-3",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355912,
+            "date": "21-05-2026",
+            "time": "14:35",
+            "type": "outCall",
+            "text": "Исходящий звонок----------Не могу выполнить операцию, закончились AI-кредиты.Ответственный за оплату ПланФикса может добавить AI-кредиты в разделе \"Подписка\"",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1732528",
+                "name": "Запись звонка Ия Боровая - Михаил 21-05-2026 14:36.mp3"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355920,
+            "date": "21-05-2026",
+            "time": "14:37",
+            "type": "note",
+            "text": "",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355934,
+            "date": "21-05-2026",
+            "time": "14:38",
+            "type": "note",
+            "text": "Сделка перешла в статус Обработка",
+            "owner": "Robot-3",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355952,
+            "date": "21-05-2026",
+            "time": "14:41",
+            "type": "note",
+            "text": "Наша компания",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1657800",
+                "name": "Презентация Транском.pdf"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355948,
+            "date": "21-05-2026",
+            "time": "14:41",
+            "type": "note",
+            "text": "Добрый день, Михаил\nВысылаю информацию о нас, жду фото объекта\n \nАсфальтирование — это наш основной профиль! Полный цикл — от геодезии до финальной разметки. Работаем с 2014 года: тротуары, парковки, дворы, промышленные дороги под грузовой транспорт\nНаши Работы:\n■ КП «Западная Долина» — 20 000 м²: полный цикл — дороги, парковки, тротуары, бордюры, ливнёвка, разметка\n■ ЖК «Московские»: асфальтирование дворов, пешеходные зоны, бордюры, благоустройство территории\n■ Микояновский мясокомбинат: промышленная площадка под тяжёлый грузовой транспорт, усиленный «пирог»\nПо  любым вопросам звоните или пишите, буду рада вам помочь! \n\n \n  \n   \n   \n  \n  \n   \n     \n    Компания ООО «Транском»Менеджер по работе с клиентамиИя Боровая   8-930-035-31-65 transcom50010@mail.ruhttps://asfaltsneg.ruАдрес офиса: 1",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355994,
+            "date": "21-05-2026",
+            "time": "14:42",
+            "type": "note",
+            "text": "сможете по стоимости соориентировать \nи срокам работ?",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355990,
+            "date": "21-05-2026",
+            "time": "14:42",
+            "type": "note",
+            "text": "г Москва ул Маршала Прошлякова, 22.",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355986,
+            "date": "21-05-2026",
+            "time": "14:42",
+            "type": "note",
+            "text": "",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1732532",
+                "name": "210766255_5ea1275ad26c7f3cd9d92ed7a0043b93.webp"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355978,
+            "date": "21-05-2026",
+            "time": "14:42",
+            "type": "note",
+            "text": "Замена только верхнего слоя",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355974,
+            "date": "21-05-2026",
+            "time": "14:42",
+            "type": "note",
+            "text": "",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1732530",
+                "name": "210766255_60d1e6bc2e73070dff1a6f2d5cd975ab.webp"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355970,
+            "date": "21-05-2026",
+            "time": "14:42",
+            "type": "note",
+            "text": "Где то продавлен",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355966,
+            "date": "21-05-2026",
+            "time": "14:42",
+            "type": "note",
+            "text": "Косметика",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355962,
+            "date": "21-05-2026",
+            "time": "14:42",
+            "type": "note",
+            "text": "Добрый день!",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355998,
+            "date": "21-05-2026",
+            "time": "14:44",
+            "type": "note",
+            "text": "Разговаривала с ним. Все данные получила. Рассчитываю кп",
+            "owner": "Екатерина Миронова",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12356002,
+            "date": "21-05-2026",
+            "time": "14:45",
+            "type": "note",
+            "text": "Екатерина Миронова работы планируют примерно через 2 недели, нужно снять старый, застелить новый 150м2, просит 2 кп на грузовые нагрузки и на средние, хочет понять разницу в бюджете",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12356174,
+            "date": "21-05-2026",
+            "time": "16:03",
+            "type": "note",
+            "text": "нет информации ещё?",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12356308,
+            "date": "21-05-2026",
+            "time": "17:10",
+            "type": "note",
+            "text": "Кп готовы",
+            "owner": "Екатерина Миронова",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1732574",
+                "name": "КП_КП-001_Строгино Средн.pdf"
+              },
+              {
+                "id": "1732572",
+                "name": "КП_КП-001_Строгино Эконом.pdf"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12356704,
+            "date": "22-05-2026",
+            "time": "09:00",
+            "type": "note",
+            "text": "Сегодня необходимо совершить целевое действие по сделке:\n\nи назначить новое целевое действие",
+            "owner": "Robot-3",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12357094,
+            "date": "22-05-2026",
+            "time": "11:29",
+            "type": "note",
+            "text": "Михаил, добрый день! В ысылаю вам ознакомительное коммерческое предложение. Прошу учесть, что точный расчёт будет возможен после осмотра объекта и согласования сроков\n \nПо любым вопросам звоните или пишите, буду рада вам помочь! \n\n \n  \n   \n   \n  \n  \n   \n     \n    Компания ООО «Транском»Специалист по работе с клиентами Миронова Екатерина  8-977-422-46-31\n 8-499-450-72-73ekaterina.mir-transkom@yandex.ruhttps://asfaltsneg.ruАдрес офиса: 143902, Московская область, городБалашиха, Советская улица, дом 36 литера\"в7\", помещение №1 /часть/",
+            "owner": "Екатерина Миронова",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1732574",
+                "name": "КП_КП-001_Строгино Средн.pdf"
+              },
+              {
+                "id": "1732572",
+                "name": "КП_КП-001_Строгино Эконом.pdf"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12357116,
+            "date": "22-05-2026",
+            "time": "11:30",
+            "type": "note",
+            "text": "вернусь с ответом",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12357110,
+            "date": "22-05-2026",
+            "time": "11:30",
+            "type": "note",
+            "text": "Добрый день",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12357102,
+            "date": "22-05-2026",
+            "time": "11:30",
+            "type": "note",
+            "text": "Сделка перешла в статус Коммерческое предложение",
+            "owner": "Robot-3",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12357122,
+            "date": "22-05-2026",
+            "time": "11:31",
+            "type": "note",
+            "text": "Хорошо. Будем ждать информацию",
+            "owner": "Екатерина Миронова",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12359002,
+            "date": "25-05-2026",
+            "time": "09:00",
+            "type": "note",
+            "text": "Сегодня необходимо совершить целевое действие по сделке:\n\nи назначить новое целевое действие",
+            "owner": "Robot-3",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12361082,
+            "date": "25-05-2026",
+            "time": "17:35",
+            "type": "note",
+            "text": "Звонила ему?",
+            "owner": "Екатерина Миронова",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12361102,
+            "date": "25-05-2026",
+            "time": "17:36",
+            "type": "note",
+            "text": "не отвечает пока, щас напишу",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12361084,
+            "date": "25-05-2026",
+            "time": "17:36",
+            "type": "outCall",
+            "text": "Исходящий звонок----------Не могу выполнить операцию, закончились AI-кредиты.Ответственный за оплату ПланФикса может добавить AI-кредиты в разделе \"Подписка\"",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1733324",
+                "name": "Запись звонка Ия Боровая - Михаил 25-05-2026 17:37.mp3"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12361110,
+            "date": "25-05-2026",
+            "time": "17:38",
+            "type": "note",
+            "text": "Добрый день, Михаил\nПодскажите какой вариант сметы вам больше подходит?\nКогда ожидать результаты рассмотрения нашего предложения?\n \nАсфальтирование — это наш основной профиль! Полный цикл — от геодезии до финальной разметки. Работаем с 2014 года: тротуары, парковки, дворы, промышленные дороги под грузовой транспорт\nНаши Работы:\n■ КП «Западная Долина» — 20 000 м²: полный цикл — дороги, парковки, тротуары, бордюры, ливнёвка, разметка\n■ ЖК «Московские»: асфальтирование дворов, пешеходные зоны, бордюры, благоустройство территории\n■ Микояновский мясокомбинат: промышленная площадка под тяжёлый грузовой транспорт, усиленный «пирог»\nПо  любым вопросам звоните или пишите, буду рада вам помочь! \n\n \n  \n   \n   \n  \n  \n   \n     \n    Компания ООО «Транском»Менеджер по работе с клиентамиИя Боровая   8-930",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1733326",
+                "name": "Презентация Транском_33210.pdf"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12361126,
+            "date": "25-05-2026",
+            "time": "17:40",
+            "type": "inCall",
+            "text": "Входящий звонок----------Не могу выполнить операцию, закончились AI-кредиты.Ответственный за оплату ПланФикса может добавить AI-кредиты в разделе \"Подписка\"",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1733328",
+                "name": "Запись звонка Михаил - Ия Боровая 25-05-2026 17:41.mp3"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12361130,
+            "date": "25-05-2026",
+            "time": "17:41",
+            "type": "note",
+            "text": "Звонила ему?\n\nждем решения в течении недели, край в пн следующий",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          }
+        ],
+        "allCalls": [
+          {
+            "key": 46340,
+            "date": "25-05-2026",
+            "time": "17:35 - 17:36",
+            "type": "Исходящий",
+            "duration": 49,
+            "employee": "Ия Эдуардовна Боровая",
+            "contact": "Михаил",
+            "phone": "79637668227",
+            "source": "datatag"
+          },
+          {
+            "key": 46341,
+            "date": "25-05-2026",
+            "time": "17:39 - 17:40",
+            "type": "Входящий",
+            "duration": 81,
+            "employee": "Ия Эдуардовна Боровая",
+            "contact": "Михаил",
+            "phone": "79637668227",
+            "source": "datatag"
+          }
+        ],
+        "allAnalyses": [],
+        "scriptHistory": {
+          "total": 0,
+          "everHowWeWork": false,
+          "everCallToAction": false,
+          "everSentInvoice": false,
+          "everAllFour": false,
+          "bestScore": 0,
+          "customerKnowsCompany": false
+        },
+        "aiAssessment": null
+      }
+    ],
+    "21-05-2026": [
+      {
+        "deal": {
+          "id": 33210,
+          "name": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+          "status": "Коммерческое предложение",
+          "counterparty": "Михаил",
+          "dateCreated": "21-05-2026",
+          "dealSum": 0,
+          "workDesc": ""
+        },
+        "isNew": true,
+        "actions": [
+          {
+            "type": "note",
+            "time": "14:23",
+            "text": "Новая заявка (перезвонить клиенту)\nСообщение отправлено со страницы:\n Замена асфальта\nИмя: Михаил\n Телефон: +7(963) 766-8227\nПараметры сессии\nutm_source - yandex\nutm_medium -\nutm_campaign - organic",
+            "owner": "Михаил",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "inCall",
+            "time": "14:23",
+            "text": "Входящий звонок----------Не могу выполнить операцию, закончились AI-кредиты.Ответственный за оплату ПланФикса может добавить AI-кредиты в разделе \"Подписка\"",
+            "owner": "Сергей Терехов",
+            "transcription": null,
+            "source": "contact",
+            "files": [
+              {
+                "id": "1732522",
+                "name": "Запись звонка Михаил - Сергей Терехов 21-05-2026 14:24.mp3"
+              }
+            ]
+          },
+          {
+            "type": "note",
+            "time": "14:28",
+            "text": "Сделка перешла в статус Обработка",
+            "owner": "Robot-3",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "outCall",
+            "time": "14:35",
+            "text": "Исходящий звонок----------Не могу выполнить операцию, закончились AI-кредиты.Ответственный за оплату ПланФикса может добавить AI-кредиты в разделе \"Подписка\"",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "source": "deal",
+            "files": [
+              {
+                "id": "1732528",
+                "name": "Запись звонка Ия Боровая - Михаил 21-05-2026 14:36.mp3"
+              }
+            ]
+          },
+          {
+            "type": "note",
+            "time": "14:37",
+            "text": "",
+            "owner": "Михаил",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "note",
+            "time": "14:38",
+            "text": "Сделка перешла в статус Обработка",
+            "owner": "Robot-3",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "note",
+            "time": "14:41",
+            "text": "Наша компания",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "source": "deal",
+            "files": [
+              {
+                "id": "1657800",
+                "name": "Презентация Транском.pdf"
+              }
+            ]
+          },
+          {
+            "type": "note",
+            "time": "14:41",
+            "text": "Добрый день, Михаил\nВысылаю информацию о нас, жду фото объекта\n \nАсфальтирование — это наш основной профиль! Полный цикл — от геодезии до финальной разметки. Работаем с 2014 года: тротуары, парковки, дворы, промышленные дороги под грузовой транспорт\nНаши Работы:\n■ КП «Западная Долина» — 20 000 м²: полный цикл — дороги, парковки, тротуары, бордюры, ливнёвка, разметка\n■ ЖК «Московские»: асфальтирование дворов, пешеходные зоны, бордюры, благоустройство территории\n■ Микояновский мясокомбинат: промышленная площадка под тяжёлый грузовой транспорт, усиленный «пирог»\nПо  любым вопросам звоните или пишите, буду рада вам помочь! \n\n \n  \n   \n   \n  \n  \n   \n     \n    Компания ООО «Транском»Менеджер по работе с клиентамиИя Боровая   8-930-035-31-65 transcom50010@mail.ruhttps://asfaltsneg.ruАдрес офиса: 1",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "note",
+            "time": "14:42",
+            "text": "сможете по стоимости соориентировать \nи срокам работ?",
+            "owner": "Михаил",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "note",
+            "time": "14:42",
+            "text": "г Москва ул Маршала Прошлякова, 22.",
+            "owner": "Михаил",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "note",
+            "time": "14:42",
+            "text": "",
+            "owner": "Михаил",
+            "transcription": null,
+            "source": "deal",
+            "files": [
+              {
+                "id": "1732532",
+                "name": "210766255_5ea1275ad26c7f3cd9d92ed7a0043b93.webp"
+              }
+            ]
+          },
+          {
+            "type": "note",
+            "time": "14:42",
+            "text": "Замена только верхнего слоя",
+            "owner": "Михаил",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "note",
+            "time": "14:42",
+            "text": "",
+            "owner": "Михаил",
+            "transcription": null,
+            "source": "deal",
+            "files": [
+              {
+                "id": "1732530",
+                "name": "210766255_60d1e6bc2e73070dff1a6f2d5cd975ab.webp"
+              }
+            ]
+          },
+          {
+            "type": "note",
+            "time": "14:42",
+            "text": "Где то продавлен",
+            "owner": "Михаил",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "note",
+            "time": "14:42",
+            "text": "Косметика",
+            "owner": "Михаил",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "note",
+            "time": "14:42",
+            "text": "Добрый день!",
+            "owner": "Михаил",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "note",
+            "time": "14:44",
+            "text": "Разговаривала с ним. Все данные получила. Рассчитываю кп",
+            "owner": "Екатерина Миронова",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "note",
+            "time": "14:45",
+            "text": "Екатерина Миронова работы планируют примерно через 2 недели, нужно снять старый, застелить новый 150м2, просит 2 кп на грузовые нагрузки и на средние, хочет понять разницу в бюджете",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "note",
+            "time": "16:03",
+            "text": "нет информации ещё?",
+            "owner": "Михаил",
+            "transcription": null,
+            "source": "deal",
+            "files": []
+          },
+          {
+            "type": "note",
+            "time": "17:10",
+            "text": "Кп готовы",
+            "owner": "Екатерина Миронова",
+            "transcription": null,
+            "source": "deal",
+            "files": [
+              {
+                "id": "1732574",
+                "name": "КП_КП-001_Строгино Средн.pdf"
+              },
+              {
+                "id": "1732572",
+                "name": "КП_КП-001_Строгино Эконом.pdf"
+              }
+            ]
+          }
+        ],
+        "dayCalls": 2,
+        "planfixScript": null,
+        "allComments": [
+          {
+            "id": 12355850,
+            "date": "21-05-2026",
+            "time": "14:23",
+            "type": "note",
+            "text": "Новая заявка (перезвонить клиенту)\nСообщение отправлено со страницы:\n Замена асфальта\nИмя: Михаил\n Телефон: +7(963) 766-8227\nПараметры сессии\nutm_source - yandex\nutm_medium -\nutm_campaign - organic",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355848,
+            "date": "21-05-2026",
+            "time": "14:23",
+            "type": "inCall",
+            "text": "Входящий звонок----------Не могу выполнить операцию, закончились AI-кредиты.Ответственный за оплату ПланФикса может добавить AI-кредиты в разделе \"Подписка\"",
+            "owner": "Сергей Терехов",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1732522",
+                "name": "Запись звонка Михаил - Сергей Терехов 21-05-2026 14:24.mp3"
+              }
+            ],
+            "source": "contact"
+          },
+          {
+            "id": 12355898,
+            "date": "21-05-2026",
+            "time": "14:28",
+            "type": "note",
+            "text": "Сделка перешла в статус Обработка",
+            "owner": "Robot-3",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355912,
+            "date": "21-05-2026",
+            "time": "14:35",
+            "type": "outCall",
+            "text": "Исходящий звонок----------Не могу выполнить операцию, закончились AI-кредиты.Ответственный за оплату ПланФикса может добавить AI-кредиты в разделе \"Подписка\"",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1732528",
+                "name": "Запись звонка Ия Боровая - Михаил 21-05-2026 14:36.mp3"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355920,
+            "date": "21-05-2026",
+            "time": "14:37",
+            "type": "note",
+            "text": "",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355934,
+            "date": "21-05-2026",
+            "time": "14:38",
+            "type": "note",
+            "text": "Сделка перешла в статус Обработка",
+            "owner": "Robot-3",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355952,
+            "date": "21-05-2026",
+            "time": "14:41",
+            "type": "note",
+            "text": "Наша компания",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1657800",
+                "name": "Презентация Транском.pdf"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355948,
+            "date": "21-05-2026",
+            "time": "14:41",
+            "type": "note",
+            "text": "Добрый день, Михаил\nВысылаю информацию о нас, жду фото объекта\n \nАсфальтирование — это наш основной профиль! Полный цикл — от геодезии до финальной разметки. Работаем с 2014 года: тротуары, парковки, дворы, промышленные дороги под грузовой транспорт\nНаши Работы:\n■ КП «Западная Долина» — 20 000 м²: полный цикл — дороги, парковки, тротуары, бордюры, ливнёвка, разметка\n■ ЖК «Московские»: асфальтирование дворов, пешеходные зоны, бордюры, благоустройство территории\n■ Микояновский мясокомбинат: промышленная площадка под тяжёлый грузовой транспорт, усиленный «пирог»\nПо  любым вопросам звоните или пишите, буду рада вам помочь! \n\n \n  \n   \n   \n  \n  \n   \n     \n    Компания ООО «Транском»Менеджер по работе с клиентамиИя Боровая   8-930-035-31-65 transcom50010@mail.ruhttps://asfaltsneg.ruАдрес офиса: 1",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355994,
+            "date": "21-05-2026",
+            "time": "14:42",
+            "type": "note",
+            "text": "сможете по стоимости соориентировать \nи срокам работ?",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355990,
+            "date": "21-05-2026",
+            "time": "14:42",
+            "type": "note",
+            "text": "г Москва ул Маршала Прошлякова, 22.",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355986,
+            "date": "21-05-2026",
+            "time": "14:42",
+            "type": "note",
+            "text": "",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1732532",
+                "name": "210766255_5ea1275ad26c7f3cd9d92ed7a0043b93.webp"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355978,
+            "date": "21-05-2026",
+            "time": "14:42",
+            "type": "note",
+            "text": "Замена только верхнего слоя",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355974,
+            "date": "21-05-2026",
+            "time": "14:42",
+            "type": "note",
+            "text": "",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1732530",
+                "name": "210766255_60d1e6bc2e73070dff1a6f2d5cd975ab.webp"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355970,
+            "date": "21-05-2026",
+            "time": "14:42",
+            "type": "note",
+            "text": "Где то продавлен",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355966,
+            "date": "21-05-2026",
+            "time": "14:42",
+            "type": "note",
+            "text": "Косметика",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355962,
+            "date": "21-05-2026",
+            "time": "14:42",
+            "type": "note",
+            "text": "Добрый день!",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12355998,
+            "date": "21-05-2026",
+            "time": "14:44",
+            "type": "note",
+            "text": "Разговаривала с ним. Все данные получила. Рассчитываю кп",
+            "owner": "Екатерина Миронова",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12356002,
+            "date": "21-05-2026",
+            "time": "14:45",
+            "type": "note",
+            "text": "Екатерина Миронова работы планируют примерно через 2 недели, нужно снять старый, застелить новый 150м2, просит 2 кп на грузовые нагрузки и на средние, хочет понять разницу в бюджете",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12356174,
+            "date": "21-05-2026",
+            "time": "16:03",
+            "type": "note",
+            "text": "нет информации ещё?",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12356308,
+            "date": "21-05-2026",
+            "time": "17:10",
+            "type": "note",
+            "text": "Кп готовы",
+            "owner": "Екатерина Миронова",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1732574",
+                "name": "КП_КП-001_Строгино Средн.pdf"
+              },
+              {
+                "id": "1732572",
+                "name": "КП_КП-001_Строгино Эконом.pdf"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12356704,
+            "date": "22-05-2026",
+            "time": "09:00",
+            "type": "note",
+            "text": "Сегодня необходимо совершить целевое действие по сделке:\n\nи назначить новое целевое действие",
+            "owner": "Robot-3",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12357094,
+            "date": "22-05-2026",
+            "time": "11:29",
+            "type": "note",
+            "text": "Михаил, добрый день! В ысылаю вам ознакомительное коммерческое предложение. Прошу учесть, что точный расчёт будет возможен после осмотра объекта и согласования сроков\n \nПо любым вопросам звоните или пишите, буду рада вам помочь! \n\n \n  \n   \n   \n  \n  \n   \n     \n    Компания ООО «Транском»Специалист по работе с клиентами Миронова Екатерина  8-977-422-46-31\n 8-499-450-72-73ekaterina.mir-transkom@yandex.ruhttps://asfaltsneg.ruАдрес офиса: 143902, Московская область, городБалашиха, Советская улица, дом 36 литера\"в7\", помещение №1 /часть/",
+            "owner": "Екатерина Миронова",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1732574",
+                "name": "КП_КП-001_Строгино Средн.pdf"
+              },
+              {
+                "id": "1732572",
+                "name": "КП_КП-001_Строгино Эконом.pdf"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12357116,
+            "date": "22-05-2026",
+            "time": "11:30",
+            "type": "note",
+            "text": "вернусь с ответом",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12357110,
+            "date": "22-05-2026",
+            "time": "11:30",
+            "type": "note",
+            "text": "Добрый день",
+            "owner": "Михаил",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12357102,
+            "date": "22-05-2026",
+            "time": "11:30",
+            "type": "note",
+            "text": "Сделка перешла в статус Коммерческое предложение",
+            "owner": "Robot-3",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12357122,
+            "date": "22-05-2026",
+            "time": "11:31",
+            "type": "note",
+            "text": "Хорошо. Будем ждать информацию",
+            "owner": "Екатерина Миронова",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12359002,
+            "date": "25-05-2026",
+            "time": "09:00",
+            "type": "note",
+            "text": "Сегодня необходимо совершить целевое действие по сделке:\n\nи назначить новое целевое действие",
+            "owner": "Robot-3",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12361082,
+            "date": "25-05-2026",
+            "time": "17:35",
+            "type": "note",
+            "text": "Звонила ему?",
+            "owner": "Екатерина Миронова",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12361102,
+            "date": "25-05-2026",
+            "time": "17:36",
+            "type": "note",
+            "text": "не отвечает пока, щас напишу",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12361084,
+            "date": "25-05-2026",
+            "time": "17:36",
+            "type": "outCall",
+            "text": "Исходящий звонок----------Не могу выполнить операцию, закончились AI-кредиты.Ответственный за оплату ПланФикса может добавить AI-кредиты в разделе \"Подписка\"",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1733324",
+                "name": "Запись звонка Ия Боровая - Михаил 25-05-2026 17:37.mp3"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12361110,
+            "date": "25-05-2026",
+            "time": "17:38",
+            "type": "note",
+            "text": "Добрый день, Михаил\nПодскажите какой вариант сметы вам больше подходит?\nКогда ожидать результаты рассмотрения нашего предложения?\n \nАсфальтирование — это наш основной профиль! Полный цикл — от геодезии до финальной разметки. Работаем с 2014 года: тротуары, парковки, дворы, промышленные дороги под грузовой транспорт\nНаши Работы:\n■ КП «Западная Долина» — 20 000 м²: полный цикл — дороги, парковки, тротуары, бордюры, ливнёвка, разметка\n■ ЖК «Московские»: асфальтирование дворов, пешеходные зоны, бордюры, благоустройство территории\n■ Микояновский мясокомбинат: промышленная площадка под тяжёлый грузовой транспорт, усиленный «пирог»\nПо  любым вопросам звоните или пишите, буду рада вам помочь! \n\n \n  \n   \n   \n  \n  \n   \n     \n    Компания ООО «Транском»Менеджер по работе с клиентамиИя Боровая   8-930",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1733326",
+                "name": "Презентация Транском_33210.pdf"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12361126,
+            "date": "25-05-2026",
+            "time": "17:40",
+            "type": "inCall",
+            "text": "Входящий звонок----------Не могу выполнить операцию, закончились AI-кредиты.Ответственный за оплату ПланФикса может добавить AI-кредиты в разделе \"Подписка\"",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1733328",
+                "name": "Запись звонка Михаил - Ия Боровая 25-05-2026 17:41.mp3"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12361130,
+            "date": "25-05-2026",
+            "time": "17:41",
+            "type": "note",
+            "text": "Звонила ему?\n\nждем решения в течении недели, край в пн следующий",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33210,
+            "sourceTaskName": "Михаил электроподстанция замена старого 150м2/ Строгино г Москва ул Маршала Прошлякова, 22",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          }
+        ],
+        "allCalls": [
+          {
+            "key": 46340,
+            "date": "25-05-2026",
+            "time": "17:35 - 17:36",
+            "type": "Исходящий",
+            "duration": 49,
+            "employee": "Ия Эдуардовна Боровая",
+            "contact": "Михаил",
+            "phone": "79637668227",
+            "source": "datatag"
+          },
+          {
+            "key": 46341,
+            "date": "25-05-2026",
+            "time": "17:39 - 17:40",
+            "type": "Входящий",
+            "duration": 81,
+            "employee": "Ия Эдуардовна Боровая",
+            "contact": "Михаил",
+            "phone": "79637668227",
+            "source": "datatag"
+          }
+        ],
+        "allAnalyses": [],
+        "scriptHistory": {
+          "total": 0,
+          "everHowWeWork": false,
+          "everCallToAction": false,
+          "everSentInvoice": false,
+          "everAllFour": false,
+          "bestScore": 0,
+          "customerKnowsCompany": false
+        },
+        "aiAssessment": null
+      }
+    ],
     "20-05-2026": [
       {
         "deal": {
@@ -587,6 +2204,23 @@
                 "name": "Отчёт_замера_кп ямочный 250м2Москва Ярославское шоссе 79_22-05-2026.pdf"
               }
             ],
+            "source": "deal",
+            "sourceTaskId": 33191,
+            "sourceTaskName": "кп ямочный 250м2/Москва, Ярославское шоссе, 7-9",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12359754,
+            "date": "25-05-2026",
+            "time": "11:57",
+            "type": "note",
+            "text": "Поставь галочку Замер состоялся",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
             "source": "deal",
             "sourceTaskId": 33191,
             "sourceTaskName": "кп ямочный 250м2/Москва, Ярославское шоссе, 7-9",
@@ -2982,6 +4616,8 @@
     ]
   },
   "multiDaySummary": {
+    "22-05-2026": null,
+    "21-05-2026": null,
     "20-05-2026": null,
     "29-04-2026": "1. Менеджер обработал 1 сделку (#32421 \"проезд из АБС 310 м2/Дело спорт г. Москва, ул. Большая Филёвская д. 20\"), звонков не совершал.  \n2. Ключевая сделка дня — #32421, находится на этапе переговоров, клиент рассматривает альтернативные варианты. Общался с Михаилом Федоровичем.  \n3. Проблема — менеджер пассивен в активных звонках и поиске новых сделок. Требуется внимание к продвижению #32421.  \n4. Завтра необходимо подготовить и отправить предложение по ямочному ремонту для #32421 с техническими деталями и гарантией, а также активизировать звонки для поиска новых сделок."
   },
@@ -2991,13 +4627,13 @@
     "month": null
   },
   "incomingByDate": {},
-  "snapshotDate": "2026-05-23T19:51:35.328Z",
+  "snapshotDate": "2026-05-24T19:53:37.733Z",
   "measurements": [
     {
       "id": 33217,
       "dealId": 31881,
-      "dealName": "Александр/Томилино/Асфальт+бетон/ 20.03.2026",
-      "counterparty": "Александр , Томилино",
+      "dealName": "Александр/ИНТЕКО/Асфальт+бетон/ 20.03.2026",
+      "counterparty": "Александр , ИНТЭКО",
       "dealCreatedAt": "23-03-2026",
       "dealSum": 1388650,
       "manager": "Ия Боровая",
@@ -3012,7 +4648,7 @@
       "progressedDate": null,
       "closedDate": null,
       "lastRelevantActivityAt": "25-05-2026",
-      "latestResultText": "Замер",
+      "latestResultText": "кп после замера 26,05",
       "timeline": [
         {
           "type": "measurement",
@@ -3028,9 +4664,9 @@
         },
         {
           "type": "result",
-          "label": "Замер",
+          "label": "кп после замера 26,05",
           "date": "25-05-2026",
-          "time": ""
+          "time": "15:30"
         }
       ]
     },
@@ -3046,14 +4682,14 @@
       "measurer": "Саша Бригадир",
       "measurementCreatedAt": "23-05-2026",
       "scheduledAt": "23-05-2026",
-      "currentDealStatus": "Замер",
-      "outcome": "unknown",
+      "currentDealStatus": "Клиент принимает решение",
+      "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": null,
+      "progressedDate": "25-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "23-05-2026",
-      "latestResultText": "Замер",
+      "lastRelevantActivityAt": "25-05-2026",
+      "latestResultText": "Входящий звонок----------Не могу выполнить операцию, закончились AI-кредиты.Ответственный за оплату ПланФикса может добавить AI-кредиты в разделе \"Подписка\"",
       "timeline": [
         {
           "type": "measurement",
@@ -3069,9 +4705,9 @@
         },
         {
           "type": "result",
-          "label": "Замер",
-          "date": "23-05-2026",
-          "time": ""
+          "label": "Входящий звонок----------Не могу выполнить операцию, закончились AI-кредиты.Ответственный за оплату ПланФикса может добавить AI-кредиты в разделе \"Подписка\"",
+          "date": "25-05-2026",
+          "time": "12:45"
         }
       ]
     },
@@ -3087,14 +4723,14 @@
       "measurer": "Манук Бригадир",
       "measurementCreatedAt": "22-05-2026",
       "scheduledAt": "22-05-2026",
-      "currentDealStatus": "Замер",
-      "outcome": "unknown",
+      "currentDealStatus": "Клиент принимает решение",
+      "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": null,
+      "progressedDate": "25-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "23-05-2026",
-      "latestResultText": "Что с замером? Перенести сделку &quot;желательно в ожидаем оплату&quot;",
+      "lastRelevantActivityAt": "25-05-2026",
+      "latestResultText": "В продолжении разговора направляю расчет по итогам встречи. Готовы приступить к работам. По любым вопросам звоните или пишите, буду рада вам помочь! Компания ООО «Транском»Специал…",
       "timeline": [
         {
           "type": "measurement",
@@ -3110,9 +4746,9 @@
         },
         {
           "type": "result",
-          "label": "Что с замером? Перенести сделку &quot;желательно в ожидаем оплату&quot;",
-          "date": "23-05-2026",
-          "time": "12:17"
+          "label": "В продолжении разговора направляю расчет по итогам встречи. Готовы приступить к работам. По любым вопросам звоните или пишите, буду рада вам помочь! Компания ООО «Транском»Специал…",
+          "date": "25-05-2026",
+          "time": "14:42"
         }
       ]
     },
@@ -3132,10 +4768,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "22-05-2026",
+      "progressedDate": "25-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "22-05-2026",
-      "latestResultText": "Антон, добрый день! Сметы готовы. Прилагаю записи и чертежи с замера. Если что-то нужно поправить , звоните. По любым вопросам звоните или пишите, буду рада вам помочь! Компания О…",
+      "lastRelevantActivityAt": "25-05-2026",
+      "latestResultText": "{log26} {event1}",
       "timeline": [
         {
           "type": "measurement",
@@ -3151,9 +4787,9 @@
         },
         {
           "type": "result",
-          "label": "Антон, добрый день! Сметы готовы. Прилагаю записи и чертежи с замера. Если что-то нужно поправить , звоните. По любым вопросам звоните или пишите, буду рада вам помочь! Компания О…",
-          "date": "22-05-2026",
-          "time": "16:04"
+          "label": "{log26} {event1}",
+          "date": "25-05-2026",
+          "time": "11:56"
         }
       ]
     },
@@ -3173,10 +4809,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "22-05-2026",
+      "progressedDate": "25-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "22-05-2026",
-      "latestResultText": "Добрый день, Роман На смету суммой 587 000р мы сможем сделать вам ямочный ремонт 270м2, у вас большая территория при замере на ремонт попадало 290м2, это не вся площадь которая тр…",
+      "lastRelevantActivityAt": "25-05-2026",
+      "latestResultText": "Добрый вечер, Роман Высылаю обновленную смету на проверку, жду кооментарии По любым вопросам звоните или пишите, буду рада вам помочь! Компания ООО «Транском»Менеджер по работе с …",
       "timeline": [
         {
           "type": "measurement",
@@ -3192,9 +4828,9 @@
         },
         {
           "type": "result",
-          "label": "Добрый день, Роман На смету суммой 587 000р мы сможем сделать вам ямочный ремонт 270м2, у вас большая территория при замере на ремонт попадало 290м2, это не вся площадь которая тр…",
-          "date": "22-05-2026",
-          "time": "15:44"
+          "label": "Добрый вечер, Роман Высылаю обновленную смету на проверку, жду кооментарии По любым вопросам звоните или пишите, буду рада вам помочь! Компания ООО «Транском»Менеджер по работе с …",
+          "date": "25-05-2026",
+          "time": "17:49"
         }
       ]
     },
@@ -3214,10 +4850,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "22-05-2026",
+      "progressedDate": "25-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "22-05-2026",
-      "latestResultText": "Здравствуйте, Михаил Константинович Высылаю вам смету после замера Подскажите когда ожидать результаты рассмотрения работ? Асфальтирование — это наш основной профиль! Полный цикл …",
+      "lastRelevantActivityAt": "25-05-2026",
+      "latestResultText": "Поставь галочку Замер состоялся",
       "timeline": [
         {
           "type": "measurement",
@@ -3233,16 +4869,16 @@
         },
         {
           "type": "result",
-          "label": "Здравствуйте, Михаил Константинович Высылаю вам смету после замера Подскажите когда ожидать результаты рассмотрения работ? Асфальтирование — это наш основной профиль! Полный цикл …",
-          "date": "22-05-2026",
-          "time": "17:56"
+          "label": "Поставь галочку Замер состоялся",
+          "date": "25-05-2026",
+          "time": "11:57"
         }
       ]
     },
     {
       "id": 33160,
       "dealId": 33139,
-      "dealName": "Асфальт + щебень 570 м2/ Химки ул Рабочая 2А, корп 48",
+      "dealName": "!!! Асфальт + щебень 570 м2/ Химки ул Рабочая 2А, корп 48",
       "counterparty": "Евгений",
       "dealCreatedAt": "19-05-2026",
       "dealSum": 0,
@@ -3255,10 +4891,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "22-05-2026",
+      "progressedDate": "25-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "22-05-2026",
-      "latestResultText": "Добрый день, Евгений Высылаю вам 2 отдельные сметы как вы просили По любым вопросам звоните или пишите, буду рада вам помочь! Компания ООО «Транском»Менеджер по работе с клиентами…",
+      "lastRelevantActivityAt": "25-05-2026",
+      "latestResultText": "прозон",
       "timeline": [
         {
           "type": "measurement",
@@ -3274,9 +4910,9 @@
         },
         {
           "type": "result",
-          "label": "Добрый день, Евгений Высылаю вам 2 отдельные сметы как вы просили По любым вопросам звоните или пишите, буду рада вам помочь! Компания ООО «Транском»Менеджер по работе с клиентами…",
-          "date": "22-05-2026",
-          "time": "13:54"
+          "label": "прозон",
+          "date": "25-05-2026",
+          "time": "18:19"
         }
       ]
     },
@@ -3334,7 +4970,7 @@
       "measurementCreatedAt": "14-05-2026",
       "scheduledAt": "14-05-2026",
       "currentDealStatus": "Сделка завершена",
-      "outcome": "unknown",
+      "outcome": "stalled",
       "contractDate": null,
       "workDate": null,
       "progressedDate": null,
@@ -3419,10 +5055,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "20-05-2026",
+      "progressedDate": "25-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "20-05-2026",
-      "latestResultText": "Добрый день! Возникли перебои со связью и наше последнее предложение Вам не дошло. Ранее вели переговоры по асфальтированию и выезжали к вам на замер. Высылаю еще раз нашу смету н…",
+      "lastRelevantActivityAt": "25-05-2026",
+      "latestResultText": "В отпуске до 1го июня",
       "timeline": [
         {
           "type": "measurement",
@@ -3438,9 +5074,9 @@
         },
         {
           "type": "result",
-          "label": "Добрый день! Возникли перебои со связью и наше последнее предложение Вам не дошло. Ранее вели переговоры по асфальтированию и выезжали к вам на замер. Высылаю еще раз нашу смету н…",
-          "date": "20-05-2026",
-          "time": "16:25"
+          "label": "В отпуске до 1го июня",
+          "date": "25-05-2026",
+          "time": "14:10"
         }
       ]
     },
@@ -3826,7 +5462,7 @@
       "measurementCreatedAt": "24-04-2026",
       "scheduledAt": "24-04-2026",
       "currentDealStatus": "Сделка завершена",
-      "outcome": "unknown",
+      "outcome": "stalled",
       "contractDate": null,
       "workDate": null,
       "progressedDate": null,
@@ -3952,10 +5588,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "22-05-2026",
+      "progressedDate": "25-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "22-05-2026",
-      "latestResultText": "Говорит, что нужно обсудить с шефом, а тот постоянно в разъездах, не может сообщить когда вернется, будем переодически связываться",
+      "lastRelevantActivityAt": "25-05-2026",
+      "latestResultText": "Пока думают над форматом дорожек, возможно будет тротуарная плитка, помнит о нас, как будет конкретика от шефа- даст знать",
       "timeline": [
         {
           "type": "measurement",
@@ -3971,9 +5607,9 @@
         },
         {
           "type": "result",
-          "label": "Говорит, что нужно обсудить с шефом, а тот постоянно в разъездах, не может сообщить когда вернется, будем переодически связываться",
-          "date": "22-05-2026",
-          "time": "10:39"
+          "label": "Пока думают над форматом дорожек, возможно будет тротуарная плитка, помнит о нас, как будет конкретика от шефа- даст знать",
+          "date": "25-05-2026",
+          "time": "16:05"
         }
       ]
     },
@@ -4015,6 +5651,47 @@
           "label": "Добрый день Пишу по ремонту дороги крошкой, жду площади для точной сметы работ По любым вопросам звоните или пишите, буду рада вам помочь! Компания ООО «Транском»Менеджер по работ…",
           "date": "21-05-2026",
           "time": "16:18"
+        }
+      ]
+    },
+    {
+      "id": 32476,
+      "dealId": 32163,
+      "dealName": "Александр / Пирог тер Сыроварня Олега Сироты 9500 м2/Истринский р д Дубровкое/31.03.2026",
+      "counterparty": "Александр",
+      "dealCreatedAt": "31-03-2026",
+      "dealSum": 15966200,
+      "manager": "Ия Боровая",
+      "managerAlias": "borovaya",
+      "measurer": "Саша Бригадир",
+      "measurementCreatedAt": "16-04-2026",
+      "scheduledAt": "16-04-2026",
+      "currentDealStatus": "Клиент принимает решение",
+      "outcome": "progressed",
+      "contractDate": null,
+      "workDate": null,
+      "progressedDate": "21-05-2026",
+      "closedDate": null,
+      "lastRelevantActivityAt": "21-05-2026",
+      "latestResultText": "В мах читает и ничего пока не отвечает",
+      "timeline": [
+        {
+          "type": "measurement",
+          "label": "Замер создан",
+          "date": "16-04-2026",
+          "time": "08:10"
+        },
+        {
+          "type": "scheduled",
+          "label": "Замер назначен",
+          "date": "16-04-2026",
+          "time": ""
+        },
+        {
+          "type": "result",
+          "label": "В мах читает и ничего пока не отвечает",
+          "date": "21-05-2026",
+          "time": "17:15"
         }
       ]
     },
@@ -4097,47 +5774,6 @@
           "label": "Сделка перешла в статус Коммерческое предложение",
           "date": "16-04-2026",
           "time": "14:52"
-        }
-      ]
-    },
-    {
-      "id": 32476,
-      "dealId": 32163,
-      "dealName": "Александр / Пирог тер Сыроварня Олега Сироты 9500 м2/Истринский р д Дубровкое/31.03.2026",
-      "counterparty": "Александр",
-      "dealCreatedAt": "31-03-2026",
-      "dealSum": 15966200,
-      "manager": "Ия Боровая",
-      "managerAlias": "borovaya",
-      "measurer": "Саша Бригадир",
-      "measurementCreatedAt": "16-04-2026",
-      "scheduledAt": "16-04-2026",
-      "currentDealStatus": "Клиент принимает решение",
-      "outcome": "progressed",
-      "contractDate": null,
-      "workDate": null,
-      "progressedDate": "21-05-2026",
-      "closedDate": null,
-      "lastRelevantActivityAt": "21-05-2026",
-      "latestResultText": "В мах читает и ничего пока не отвечает",
-      "timeline": [
-        {
-          "type": "measurement",
-          "label": "Замер создан",
-          "date": "16-04-2026",
-          "time": "08:10"
-        },
-        {
-          "type": "scheduled",
-          "label": "Замер назначен",
-          "date": "16-04-2026",
-          "time": ""
-        },
-        {
-          "type": "result",
-          "label": "В мах читает и ничего пока не отвечает",
-          "date": "21-05-2026",
-          "time": "17:15"
         }
       ]
     },
@@ -5182,10 +6818,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "21-05-2026",
+      "progressedDate": "25-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "21-05-2026",
-      "latestResultText": "тендер",
+      "lastRelevantActivityAt": "25-05-2026",
+      "latestResultText": "Перезвонить завтра до 17:00, узнает разместили ли ли закупку",
       "timeline": [
         {
           "type": "measurement",
@@ -5201,9 +6837,9 @@
         },
         {
           "type": "result",
-          "label": "тендер",
-          "date": "21-05-2026",
-          "time": "16:19"
+          "label": "Перезвонить завтра до 17:00, узнает разместили ли ли закупку",
+          "date": "25-05-2026",
+          "time": "17:19"
         }
       ]
     },
@@ -5536,21 +7172,21 @@
       "Саша Бригадир"
     ],
     "outcomeCounts": {
-      "unknown": 7,
-      "progressed": 38,
+      "unknown": 3,
+      "progressed": 40,
+      "stalled": 10,
       "to_contract": 3,
-      "to_work": 4,
-      "stalled": 8
+      "to_work": 4
     },
     "byMeasurer": [
       {
         "measurer": "Саша Бригадир",
         "total": 34,
         "scheduled": 34,
-        "progressed": 26,
+        "progressed": 27,
         "toContract": 3,
         "toWork": 1,
-        "stalled": 2,
+        "stalled": 4,
         "sum": 97998648.69999999
       },
       {
@@ -5577,7 +7213,7 @@
         "measurer": "Манук Бригадир",
         "total": 6,
         "scheduled": 6,
-        "progressed": 5,
+        "progressed": 6,
         "toContract": 0,
         "toWork": 0,
         "stalled": 0,
@@ -11361,7 +12997,7 @@
         "dealsCreated": 2,
         "enteredMeasurement": 1,
         "scheduledMeasurements": 1,
-        "progressed": 2,
+        "progressed": 1,
         "toContract": 1,
         "toWork": 1
       },
@@ -11370,7 +13006,7 @@
         "dealsCreated": 0,
         "enteredMeasurement": 3,
         "scheduledMeasurements": 3,
-        "progressed": 9,
+        "progressed": 8,
         "toContract": 1,
         "toWork": 0
       },
@@ -11379,7 +13015,7 @@
         "dealsCreated": 1,
         "enteredMeasurement": 1,
         "scheduledMeasurements": 1,
-        "progressed": 9,
+        "progressed": 4,
         "toContract": 0,
         "toWork": 0
       },
@@ -11400,23 +13036,32 @@
         "progressed": 0,
         "toContract": 0,
         "toWork": 0
+      },
+      {
+        "date": "25-05-2026",
+        "dealsCreated": 0,
+        "enteredMeasurement": 1,
+        "scheduledMeasurements": 1,
+        "progressed": 9,
+        "toContract": 0,
+        "toWork": 0
       }
     ],
     "totals": {
       "total": 60,
       "scheduled": 60,
-      "progressed": 45,
+      "progressed": 47,
       "toContract": 7,
       "toWork": 4,
-      "stalled": 8
+      "stalled": 10
     },
     "compare30d": {
       "enteredMeasurement": 19,
       "scheduledMeasurements": 20,
-      "progressed": 36,
+      "progressed": 38,
       "toContract": 5,
       "toWork": 4,
-      "stalled": 4,
+      "stalled": 6,
       "contractRate": 26,
       "workRate": 21
     }
