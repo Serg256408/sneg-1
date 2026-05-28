@@ -1,9 +1,9 @@
 {
-  "generated": "2026-05-26T20:25:04.151Z",
+  "generated": "2026-05-28T20:43:31.928Z",
   "manager": "Михаил",
   "managerPfName": "Михаил",
   "managerAlias": "mikhail",
-  "reportDate": "26-05-2026",
+  "reportDate": "28-05-2026",
   "dealCards": [],
   "dailyReports": [],
   "dailyActivity": {
@@ -41,7 +41,7 @@
   "dailyDealActivity": [],
   "aiDaySummaryText": null,
   "multiDayActivity": {
-    "26-05-2026": [],
+    "28-05-2026": [],
     "22-05-2026": [
       {
         "deal": {
@@ -2265,6 +2265,118 @@
             "sourceTaskName": "кп ямочный 250м2/Москва, Ярославское шоссе, 7-9",
             "sourceParentId": null,
             "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12365448,
+            "date": "27-05-2026",
+            "time": "09:01",
+            "type": "note",
+            "text": "Сегодня необходимо совершить целевое действие по сделке:\n\nи назначить новое целевое действие",
+            "owner": "Robot-3",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33191,
+            "sourceTaskName": "кп ямочный 250м2/Москва, Ярославское шоссе, 7-9",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12368930,
+            "date": "27-05-2026",
+            "time": "17:49",
+            "type": "ndz",
+            "text": "Недозвон",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33191,
+            "sourceTaskName": "кп ямочный 250м2/Москва, Ярославское шоссе, 7-9",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12368922,
+            "date": "27-05-2026",
+            "time": "17:49",
+            "type": "outCall",
+            "text": "Исходящий звонок----------Не могу выполнить операцию, закончились AI-кредиты.Ответственный за оплату ПланФикса может добавить AI-кредиты в разделе \"Подписка\"",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1735024",
+                "name": "Запись звонка Ия Боровая - Качур Михаил Константинович 27-05-2026 17:50.mp3"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33191,
+            "sourceTaskName": "кп ямочный 250м2/Москва, Ярославское шоссе, 7-9",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12370344,
+            "date": "28-05-2026",
+            "time": "09:00",
+            "type": "note",
+            "text": "Сегодня необходимо совершить целевое действие по сделке:\n\nи назначить новое целевое действие",
+            "owner": "Robot-3",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33191,
+            "sourceTaskName": "кп ямочный 250м2/Москва, Ярославское шоссе, 7-9",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12372962,
+            "date": "28-05-2026",
+            "time": "18:18",
+            "type": "ndz",
+            "text": "Недозвон",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33191,
+            "sourceTaskName": "кп ямочный 250м2/Москва, Ярославское шоссе, 7-9",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12372958,
+            "date": "28-05-2026",
+            "time": "18:18",
+            "type": "outCall",
+            "text": "Исходящий звонок",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1735724",
+                "name": "Запись звонка Ия Боровая - Качур Михаил Константинович 28-05-2026 18:18"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 33191,
+            "sourceTaskName": "кп ямочный 250м2/Москва, Ярославское шоссе, 7-9",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
           }
         ],
         "allCalls": [
@@ -2274,6 +2386,17 @@
             "time": "17:37 - 17:38",
             "type": "Исходящий",
             "duration": 59,
+            "employee": "Ия Эдуардовна Боровая",
+            "contact": "Качур Михаил Константинович",
+            "phone": "79169746586",
+            "source": "datatag"
+          },
+          {
+            "key": 46712,
+            "date": "28-05-2026",
+            "time": "18:17 - 18:18",
+            "type": "Исходящий",
+            "duration": 29,
             "employee": "Ия Эдуардовна Боровая",
             "contact": "Качур Михаил Константинович",
             "phone": "79169746586",
@@ -4602,6 +4725,62 @@
             "sourceTaskName": "проезд из АБС 310 м2/Дело спорт г. Москва, ул. Большая Филёвская д. 20",
             "sourceParentId": null,
             "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12370278,
+            "date": "28-05-2026",
+            "time": "09:00",
+            "type": "note",
+            "text": "Сегодня необходимо совершить целевое действие по сделке:\n\nи назначить новое целевое действие",
+            "owner": "Robot-3",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 32421,
+            "sourceTaskName": "проезд из АБС 310 м2/Дело спорт г. Москва, ул. Большая Филёвская д. 20",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12372892,
+            "date": "28-05-2026",
+            "time": "18:01",
+            "type": "ndz",
+            "text": "Недозвон",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 32421,
+            "sourceTaskName": "проезд из АБС 310 м2/Дело спорт г. Москва, ул. Большая Филёвская д. 20",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12372888,
+            "date": "28-05-2026",
+            "time": "18:01",
+            "type": "outCall",
+            "text": "Исходящий звонок----------Не могу выполнить операцию, закончились AI-кредиты.Ответственный за оплату ПланФикса может добавить AI-кредиты в разделе \"Подписка\"",
+            "owner": "Ия Боровая",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [
+              {
+                "id": "1735710",
+                "name": "Запись звонка Ия Боровая - Михаил Федорович 28-05-2026 18:02.mp3"
+              }
+            ],
+            "source": "deal",
+            "sourceTaskId": 32421,
+            "sourceTaskName": "проезд из АБС 310 м2/Дело спорт г. Москва, ул. Большая Филёвская д. 20",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
           }
         ],
         "allCalls": [
@@ -4622,6 +4801,17 @@
             "time": "17:15 - 17:16",
             "type": "Исходящий",
             "duration": 64,
+            "employee": "Ия Эдуардовна Боровая",
+            "contact": "Михаил Федорович",
+            "phone": "74951205120",
+            "source": "datatag"
+          },
+          {
+            "key": 46705,
+            "date": "28-05-2026",
+            "time": "18:00 - 18:01",
+            "type": "Исходящий",
+            "duration": 46,
             "employee": "Ия Эдуардовна Боровая",
             "contact": "Михаил Федорович",
             "phone": "74951205120",
@@ -4745,8 +4935,172 @@
     "month": null
   },
   "incomingByDate": {},
-  "snapshotDate": "2026-05-25T20:07:58.321Z",
+  "snapshotDate": "2026-05-26T20:25:03.883Z",
   "measurements": [
+    {
+      "id": 33421,
+      "dealId": 33419,
+      "dealName": "Валерий Анатольевич / Асфальтирование 4575/141800, Московская область, Дмитровский район, город Дмитров, ул. Спасская, дом 23./  27-05-2026",
+      "counterparty": "Валерий Анатольевич",
+      "dealCreatedAt": "27-05-2026",
+      "dealSum": 0,
+      "manager": "Анна Васильцова",
+      "managerAlias": "анна_васильцова",
+      "measurer": "Артем Бригадир",
+      "measurementCreatedAt": "29-05-2026",
+      "scheduledAt": "29-05-2026",
+      "currentDealStatus": "Замер",
+      "outcome": "unknown",
+      "contractDate": null,
+      "workDate": null,
+      "progressedDate": null,
+      "closedDate": null,
+      "lastRelevantActivityAt": "29-05-2026",
+      "latestResultText": "Замер",
+      "timeline": [
+        {
+          "type": "measurement",
+          "label": "Замер создан",
+          "date": "29-05-2026",
+          "time": "10:56"
+        },
+        {
+          "type": "scheduled",
+          "label": "Замер назначен",
+          "date": "29-05-2026",
+          "time": ""
+        },
+        {
+          "type": "result",
+          "label": "Замер",
+          "date": "29-05-2026",
+          "time": ""
+        }
+      ]
+    },
+    {
+      "id": 33464,
+      "dealId": 33389,
+      "dealName": "Запрос на КП / Асфальтирование площадки 3400м2/Пента-91 г. Щелково, ул Заводская 2, к 53",
+      "counterparty": "Danilov, Andrey",
+      "dealCreatedAt": "27-05-2026",
+      "dealSum": 0,
+      "manager": "Ия Боровая",
+      "managerAlias": "borovaya",
+      "measurer": "Саша Бригадир",
+      "measurementCreatedAt": "28-05-2026",
+      "scheduledAt": "28-05-2026",
+      "currentDealStatus": "Клиент принимает решение",
+      "outcome": "progressed",
+      "contractDate": null,
+      "workDate": null,
+      "progressedDate": "28-05-2026",
+      "closedDate": null,
+      "lastRelevantActivityAt": "28-05-2026",
+      "latestResultText": "Клиент принимает решение",
+      "timeline": [
+        {
+          "type": "measurement",
+          "label": "Замер создан",
+          "date": "28-05-2026",
+          "time": "15:26"
+        },
+        {
+          "type": "scheduled",
+          "label": "Замер назначен",
+          "date": "28-05-2026",
+          "time": ""
+        },
+        {
+          "type": "result",
+          "label": "Клиент принимает решение",
+          "date": "28-05-2026",
+          "time": ""
+        }
+      ]
+    },
+    {
+      "id": 33528,
+      "dealId": 33522,
+      "dealName": "М4  Ремонт асфальтного покрытия СК",
+      "counterparty": "Иванов Николай Николаевич",
+      "dealCreatedAt": "28-05-2026",
+      "dealSum": 0,
+      "manager": "Екатерина Миронова",
+      "managerAlias": "екатерина_миронова",
+      "measurer": "Миша Бригадир",
+      "measurementCreatedAt": "28-05-2026",
+      "scheduledAt": "28-05-2026",
+      "currentDealStatus": "Клиент принимает решение",
+      "outcome": "progressed",
+      "contractDate": null,
+      "workDate": null,
+      "progressedDate": "28-05-2026",
+      "closedDate": null,
+      "lastRelevantActivityAt": "28-05-2026",
+      "latestResultText": "М4 Ремонт асфальтного покрытия СК Добрый день, Екатерина! Направляю на ознакомление наш рамочный договор. С уважением, Ястребова Наталья Игоревна ООО «АБТ» ОП М4 Тел. 8 916 541 32…",
+      "timeline": [
+        {
+          "type": "measurement",
+          "label": "Замер создан",
+          "date": "28-05-2026",
+          "time": "08:19"
+        },
+        {
+          "type": "scheduled",
+          "label": "Замер назначен",
+          "date": "28-05-2026",
+          "time": ""
+        },
+        {
+          "type": "result",
+          "label": "М4 Ремонт асфальтного покрытия СК Добрый день, Екатерина! Направляю на ознакомление наш рамочный договор. С уважением, Ястребова Наталья Игоревна ООО «АБТ» ОП М4 Тел. 8 916 541 32…",
+          "date": "28-05-2026",
+          "time": "11:36"
+        }
+      ]
+    },
+    {
+      "id": 33531,
+      "dealId": 33529,
+      "dealName": "Антон Асфальтирование 1905м2/ ТЦ/Москва Шипиловская 40, корпус 2. 28-05-2026",
+      "counterparty": "Антон",
+      "dealCreatedAt": "28-05-2026",
+      "dealSum": 0,
+      "manager": "Анна Васильцова",
+      "managerAlias": "анна_васильцова",
+      "measurer": "Саша Бригадир",
+      "measurementCreatedAt": "28-05-2026",
+      "scheduledAt": "28-05-2026",
+      "currentDealStatus": "Клиент принимает решение",
+      "outcome": "progressed",
+      "contractDate": null,
+      "workDate": null,
+      "progressedDate": "28-05-2026",
+      "closedDate": null,
+      "lastRelevantActivityAt": "28-05-2026",
+      "latestResultText": "Сделка перешла в статус Клиент принимает решение",
+      "timeline": [
+        {
+          "type": "measurement",
+          "label": "Замер создан",
+          "date": "28-05-2026",
+          "time": "08:24"
+        },
+        {
+          "type": "scheduled",
+          "label": "Замер назначен",
+          "date": "28-05-2026",
+          "time": ""
+        },
+        {
+          "type": "result",
+          "label": "Сделка перешла в статус Клиент принимает решение",
+          "date": "28-05-2026",
+          "time": "16:56"
+        }
+      ]
+    },
     {
       "id": 33282,
       "dealId": 33194,
@@ -4759,14 +5113,14 @@
       "measurer": "Артем Бригадир",
       "measurementCreatedAt": "27-05-2026",
       "scheduledAt": "27-05-2026",
-      "currentDealStatus": "Замер",
-      "outcome": "unknown",
+      "currentDealStatus": "Клиент принимает решение",
+      "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": null,
+      "progressedDate": "28-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "27-05-2026",
-      "latestResultText": "Замер",
+      "lastRelevantActivityAt": "28-05-2026",
+      "latestResultText": "Добрый день, Олег Подскажите пожалуйста есть какие-то вопросы по смете или договору? Когда ожидать результаты рассмотрения? Асфальтирование — это наш основной профиль! Полный цикл…",
       "timeline": [
         {
           "type": "measurement",
@@ -4782,9 +5136,9 @@
         },
         {
           "type": "result",
-          "label": "Замер",
-          "date": "27-05-2026",
-          "time": ""
+          "label": "Добрый день, Олег Подскажите пожалуйста есть какие-то вопросы по смете или договору? Когда ожидать результаты рассмотрения? Асфальтирование — это наш основной профиль! Полный цикл…",
+          "date": "28-05-2026",
+          "time": "11:00"
         }
       ]
     },
@@ -4800,14 +5154,14 @@
       "measurer": "Миша Бригадир",
       "measurementCreatedAt": "27-05-2026",
       "scheduledAt": "27-05-2026",
-      "currentDealStatus": "Замер",
-      "outcome": "unknown",
+      "currentDealStatus": "Клиент принимает решение",
+      "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": null,
+      "progressedDate": "28-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "27-05-2026",
-      "latestResultText": "Замер",
+      "lastRelevantActivityAt": "28-05-2026",
+      "latestResultText": "завтра отправит заказчику, ответ примерно через неделю",
       "timeline": [
         {
           "type": "measurement",
@@ -4823,9 +5177,9 @@
         },
         {
           "type": "result",
-          "label": "Замер",
-          "date": "27-05-2026",
-          "time": ""
+          "label": "завтра отправит заказчику, ответ примерно через неделю",
+          "date": "28-05-2026",
+          "time": "16:29"
         }
       ]
     },
@@ -4841,14 +5195,14 @@
       "measurer": "Миша Бригадир",
       "measurementCreatedAt": "27-05-2026",
       "scheduledAt": "27-05-2026",
-      "currentDealStatus": "Замер",
-      "outcome": "unknown",
+      "currentDealStatus": "Клиент принимает решение",
+      "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": null,
+      "progressedDate": "28-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "27-05-2026",
-      "latestResultText": "Замер",
+      "lastRelevantActivityAt": "28-05-2026",
+      "latestResultText": "Анна Васильцова здесь внутренний тендер, будет прямая закупка, прием предложений до 09,06 и через неделю выберут победителя, после 09,06 пришлют еще перетожку, нужно будет подумат…",
       "timeline": [
         {
           "type": "measurement",
@@ -4864,9 +5218,9 @@
         },
         {
           "type": "result",
-          "label": "Замер",
-          "date": "27-05-2026",
-          "time": ""
+          "label": "Анна Васильцова здесь внутренний тендер, будет прямая закупка, прием предложений до 09,06 и через неделю выберут победителя, после 09,06 пришлют еще перетожку, нужно будет подумат…",
+          "date": "28-05-2026",
+          "time": "15:32"
         }
       ]
     },
@@ -4876,20 +5230,20 @@
       "dealName": "Алексей Частн Асфальт 220м2/Одинцовский р-н, д Палицы",
       "counterparty": "Алексей",
       "dealCreatedAt": "25-05-2026",
-      "dealSum": 637950,
+      "dealSum": 822600,
       "manager": "Ия Боровая",
       "managerAlias": "borovaya",
       "measurer": "Манук Бригадир",
       "measurementCreatedAt": "27-05-2026",
       "scheduledAt": "27-05-2026",
-      "currentDealStatus": "Замер",
-      "outcome": "unknown",
+      "currentDealStatus": "Клиент принимает решение",
+      "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": null,
+      "progressedDate": "28-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "27-05-2026",
-      "latestResultText": "Замер",
+      "lastRelevantActivityAt": "28-05-2026",
+      "latestResultText": "У нас кстати объем поменялся, часть уже вывезли",
       "timeline": [
         {
           "type": "measurement",
@@ -4905,9 +5259,50 @@
         },
         {
           "type": "result",
-          "label": "Замер",
+          "label": "У нас кстати объем поменялся, часть уже вывезли",
+          "date": "28-05-2026",
+          "time": "19:30"
+        }
+      ]
+    },
+    {
+      "id": 33436,
+      "dealId": 33410,
+      "dealName": "Асфальтирование парковки (265 м²) поверх бетона, г. Подольск — запрос КП",
+      "counterparty": "Kalyuzhniy Vitaliy",
+      "dealCreatedAt": "27-05-2026",
+      "dealSum": 0,
+      "manager": "Ия Боровая",
+      "managerAlias": "borovaya",
+      "measurer": "Миша Бригадир",
+      "measurementCreatedAt": "27-05-2026",
+      "scheduledAt": "27-05-2026",
+      "currentDealStatus": "Клиент принимает решение",
+      "outcome": "progressed",
+      "contractDate": null,
+      "workDate": null,
+      "progressedDate": "27-05-2026",
+      "closedDate": null,
+      "lastRelevantActivityAt": "27-05-2026",
+      "latestResultText": "Виталий, добрый день. Направляю расчет по итогам встречи. Готовы приступить к работам. Если возникнут вопросы, я на связи, обращайтесь пожалуйста. По любым вопросам звоните или пи…",
+      "timeline": [
+        {
+          "type": "measurement",
+          "label": "Замер создан",
+          "date": "27-05-2026",
+          "time": "12:21"
+        },
+        {
+          "type": "scheduled",
+          "label": "Замер назначен",
           "date": "27-05-2026",
           "time": ""
+        },
+        {
+          "type": "result",
+          "label": "Виталий, добрый день. Направляю расчет по итогам встречи. Готовы приступить к работам. Если возникнут вопросы, я на связи, обращайтесь пожалуйста. По любым вопросам звоните или пи…",
+          "date": "27-05-2026",
+          "time": "17:32"
         }
       ]
     },
@@ -4927,10 +5322,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "26-05-2026",
+      "progressedDate": "27-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "26-05-2026",
-      "latestResultText": "Прозвонить , узнать что с замером Екатерина Миронова сегодня-завтра Охир в течении дня на месте, сюда сашу отправлять?",
+      "lastRelevantActivityAt": "27-05-2026",
+      "latestResultText": "Добрый день, Алина Высылаю вам отчет после замера, смета будет готова к пятнице Асфальтирование — это наш основной профиль! Полный цикл — от геодезии до финальной разметки. Работа…",
       "timeline": [
         {
           "type": "measurement",
@@ -4946,9 +5341,9 @@
         },
         {
           "type": "result",
-          "label": "Прозвонить , узнать что с замером Екатерина Миронова сегодня-завтра Охир в течении дня на месте, сюда сашу отправлять?",
-          "date": "26-05-2026",
-          "time": "12:43"
+          "label": "Добрый день, Алина Высылаю вам отчет после замера, смета будет готова к пятнице Асфальтирование — это наш основной профиль! Полный цикл — от геодезии до финальной разметки. Работа…",
+          "date": "27-05-2026",
+          "time": "17:53"
         }
       ]
     },
@@ -4964,14 +5359,14 @@
       "measurer": "Саша Бригадир",
       "measurementCreatedAt": "25-05-2026",
       "scheduledAt": "25-05-2026",
-      "currentDealStatus": "Клиент принимает решение",
-      "outcome": "progressed",
-      "contractDate": null,
+      "currentDealStatus": "Договор и Оплата",
+      "outcome": "to_contract",
+      "contractDate": "28-05-2026",
       "workDate": null,
-      "progressedDate": "26-05-2026",
+      "progressedDate": "28-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "26-05-2026",
-      "latestResultText": "Добрый день, Александр Высылаю вам смету по результатам замера По любым вопросам звоните или пишите, буду рада вам помочь! Компания ООО «Транском»Менеджер по работе с клиентамиИя …",
+      "lastRelevantActivityAt": "28-05-2026",
+      "latestResultText": "Нижняя строчка сметы- сумма договора на ИП. Материалы мы все равно закупаем с НДС 22%. Скидка 3%",
       "timeline": [
         {
           "type": "measurement",
@@ -4987,9 +5382,9 @@
         },
         {
           "type": "result",
-          "label": "Добрый день, Александр Высылаю вам смету по результатам замера По любым вопросам звоните или пишите, буду рада вам помочь! Компания ООО «Транском»Менеджер по работе с клиентамиИя …",
-          "date": "26-05-2026",
-          "time": "18:23"
+          "label": "Нижняя строчка сметы- сумма договора на ИП. Материалы мы все равно закупаем с НДС 22%. Скидка 3%",
+          "date": "28-05-2026",
+          "time": "12:12"
         }
       ]
     },
@@ -5009,10 +5404,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "26-05-2026",
+      "progressedDate": "27-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "26-05-2026",
-      "latestResultText": "Входящий звонок----------Не могу выполнить операцию, закончились AI-кредиты.Ответственный за оплату ПланФикса может добавить AI-кредиты в разделе \"Подписка\"",
+      "lastRelevantActivityAt": "27-05-2026",
+      "latestResultText": "жду информацию по работам",
       "timeline": [
         {
           "type": "measurement",
@@ -5028,9 +5423,9 @@
         },
         {
           "type": "result",
-          "label": "Входящий звонок----------Не могу выполнить операцию, закончились AI-кредиты.Ответственный за оплату ПланФикса может добавить AI-кредиты в разделе \"Подписка\"",
-          "date": "26-05-2026",
-          "time": "17:03"
+          "label": "жду информацию по работам",
+          "date": "27-05-2026",
+          "time": "18:16"
         }
       ]
     },
@@ -5214,10 +5609,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "26-05-2026",
+      "progressedDate": "27-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "26-05-2026",
-      "latestResultText": "написала в мах по решению, не ответит прозвон",
+      "lastRelevantActivityAt": "27-05-2026",
+      "latestResultText": "да",
       "timeline": [
         {
           "type": "measurement",
@@ -5233,9 +5628,9 @@
         },
         {
           "type": "result",
-          "label": "написала в мах по решению, не ответит прозвон",
-          "date": "26-05-2026",
-          "time": "17:45"
+          "label": "да",
+          "date": "27-05-2026",
+          "time": "16:17"
         }
       ]
     },
@@ -5255,10 +5650,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "22-05-2026",
+      "progressedDate": "27-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "22-05-2026",
-      "latestResultText": "Добрый день, Рамиль Высылаю вам смету после замера Жду результатов рассмотрения Асфальтирование — это наш основной профиль! Полный цикл — от геодезии до финальной разметки. Работа…",
+      "lastRelevantActivityAt": "27-05-2026",
+      "latestResultText": "еще неделя а рассмотрение",
       "timeline": [
         {
           "type": "measurement",
@@ -5274,9 +5669,9 @@
         },
         {
           "type": "result",
-          "label": "Добрый день, Рамиль Высылаю вам смету после замера Жду результатов рассмотрения Асфальтирование — это наш основной профиль! Полный цикл — от геодезии до финальной разметки. Работа…",
-          "date": "22-05-2026",
-          "time": "16:43"
+          "label": "еще неделя а рассмотрение",
+          "date": "27-05-2026",
+          "time": "15:41"
         }
       ]
     },
@@ -5333,14 +5728,14 @@
       "measurer": "Манук Бригадир",
       "measurementCreatedAt": "12-05-2026",
       "scheduledAt": "12-05-2026",
-      "currentDealStatus": "Клиент принимает решение",
-      "outcome": "progressed",
+      "currentDealStatus": "Сделка завершена",
+      "outcome": "unknown",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "26-05-2026",
+      "progressedDate": null,
       "closedDate": null,
-      "lastRelevantActivityAt": "26-05-2026",
-      "latestResultText": "написала в мах, совсем замолчал (",
+      "lastRelevantActivityAt": "28-05-2026",
+      "latestResultText": "сделал у кого-то в отсрочку",
       "timeline": [
         {
           "type": "measurement",
@@ -5356,9 +5751,9 @@
         },
         {
           "type": "result",
-          "label": "написала в мах, совсем замолчал (",
-          "date": "26-05-2026",
-          "time": "18:14"
+          "label": "сделал у кого-то в отсрочку",
+          "date": "28-05-2026",
+          "time": "18:29"
         }
       ]
     },
@@ -5404,6 +5799,47 @@
       ]
     },
     {
+      "id": 32906,
+      "dealId": 32904,
+      "dealName": "Алексей Кирьяк / Асфальтирование 150 м2 / ЦРВС Динамо/05-05-2026",
+      "counterparty": "Алексей Кирьяк",
+      "dealCreatedAt": "06-05-2026",
+      "dealSum": 0,
+      "manager": "Марина Замятина",
+      "managerAlias": "марина_замятина",
+      "measurer": "Миша (Масис) Бригадир",
+      "measurementCreatedAt": "07-05-2026",
+      "scheduledAt": "07-05-2026",
+      "currentDealStatus": "Договор и Оплата",
+      "outcome": "to_contract",
+      "contractDate": "28-05-2026",
+      "workDate": null,
+      "progressedDate": "28-05-2026",
+      "closedDate": null,
+      "lastRelevantActivityAt": "28-05-2026",
+      "latestResultText": "Тогда на связи, Напишите когда отправите документ в ЭДО From: Marina-Transkom [mailto:transcom.marina36@yandex.ru] Sent: Thursday, May 28, 2026 3:23 PM To: zhikharev@vodnydynamo.r…",
+      "timeline": [
+        {
+          "type": "measurement",
+          "label": "Замер создан",
+          "date": "07-05-2026",
+          "time": "08:13"
+        },
+        {
+          "type": "scheduled",
+          "label": "Замер назначен",
+          "date": "07-05-2026",
+          "time": ""
+        },
+        {
+          "type": "result",
+          "label": "Тогда на связи, Напишите когда отправите документ в ЭДО From: Marina-Transkom [mailto:transcom.marina36@yandex.ru] Sent: Thursday, May 28, 2026 3:23 PM To: zhikharev@vodnydynamo.r…",
+          "date": "28-05-2026",
+          "time": "16:32"
+        }
+      ]
+    },
+    {
       "id": 32912,
       "dealId": 32911,
       "dealName": "Александр/Асфальтирование / БЦ Нагатинский  ООО «Большой дом»/г. Москва, проспект Андропова 22/ 06-05-2026",
@@ -5441,47 +5877,6 @@
           "label": "жду новостей",
           "date": "20-05-2026",
           "time": "20:44"
-        }
-      ]
-    },
-    {
-      "id": 32906,
-      "dealId": 32904,
-      "dealName": "Алексей Кирьяк / Асфальтирование 150 м2 / ЦРВС Динамо/05-05-2026",
-      "counterparty": "Алексей Кирьяк",
-      "dealCreatedAt": "06-05-2026",
-      "dealSum": 0,
-      "manager": "Марина Замятина",
-      "managerAlias": "марина_замятина",
-      "measurer": "Миша (Масис) Бригадир",
-      "measurementCreatedAt": "07-05-2026",
-      "scheduledAt": "07-05-2026",
-      "currentDealStatus": "Договор и Оплата",
-      "outcome": "to_contract",
-      "contractDate": "21-05-2026",
-      "workDate": null,
-      "progressedDate": "21-05-2026",
-      "closedDate": null,
-      "lastRelevantActivityAt": "21-05-2026",
-      "latestResultText": "Иван, добрый день! Направляю КП для выполнения работ в 2 этапа - отдельно на 50 м2 и на 100 м2 Удорожание получаем за счет - дополнительного выхода бригады +2 смены, - дополнитель…",
-      "timeline": [
-        {
-          "type": "measurement",
-          "label": "Замер создан",
-          "date": "07-05-2026",
-          "time": "08:13"
-        },
-        {
-          "type": "scheduled",
-          "label": "Замер назначен",
-          "date": "07-05-2026",
-          "time": ""
-        },
-        {
-          "type": "result",
-          "label": "Иван, добрый день! Направляю КП для выполнения работ в 2 этапа - отдельно на 50 м2 и на 100 м2 Удорожание получаем за счет - дополнительного выхода бригады +2 смены, - дополнитель…",
-          "date": "21-05-2026",
-          "time": "10:55"
         }
       ]
     },
@@ -5611,23 +6006,23 @@
     {
       "id": 32843,
       "dealId": 32842,
-      "dealName": "Алексей / Мытищи Проезд 4536, владение 4 стр 1/ Асфальтирование 424м2",
+      "dealName": "Алексей / Мытищи Проезд 4536, владение 4 стр 1/ Асфальтирование 83м2",
       "counterparty": "ООО \"ТРАНСЛОГИСТИКА\"",
       "dealCreatedAt": "04-05-2026",
-      "dealSum": 1904940,
+      "dealSum": 398990,
       "manager": "Ия Боровая",
       "managerAlias": "borovaya",
       "measurer": "Саша Бригадир",
       "measurementCreatedAt": "04-05-2026",
       "scheduledAt": "04-05-2026",
-      "currentDealStatus": "Клиент принимает решение",
-      "outcome": "progressed",
-      "contractDate": null,
+      "currentDealStatus": "Договор и Оплата",
+      "outcome": "to_contract",
+      "contractDate": "27-05-2026",
       "workDate": null,
-      "progressedDate": "26-05-2026",
+      "progressedDate": "27-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "26-05-2026",
-      "latestResultText": "Ему не надо звонить",
+      "lastRelevantActivityAt": "27-05-2026",
+      "latestResultText": "итог ямочный ремонт, полотно в след году",
       "timeline": [
         {
           "type": "measurement",
@@ -5643,9 +6038,9 @@
         },
         {
           "type": "result",
-          "label": "Ему не надо звонить",
-          "date": "26-05-2026",
-          "time": "18:05"
+          "label": "итог ямочный ремонт, полотно в след году",
+          "date": "27-05-2026",
+          "time": "13:51"
         }
       ]
     },
@@ -5829,10 +6224,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "26-05-2026",
+      "progressedDate": "28-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "26-05-2026",
-      "latestResultText": "замер неплохо бы",
+      "lastRelevantActivityAt": "28-05-2026",
+      "latestResultText": "теперь отобразилось. спасибо",
       "timeline": [
         {
           "type": "measurement",
@@ -5848,9 +6243,9 @@
         },
         {
           "type": "result",
-          "label": "замер неплохо бы",
-          "date": "26-05-2026",
-          "time": "18:32"
+          "label": "теперь отобразилось. спасибо",
+          "date": "28-05-2026",
+          "time": "12:18"
         }
       ]
     },
@@ -5993,10 +6388,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "21-05-2026",
+      "progressedDate": "27-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "21-05-2026",
-      "latestResultText": "В мах читает и ничего пока не отвечает",
+      "lastRelevantActivityAt": "27-05-2026",
+      "latestResultText": "{log26} {event1}",
       "timeline": [
         {
           "type": "measurement",
@@ -6012,9 +6407,9 @@
         },
         {
           "type": "result",
-          "label": "В мах читает и ничего пока не отвечает",
-          "date": "21-05-2026",
-          "time": "17:15"
+          "label": "{log26} {event1}",
+          "date": "27-05-2026",
+          "time": "18:14"
         }
       ]
     },
@@ -6034,10 +6429,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "04-05-2026",
+      "progressedDate": "27-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "04-05-2026",
-      "latestResultText": "Звонил ему?",
+      "lastRelevantActivityAt": "27-05-2026",
+      "latestResultText": "Клиент судя по общим впечатлениям очень проблемный, склад с техникой покажи, встречу организуй, и все в таком духе",
       "timeline": [
         {
           "type": "measurement",
@@ -6053,9 +6448,9 @@
         },
         {
           "type": "result",
-          "label": "Звонил ему?",
-          "date": "04-05-2026",
-          "time": "18:24"
+          "label": "Клиент судя по общим впечатлениям очень проблемный, склад с техникой покажи, встречу организуй, и все в таком духе",
+          "date": "27-05-2026",
+          "time": "14:21"
         }
       ]
     },
@@ -6157,10 +6552,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "26-05-2026",
+      "progressedDate": "27-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "26-05-2026",
-      "latestResultText": "да, завтра кп будет готово, вход восстановим вход есть, я в нем кп нужно для размещения без ндс и наверно с наценкой на комиссионные",
+      "lastRelevantActivityAt": "27-05-2026",
+      "latestResultText": "да, завтра кп будет готово, вход восстановим вход есть, я в нем кп нужно для размещения без ндс и наверно с наценкой на комиссионные жду кп",
       "timeline": [
         {
           "type": "measurement",
@@ -6176,9 +6571,9 @@
         },
         {
           "type": "result",
-          "label": "да, завтра кп будет готово, вход восстановим вход есть, я в нем кп нужно для размещения без ндс и наверно с наценкой на комиссионные",
-          "date": "26-05-2026",
-          "time": "17:15"
+          "label": "да, завтра кп будет готово, вход восстановим вход есть, я в нем кп нужно для размещения без ндс и наверно с наценкой на комиссионные жду кп",
+          "date": "27-05-2026",
+          "time": "18:13"
         }
       ]
     },
@@ -6347,47 +6742,6 @@
       ]
     },
     {
-      "id": 32330,
-      "dealId": 28148,
-      "dealName": "Александр Королев/ экоплитка 200м2/Адрес г Королев, Ул Пушкинская 15",
-      "counterparty": "Александр",
-      "dealCreatedAt": "05-09-2025",
-      "dealSum": 1291700,
-      "manager": "Ия Боровая",
-      "managerAlias": "borovaya",
-      "measurer": "Саша Бригадир",
-      "measurementCreatedAt": "06-04-2026",
-      "scheduledAt": "06-04-2026",
-      "currentDealStatus": "пример",
-      "outcome": "stalled",
-      "contractDate": null,
-      "workDate": null,
-      "progressedDate": null,
-      "closedDate": null,
-      "lastRelevantActivityAt": "14-04-2026",
-      "latestResultText": "бюджет планируют, когда перезвонить неизвестно, работы на след год, идет согласование работ с жильцами, созвон на сл неделе по решению",
-      "timeline": [
-        {
-          "type": "measurement",
-          "label": "Замер создан",
-          "date": "06-04-2026",
-          "time": "13:08"
-        },
-        {
-          "type": "scheduled",
-          "label": "Замер назначен",
-          "date": "06-04-2026",
-          "time": ""
-        },
-        {
-          "type": "result",
-          "label": "бюджет планируют, когда перезвонить неизвестно, работы на след год, идет согласование работ с жильцами, созвон на сл неделе по решению",
-          "date": "14-04-2026",
-          "time": "16:18"
-        }
-      ]
-    },
-    {
       "id": 32238,
       "dealId": 28301,
       "dealName": "Фирсов Сергей/Ямочный ремонт /450 м2/НИИВТ им. Векшинского",
@@ -6425,6 +6779,47 @@
           "label": "Завернули проект, пока на стопе, что решат и когда не известно, созвон летом",
           "date": "14-05-2026",
           "time": "16:36"
+        }
+      ]
+    },
+    {
+      "id": 32330,
+      "dealId": 28148,
+      "dealName": "Александр Королев/ экоплитка 200м2/Адрес г Королев, Ул Пушкинская 15",
+      "counterparty": "Александр",
+      "dealCreatedAt": "05-09-2025",
+      "dealSum": 1291700,
+      "manager": "Ия Боровая",
+      "managerAlias": "borovaya",
+      "measurer": "Саша Бригадир",
+      "measurementCreatedAt": "06-04-2026",
+      "scheduledAt": "06-04-2026",
+      "currentDealStatus": "пример",
+      "outcome": "stalled",
+      "contractDate": null,
+      "workDate": null,
+      "progressedDate": null,
+      "closedDate": null,
+      "lastRelevantActivityAt": "14-04-2026",
+      "latestResultText": "бюджет планируют, когда перезвонить неизвестно, работы на след год, идет согласование работ с жильцами, созвон на сл неделе по решению",
+      "timeline": [
+        {
+          "type": "measurement",
+          "label": "Замер создан",
+          "date": "06-04-2026",
+          "time": "13:08"
+        },
+        {
+          "type": "scheduled",
+          "label": "Замер назначен",
+          "date": "06-04-2026",
+          "time": ""
+        },
+        {
+          "type": "result",
+          "label": "бюджет планируют, когда перезвонить неизвестно, работы на след год, идет согласование работ с жильцами, созвон на сл неделе по решению",
+          "date": "14-04-2026",
+          "time": "16:18"
         }
       ]
     },
@@ -6731,10 +7126,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "26-05-2026",
+      "progressedDate": "28-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "26-05-2026",
-      "latestResultText": "созвон в чт",
+      "lastRelevantActivityAt": "28-05-2026",
+      "latestResultText": "созвон во вт",
       "timeline": [
         {
           "type": "measurement",
@@ -6750,9 +7145,9 @@
         },
         {
           "type": "result",
-          "label": "созвон в чт",
-          "date": "26-05-2026",
-          "time": "16:42"
+          "label": "созвон во вт",
+          "date": "28-05-2026",
+          "time": "18:05"
         }
       ]
     },
@@ -6772,10 +7167,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "21-05-2026",
+      "progressedDate": "28-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "21-05-2026",
-      "latestResultText": "схема на согласовании, прозвон во вт по работам",
+      "lastRelevantActivityAt": "28-05-2026",
+      "latestResultText": "на стопе 2 недели, созвон",
       "timeline": [
         {
           "type": "measurement",
@@ -6791,9 +7186,9 @@
         },
         {
           "type": "result",
-          "label": "схема на согласовании, прозвон во вт по работам",
-          "date": "21-05-2026",
-          "time": "15:59"
+          "label": "на стопе 2 недели, созвон",
+          "date": "28-05-2026",
+          "time": "18:28"
         }
       ]
     },
@@ -7100,10 +7495,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "22-05-2026",
+      "progressedDate": "27-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "22-05-2026",
-      "latestResultText": "Здравствуйте, Константин Как ваши дела, договор устраивает? По любым вопросам звоните или пишите, буду рада вам помочь! Компания ООО «Транском»Менеджер по работе с клиентамиИя Бор…",
+      "lastRelevantActivityAt": "27-05-2026",
+      "latestResultText": "Анна Васильцова Строители должны закончить в течении недели, оповестит нас по началу работ",
       "timeline": [
         {
           "type": "measurement",
@@ -7119,9 +7514,9 @@
         },
         {
           "type": "result",
-          "label": "Здравствуйте, Константин Как ваши дела, договор устраивает? По любым вопросам звоните или пишите, буду рада вам помочь! Компания ООО «Транском»Менеджер по работе с клиентамиИя Бор…",
-          "date": "22-05-2026",
-          "time": "17:44"
+          "label": "Анна Васильцова Строители должны закончить в течении недели, оповестит нас по началу работ",
+          "date": "27-05-2026",
+          "time": "18:08"
         }
       ]
     },
@@ -7458,12 +7853,12 @@
       {
         "manager": "Ия Боровая",
         "managerAlias": "borovaya",
-        "total": 43
+        "total": 45
       },
       {
         "manager": "Анна Васильцова",
         "managerAlias": "анна_васильцова",
-        "total": 11
+        "total": 13
       },
       {
         "manager": "Артем Гузаиров",
@@ -7473,7 +7868,7 @@
       {
         "manager": "Екатерина Миронова",
         "managerAlias": "екатерина_миронова",
-        "total": 4
+        "total": 5
       },
       {
         "manager": "Марина Замятина",
@@ -7495,28 +7890,28 @@
       "Саша Бригадир"
     ],
     "outcomeCounts": {
-      "unknown": 5,
-      "progressed": 42,
+      "unknown": 3,
+      "progressed": 47,
+      "to_contract": 5,
       "stalled": 11,
-      "to_work": 4,
-      "to_contract": 3
+      "to_work": 4
     },
     "byMeasurer": [
       {
         "measurer": "Саша Бригадир",
-        "total": 35,
-        "scheduled": 35,
-        "progressed": 29,
-        "toContract": 3,
+        "total": 37,
+        "scheduled": 37,
+        "progressed": 31,
+        "toContract": 5,
         "toWork": 1,
         "stalled": 5,
-        "sum": 97998648.69999999
+        "sum": 96492698.69999999
       },
       {
         "measurer": "Артем Бригадир",
-        "total": 11,
-        "scheduled": 11,
-        "progressed": 6,
+        "total": 12,
+        "scheduled": 12,
+        "progressed": 7,
         "toContract": 1,
         "toWork": 1,
         "stalled": 4,
@@ -7524,9 +7919,9 @@
       },
       {
         "measurer": "Миша Бригадир",
-        "total": 9,
-        "scheduled": 9,
-        "progressed": 6,
+        "total": 11,
+        "scheduled": 11,
+        "progressed": 10,
         "toContract": 2,
         "toWork": 2,
         "stalled": 1,
@@ -7540,7 +7935,7 @@
         "toContract": 0,
         "toWork": 0,
         "stalled": 0,
-        "sum": 12230960
+        "sum": 12415610
       },
       {
         "measurer": "Миша (Масис) Бригадир",
@@ -13176,7 +13571,7 @@
         "dealsCreated": 2,
         "enteredMeasurement": 1,
         "scheduledMeasurements": 1,
-        "progressed": 1,
+        "progressed": 0,
         "toContract": 0,
         "toWork": 0
       },
@@ -13329,8 +13724,8 @@
         "dealsCreated": 0,
         "enteredMeasurement": 3,
         "scheduledMeasurements": 3,
-        "progressed": 5,
-        "toContract": 1,
+        "progressed": 2,
+        "toContract": 0,
         "toWork": 0
       },
       {
@@ -13338,7 +13733,7 @@
         "dealsCreated": 1,
         "enteredMeasurement": 1,
         "scheduledMeasurements": 1,
-        "progressed": 3,
+        "progressed": 1,
         "toContract": 0,
         "toWork": 0
       },
@@ -13374,28 +13769,46 @@
         "dealsCreated": 1,
         "enteredMeasurement": 1,
         "scheduledMeasurements": 1,
-        "progressed": 12,
+        "progressed": 3,
         "toContract": 0,
+        "toWork": 0
+      },
+      {
+        "date": "27-05-2026",
+        "dealsCreated": 3,
+        "enteredMeasurement": 5,
+        "scheduledMeasurements": 5,
+        "progressed": 10,
+        "toContract": 1,
+        "toWork": 0
+      },
+      {
+        "date": "28-05-2026",
+        "dealsCreated": 2,
+        "enteredMeasurement": 3,
+        "scheduledMeasurements": 3,
+        "progressed": 12,
+        "toContract": 2,
         "toWork": 0
       }
     ],
     "totals": {
-      "total": 65,
-      "scheduled": 65,
-      "progressed": 49,
-      "toContract": 7,
+      "total": 70,
+      "scheduled": 70,
+      "progressed": 56,
+      "toContract": 9,
       "toWork": 4,
       "stalled": 11
     },
     "compare30d": {
-      "enteredMeasurement": 20,
-      "scheduledMeasurements": 21,
-      "progressed": 40,
-      "toContract": 5,
-      "toWork": 4,
-      "stalled": 7,
-      "contractRate": 25,
-      "workRate": 20
+      "enteredMeasurement": 28,
+      "scheduledMeasurements": 29,
+      "progressed": 46,
+      "toContract": 6,
+      "toWork": 3,
+      "stalled": 6,
+      "contractRate": 21,
+      "workRate": 11
     }
   },
   "measurementsComparison": {
