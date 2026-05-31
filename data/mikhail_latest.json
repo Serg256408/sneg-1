@@ -1,9 +1,9 @@
 {
-  "generated": "2026-05-30T20:19:04.049Z",
+  "generated": "2026-05-31T20:22:31.297Z",
   "manager": "Михаил",
   "managerPfName": "Михаил",
   "managerAlias": "mikhail",
-  "reportDate": "30-05-2026",
+  "reportDate": "31-05-2026",
   "dealCards": [],
   "dailyReports": [],
   "dailyActivity": {
@@ -41,7 +41,7 @@
   "dailyDealActivity": [],
   "aiDaySummaryText": null,
   "multiDayActivity": {
-    "30-05-2026": [],
+    "31-05-2026": [],
     "29-05-2026": [
       {
         "deal": {
@@ -3048,6 +3048,23 @@
             "sourceTaskName": "кп ямочный 250м2/Москва, Ярославское шоссе, 7-9",
             "sourceParentId": null,
             "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12375960,
+            "date": "31-05-2026",
+            "time": "09:00",
+            "type": "note",
+            "text": "Миронова Екатерина,Боровая Ия Эдуардовна не совершил целевое действие по сделке:",
+            "owner": "Robot-3",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33191,
+            "sourceTaskName": "кп ямочный 250м2/Москва, Ярославское шоссе, 7-9",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
           }
         ],
         "allCalls": [
@@ -3111,7 +3128,7 @@
     "month": null
   },
   "incomingByDate": {},
-  "snapshotDate": "2026-05-29T20:51:31.039Z",
+  "snapshotDate": "2026-05-30T20:19:03.802Z",
   "measurements": [
     {
       "id": 33581,
@@ -3252,10 +3269,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "30-05-2026",
+      "progressedDate": "31-05-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "30-05-2026",
-      "latestResultText": "Вчера необходимо было совершить целевое действие по сделке: и назначить новое целевое действие. Срочно выполни или актуализируй следующий шаг",
+      "lastRelevantActivityAt": "31-05-2026",
+      "latestResultText": "Васильцова Анна,Боровая Ия Эдуардовна не совершил целевое действие по сделке:",
       "timeline": [
         {
           "type": "measurement",
@@ -3271,8 +3288,8 @@
         },
         {
           "type": "result",
-          "label": "Вчера необходимо было совершить целевое действие по сделке: и назначить новое целевое действие. Срочно выполни или актуализируй следующий шаг",
-          "date": "30-05-2026",
+          "label": "Васильцова Анна,Боровая Ия Эдуардовна не совершил целевое действие по сделке:",
+          "date": "31-05-2026",
           "time": "09:00"
         }
       ]
@@ -12063,8 +12080,17 @@
         "dealsCreated": 0,
         "enteredMeasurement": 0,
         "scheduledMeasurements": 0,
-        "progressed": 2,
+        "progressed": 1,
         "toContract": 1,
+        "toWork": 0
+      },
+      {
+        "date": "31-05-2026",
+        "dealsCreated": 0,
+        "enteredMeasurement": 0,
+        "scheduledMeasurements": 0,
+        "progressed": 1,
+        "toContract": 0,
         "toWork": 0
       }
     ],
