@@ -47,6 +47,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Syntax check
+        run: |
+          node --check analytics.js
+          node --check src/core/deals.js
+          node --check src/core/funnel.js
+          node --check src/api/whisper.js
+
       - name: Generate reports for all managers
         env:
           PLANFIX_URL: ${{ secrets.PLANFIX_URL }}
@@ -72,7 +79,7 @@ jobs:
           fi
 
       - name: Verify reports
-        if: always()
+        if: success()
         continue-on-error: true
         env:
           PLANFIX_URL: ${{ secrets.PLANFIX_URL }}
@@ -89,7 +96,7 @@ jobs:
           node verify.js --all "$TODAY"
 
       - name: Commit data files
-        if: always()
+        if: success()
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
@@ -100,7 +107,7 @@ jobs:
           git push || { git push --force-with-lease; }
 
       - name: Deploy to GitHub Pages
-        if: always()
+        if: success()
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
