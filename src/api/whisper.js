@@ -3,12 +3,20 @@ const { fs, path, os, API_URL, TOKEN, OPENAI_KEY, POLZA_KEY, isTimeUp } = requir
 const {
   saveAiCache, loadAiCache, loadTranscriptionCache, saveTranscriptionCache,
 } = require('../core/cache');
+const {
+  registerPlanfixRestRequest, notePlanfixRateLimit, isPlanfixRateLimited, throwIfPlanfixRateLimited,
+} = require('./planfix');
 
 const MAX_WHISPER_PER_RUN = parseInt(process.env.MAX_WHISPER_PER_RUN || '150', 10) || 150;
+const parsedPlanfixFileFailTtlHours = parseInt(process.env.PLANFIX_FILE_FAIL_TTL_HOURS ?? '168', 10);
+const PLANFIX_FILE_FAIL_TTL_HOURS = Number.isFinite(parsedPlanfixFileFailTtlHours) ? parsedPlanfixFileFailTtlHours : 168;
+const PLANFIX_FILE_FAIL_TTL_MS = PLANFIX_FILE_FAIL_TTL_HOURS * 60 * 60 * 1000;
 let whisperCallsThisRun = 0;
 const AUDIO_EXT_RE = /\.(mp3|mpga|mpeg|m4a|mp4|wav|webm|ogg|oga|flac)$/i;
 const inFlightTranscriptions = new Map();
 let warnedNoTranscriptionProvider = false;
+let downloadFailureCache = null;
+const warnedCachedDownloadFailures = new Set();
 
 function getFileName(file) {
   if (typeof file === 'string') return file.trim();
@@ -42,6 +50,50 @@ function getCachedTranscription(cache, audioFile) {
   return null;
 }
 
+function downloadFailureKeys(audioFile) {
+  const fileId = String(audioFile?.id || audioFile?.fileId || '').trim();
+  const signature = buildAudioSignature(audioFile);
+  return [
+    fileId ? `pf_file_download_fail_${fileId}` : '',
+    signature ? `pf_file_download_fail_sig_${signature}` : '',
+  ].filter(Boolean);
+}
+
+function loadDownloadFailureCache() {
+  if (!downloadFailureCache) downloadFailureCache = loadAiCache();
+  return downloadFailureCache;
+}
+
+function getCachedDownloadFailure(audioFile) {
+  const cache = loadDownloadFailureCache();
+  const now = Date.now();
+  for (const key of downloadFailureKeys(audioFile)) {
+    const rec = cache[key];
+    if (!rec) continue;
+    const ts = Date.parse(rec.ts || rec.date || '');
+    if (ts && now - ts <= PLANFIX_FILE_FAIL_TTL_MS) return { key, ...rec };
+    delete cache[key];
+  }
+  return null;
+}
+
+function rememberDownloadFailure(audioFile, reason) {
+  if (!audioFile || isPlanfixRateLimited()) return;
+  const keys = downloadFailureKeys(audioFile);
+  if (!keys.length) return;
+
+  const fresh = loadAiCache();
+  const rec = {
+    ts: new Date().toISOString(),
+    reason: String(reason || 'download failed').slice(0, 160),
+    name: getFileName(audioFile),
+    ttlHours: PLANFIX_FILE_FAIL_TTL_HOURS,
+  };
+  for (const key of keys) fresh[key] = rec;
+  downloadFailureCache = fresh;
+  saveAiCache(fresh);
+}
+
 function persistTranscription(cache, audioFile, text) {
   if (!audioFile || !text) return;
 
@@ -54,7 +106,9 @@ function persistTranscription(cache, audioFile, text) {
   const aiCache = loadAiCache();
   if (fileId) aiCache[`whisper_${fileId}`] = text;
   if (signature) aiCache[`whisper_sig_${signature}`] = text;
+  for (const key of downloadFailureKeys(audioFile)) delete aiCache[key];
   saveAiCache(aiCache);
+  downloadFailureCache = aiCache;
 
   const transcriptionCache = loadTranscriptionCache(true);
   if (fileId) transcriptionCache[fileId] = text;
@@ -72,15 +126,18 @@ function looksLikeHtmlOrError(buf) {
 
 function downloadPlanfixFile(fileId) {
   const { execFileSync } = require('child_process');
+  const url = `${API_URL}/file/${fileId}/download`;
   const tmpFile = path.join(
     os.tmpdir(),
     `pf_audio_${fileId}_${process.pid}_${Date.now()}_${Math.random().toString(36).slice(2)}.mp3`,
   );
   for (let attempt = 1; attempt <= 3; attempt++) {
+    if (isPlanfixRateLimited()) return null;
     try {
+      registerPlanfixRestRequest('GET', url);
       execFileSync('curl', [
         '-s', '-L', '--ssl-no-revoke', '-o', tmpFile,
-        `${API_URL}/file/${fileId}/download`,
+        url,
         '-H', `Authorization: Bearer ${TOKEN}`,
       ], { timeout: 60000 });
       const stat = fs.statSync(tmpFile);
@@ -90,7 +147,9 @@ function downloadPlanfixFile(fileId) {
       }
       const head = fs.readFileSync(tmpFile);
       if (looksLikeHtmlOrError(head)) {
+        notePlanfixRateLimit(head.toString('utf8'), url);
         try { fs.unlinkSync(tmpFile); } catch {}
+        if (isPlanfixRateLimited()) return null;
         continue;
       }
       return tmpFile;
@@ -194,11 +253,25 @@ async function transcribeCallIfNeeded(comment, cache, allowNew) {
   }
 
   if (!allowNew) return null;
+  const cachedFailure = getCachedDownloadFailure(audioFile);
+  if (cachedFailure) {
+    const warnKey = cachedFailure.key || String(audioFile.id || getFileName(audioFile));
+    if (!warnedCachedDownloadFailures.has(warnKey)) {
+      warnedCachedDownloadFailures.add(warnKey);
+      console.log(`    Warning: skip Planfix file ${audioFile.id || ''} (${getFileName(audioFile)}) - cached download failure`);
+    }
+    return null;
+  }
   if (!audioFile.id) {
     console.log(`    Warning: call audio has no Planfix file id (${getFileName(audioFile)})`);
     return null;
   }
+  if (!POLZA_KEY && !OPENAI_KEY) {
+    await whisperTranscribe(null);
+    return null;
+  }
   if (isTimeUp()) return null;
+  if (isPlanfixRateLimited()) return null;
   if (whisperCallsThisRun >= MAX_WHISPER_PER_RUN) return null;
 
   const lockKey = String(audioFile.id || '') || `sig:${buildAudioSignature(audioFile)}` || getFileName(audioFile);
@@ -214,6 +287,8 @@ async function transcribeCallIfNeeded(comment, cache, allowNew) {
   const run = (async () => {
     const audioPath = downloadPlanfixFile(audioFile.id);
     if (!audioPath) {
+      throwIfPlanfixRateLimited();
+      rememberDownloadFailure(audioFile, 'Planfix file download failed');
       console.log(`    Warning: failed to download Planfix file ${audioFile.id} (${audioFile.name})`);
       return null;
     }
@@ -241,6 +316,10 @@ async function transcribeExternalAudioIfNeeded(audioFile, audioPath, cache) {
   const cached = getCachedTranscription(cache, audioFile);
   if (cached) return cached;
 
+  if (!POLZA_KEY && !OPENAI_KEY) {
+    await whisperTranscribe(null);
+    return null;
+  }
   if (isTimeUp()) return null;
   if (whisperCallsThisRun >= MAX_WHISPER_PER_RUN) return null;
 

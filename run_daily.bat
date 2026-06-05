@@ -15,10 +15,21 @@ cd /d "%ROOT%" || exit /b 1
 
 for /f %%i in ('powershell -NoProfile -Command "(Get-Date).ToString(\"dd-MM-yyyy\")"') do set "TODAY=%%i"
 for /f %%i in ('powershell -NoProfile -Command "(Get-Date).ToString(\"dd.MM.yyyy HH:mm\")"') do set "STAMP=%%i"
+for /f %%i in ('powershell -NoProfile -Command "(Get-Date).DayOfWeek.ToString()"') do set "DOW=%%i"
 
 if not defined TODAY (
     echo [%date% %time%] Failed to resolve report date>>"%LOG%"
     exit /b 1
+)
+
+if /I "%DOW%"=="Saturday" (
+    echo [%date% %time%] Weekend (%DOW%), skip daily report for %TODAY%>>"%LOG%"
+    exit /b 0
+)
+
+if /I "%DOW%"=="Sunday" (
+    echo [%date% %time%] Weekend (%DOW%), skip daily report for %TODAY%>>"%LOG%"
+    exit /b 0
 )
 
 echo [%date% %time%] Start daily report for %TODAY%>>"%LOG%"
@@ -53,7 +64,7 @@ if defined SKIP_GIT_SYNC (
 
 git config user.name "Transcom Daily Report"
 git config user.email "actions@github.com"
-git add ai_cache.json deal_history.json latest_data.json funnel_snapshot.json daily_log.txt report.html data reports deploy managers.json transcriptions_cache.json
+git add ai_cache.json deal_history.json latest_data.json funnel_snapshot.json daily_log.txt planfix_api_usage.json report.html data reports deploy managers.json transcriptions_cache.json
 git diff --cached --quiet
 if errorlevel 1 (
     git commit -m "Report %STAMP%" >> "%LOG%" 2>&1

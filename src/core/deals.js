@@ -1,14 +1,19 @@
-﻿const { pf, pfGet, getAllTasks, getLightTasks } = require('../api/planfix');
+﻿const {
+  pf, pfGet, getAllTasks, getLightTasks,
+  isPlanfixRateLimitError, throwIfPlanfixRateLimited,
+} = require('../api/planfix');
 const {
   sleep, parallelMap, utcToMsk, stripHtml, timeToMinNode, extractWorkDesc, normalizePhone, parseCfd, parsePfDate, isSameDay,
 } = require('../utils/helpers');
 const { extractTranscription, isNoAnswerTranscription, getNoAnswerLabel, hasCallRecordingFile } = require('./transcription');
 const {
-  CONCURRENCY, SKIP_STATUSES, DEAL_FIELDS, DEEPSEEK_KEY, POLZA_KEY, OPENAI_KEY, isTimeUp,
+  CONCURRENCY, SKIP_STATUSES, DEAL_FIELDS, POLZA_KEY, OPENAI_KEY, AI_ENABLED,
+  REPORT_SKIP_MEASUREMENTS, REPORT_BACKFILL_HISTORY, REPORT_HISTORY_AI, isTimeUp,
   CALL_TAG, ANALYSIS_TAG, ALLOWED_TEMPLATES, ROOT_DIR, MANAGERS_LIST, fs, path,
 } = require('../utils/config');
 const {
   transcribeCallIfNeeded, transcribeExternalAudioIfNeeded, getCachedTranscription, findCallAudioFile, buildAudioSignature,
+  MAX_WHISPER_PER_RUN,
 } = require('../api/whisper');
 const { isMangoConfigured, findMangoRecordingForCall, downloadMangoRecording } = require('../api/mango');
 const { aiDealFullAssessment } = require('./assessment');
@@ -26,6 +31,26 @@ const FIELD_TASK_NAME = 34140;
 const DIR_FIELDS = `key,${FIELD_DATE},${FIELD_EMPLOYEE},${FIELD_TASK_ID},${FIELD_TASK_NAME}`;
 const measurementRangeCache = new Map();
 const companyMeasurementsCache = new Map();
+const activityRegistryCache = new Map();
+const dataTagEntryCache = new Map();
+
+function emptyMeasurementsBundle(reportDate) {
+  return {
+    measurements: [],
+    measurementsSummary: {
+      defaultDays: 30,
+      ytdStart: '',
+      managerNames: [],
+      byManager: [],
+      measurers: [],
+      outcomeCounts: {},
+      byMeasurer: [],
+      daily: [],
+      totals: { total: 0, scheduled: 0, progressed: 0, toContract: 0, toWork: 0, stalled: 0 },
+      compare30d: buildMeasurementsComparison([], reportDate),
+    },
+  };
+}
 const MIN_USEFUL_TRANSCRIPTION_CHARS = 20;
 
 async function taskListWithRetry(payload, label) {
@@ -33,6 +58,7 @@ async function taskListWithRetry(payload, label) {
     try {
       return await pf('/task/list', payload);
     } catch (e) {
+      if (isPlanfixRateLimitError(e)) throw e;
       if (attempt === 3) throw e;
       console.log(`    ⚠️ ${label}: ${e.message || e} (повтор ${attempt}/3)`);
       await sleep(1500 * attempt);
@@ -63,6 +89,32 @@ function mergeCommentsById(baseComments, incomingComments) {
     byId.set(String(comment.id), comment);
   }
   return [...byId.values()];
+}
+
+function callHistoryKey(call) {
+  if (call?.key != null) return `key:${call.key}`;
+  return [
+    call?.date || '',
+    call?.time || '',
+    call?.type || '',
+    call?.phone || '',
+    call?.duration || '',
+  ].join('|');
+}
+
+function mergeCallsByKey(baseCalls, incomingCalls) {
+  const byKey = new Map();
+  for (const call of baseCalls || []) {
+    const key = callHistoryKey(call);
+    if (!key) continue;
+    byKey.set(key, call);
+  }
+  for (const call of incomingCalls || []) {
+    const key = callHistoryKey(call);
+    if (!key) continue;
+    byKey.set(key, call);
+  }
+  return [...byKey.values()].sort((a, b) => itemStamp(a) - itemStamp(b));
 }
 
 function firstDayOfYear(dateStr) {
@@ -207,6 +259,7 @@ async function loadTasksByIds(taskIds) {
       const task = (d.tasks || [])[0];
       if (task) loaded.push(task);
     } catch (e) {
+      if (isPlanfixRateLimitError(e)) throw e;
       console.log(`    ⚠️ Не удалось загрузить задачу #${taskId}: ${e.message}`);
     }
   }, 3);
@@ -330,6 +383,10 @@ async function transcribeMangoMatchIntoTarget(target, match, transcriptionCache,
     if (stats) stats.mangoCached += 1;
     return cached;
   }
+  if (!POLZA_KEY && !OPENAI_KEY) {
+    if (stats) stats.mangoFailed += 1;
+    return null;
+  }
 
   let audioPath = null;
   try {
@@ -445,6 +502,180 @@ async function preloadReportDayCallTranscriptions(rawComments, reportDate, trans
   return transcribed;
 }
 
+function applyTranscriptionToComment(comment, text, source = 'whisper') {
+  if (!comment || !isUsefulTranscriptionText(text)) return false;
+  comment.transcription = text;
+  comment.transcriptionSource = comment.transcriptionSource || source;
+  if (isNoAnswerTranscription(text)) {
+    comment.type = 'ndz';
+    comment.text = getNoAnswerLabel(text);
+  }
+  return true;
+}
+
+function extractPhonesFromTextParts(parts) {
+  const text = (parts || []).filter(Boolean).join(' ');
+  const matches = text.match(/(?:\+?\d[\d\s().-]{8,}\d)/g) || [];
+  return [...new Set(matches.map(normalizePhone).filter(phone => phone.length >= 10))];
+}
+
+function getHistoryCommentPhones(deal, comment) {
+  const phones = new Set(extractPhonesFromTextParts([
+    comment?.text || '',
+    commentFilesText(comment?.files || []),
+  ]));
+  const targetMin = timeToMinNode(comment?.time || '');
+  const hasTargetTime = /\d{1,2}:\d{2}/.test(comment?.time || '');
+  for (const call of deal?.calls || []) {
+    if (call.date !== comment?.date) continue;
+    const callPhone = normalizePhone(call.phone || '');
+    if (!callPhone) continue;
+    if (!hasTargetTime || Math.abs(timeToMinNode(call.time) - targetMin) <= 10) {
+      phones.add(callPhone);
+    }
+  }
+  return [...phones];
+}
+
+function hasUsefulHistoryCallTranscription(deal, call) {
+  return [
+    ...(deal?.comments || []),
+    ...(deal?.contactCalls || []),
+  ].some(comment =>
+    comment.date === call.date &&
+    isReportCallAction(comment) &&
+    callTimeDiff(call, comment.time) <= 5 &&
+    isUsefulTranscriptionText(comment.transcription));
+}
+
+async function backfillHistoryCallTranscriptions(history, transcriptionCache, reportDate, stats = null, scope = {}) {
+  const providerAvailable = !!(POLZA_KEY || OPENAI_KEY);
+  const scopedDealIds = scope.dealIds ? new Set([...scope.dealIds].map(String)) : null;
+  const scopedDates = scope.dates ? new Set([...scope.dates].filter(Boolean)) : null;
+  const managerContext = scope.managerContext || {};
+  const managerName = managerContext.managerName || '';
+  const seen = new Set();
+  let changed = false;
+  let newTranscriptionAttempts = 0;
+
+  const touchStats = (key, amount = 1) => {
+    if (stats) stats[key] = (stats[key] || 0) + amount;
+  };
+
+  for (const [dealId, deal] of Object.entries(history.deals || {})) {
+    if (scopedDealIds && !scopedDealIds.has(String(dealId))) continue;
+    for (const bucketName of ['comments', 'contactCalls']) {
+      for (const comment of deal[bucketName] || []) {
+        if (scopedDates && !scopedDates.has(comment.date)) continue;
+        if (comment.type !== 'outCall' && comment.type !== 'inCall') continue;
+        if (isUsefulTranscriptionText(comment.transcription)) continue;
+
+        const audioFile = findCallAudioFile(comment.files || []);
+        if (!audioFile) {
+          touchStats('historyNoAudio');
+          continue;
+        }
+
+        const fileId = String(audioFile.id || audioFile.fileId || '');
+        const signature = buildAudioSignature(audioFile);
+        const key = fileId || (signature ? `sig:${signature}` : '') || `${comment.id || ''}:${comment.date || ''}:${comment.time || ''}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        touchStats('historyMissing');
+
+        const cached = getCachedTranscription(transcriptionCache, audioFile);
+        if (cached) {
+          if (applyTranscriptionToComment(comment, cached, 'cache')) {
+            changed = true;
+            touchStats('historyCached');
+          }
+          continue;
+        }
+
+        const tryMangoFallback = async () => {
+          const phones = getHistoryCommentPhones(deal, comment);
+          if (!phones.length) return null;
+          return tryMangoTranscriptionAtTime(comment, comment.date || reportDate, transcriptionCache, stats, {
+            ...managerContext,
+            phones,
+          });
+        };
+
+        if (!providerAvailable) {
+          const mangoText = await tryMangoFallback();
+          if (mangoText && applyTranscriptionToComment(comment, mangoText, 'mango')) {
+            changed = true;
+            touchStats('historyTranscribed');
+          } else {
+            touchStats('historySkippedNoProvider');
+          }
+          continue;
+        }
+        if (!fileId) {
+          const mangoText = await tryMangoFallback();
+          if (mangoText && applyTranscriptionToComment(comment, mangoText, 'mango')) {
+            changed = true;
+            touchStats('historyTranscribed');
+          } else {
+            touchStats('historyNoFileId');
+          }
+          continue;
+        }
+        if (newTranscriptionAttempts >= MAX_WHISPER_PER_RUN || isTimeUp()) {
+          touchStats('historySkippedLimit');
+          continue;
+        }
+
+        newTranscriptionAttempts++;
+        let text = await transcribeCallIfNeeded({ transcription: null, files: [audioFile] }, transcriptionCache, true);
+        if (!text) text = await tryMangoFallback();
+        if (text && applyTranscriptionToComment(comment, text, 'whisper')) {
+          changed = true;
+          touchStats('historyTranscribed');
+        } else {
+          touchStats('historyFailed');
+        }
+      }
+    }
+
+    if (isMangoConfigured()) {
+      for (const call of deal.calls || []) {
+        if (scopedDates && !scopedDates.has(call.date)) continue;
+        if (managerName && !isHistoryManagerActivity(call, managerName)) continue;
+        if (hasUsefulHistoryCallTranscription(deal, call)) continue;
+
+        const phone = normalizePhone(call.phone || '');
+        if (!phone) continue;
+
+        const key = `datatag:${dealId}:${callHistoryKey(call)}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        touchStats('historyMissing');
+
+        const action = buildSyntheticCallAction(
+          { id: Number(dealId), name: deal.name || '' },
+          call,
+          call.date || reportDate,
+        );
+        const text = await tryMangoTranscriptionAtTime(action, call.date || reportDate, transcriptionCache, stats, {
+          ...managerContext,
+          phones: [phone],
+        });
+        if (text) {
+          deal.comments = mergeCommentsById(deal.comments || [], [action]);
+          changed = true;
+          touchStats('historyTranscribed');
+        } else {
+          touchStats('historyDataTagNoRecording');
+        }
+      }
+    }
+  }
+
+  if (changed) saveHistory(history, reportDate);
+  return changed;
+}
+
 function isReportCallAction(action) {
   return action && (action.type === 'outCall' || action.type === 'inCall');
 }
@@ -558,7 +789,9 @@ async function loadRootDealCommentsForMeasurements(task, history, reportDate, tr
     const loaded = await getDealCommentsResult(task.id);
     raw = loaded.comments;
     complete = loaded.complete;
-  } catch {}
+  } catch (e) {
+    if (isPlanfixRateLimitError(e)) throw e;
+  }
 
   const needsWhisper = cached
     ? cached.filter(comment =>
@@ -588,7 +821,9 @@ async function mergeMeasurementSubtaskComments({ rootTask, subtask, commentsByTa
     const loaded = await getDealCommentsResult(subtask.id);
     raw = loaded.comments;
     complete = loaded.complete;
-  } catch {}
+  } catch (e) {
+    if (isPlanfixRateLimitError(e)) throw e;
+  }
   if (!raw.length) {
     if (!complete) {
       const deal = ensureDeal(history, rootTask.id);
@@ -657,7 +892,8 @@ async function loadCompanyMeasurementSubtasks(rootTask, subtasksById, commentsBy
 
         if (subtasks.length < 100) break;
         offset += 100;
-      } catch {
+      } catch (e) {
+        if (isPlanfixRateLimitError(e)) throw e;
         return;
       }
     }
@@ -668,9 +904,23 @@ async function loadCompanyMeasurementSubtasks(rootTask, subtasksById, commentsBy
 
 async function buildCompanyMeasurementsBundle(reportDate, history) {
   if (companyMeasurementsCache.has(reportDate)) return companyMeasurementsCache.get(reportDate);
+  if (REPORT_SKIP_MEASUREMENTS) {
+    const empty = emptyMeasurementsBundle(reportDate);
+    companyMeasurementsCache.set(reportDate, empty);
+    return empty;
+  }
 
   const transcriptionCache = buildTranscriptionCacheFromAiCache();
-  const measurementTasks = await getMeasurementTasksInRange(firstDayOfYear(reportDate), reportDate);
+  let measurementTasks = [];
+  try {
+    measurementTasks = await getMeasurementTasksInRange(firstDayOfYear(reportDate), reportDate);
+  } catch (e) {
+    if (isPlanfixRateLimitError(e)) throw e;
+    console.log(`  ⚠️ Замеры недоступны, отчет продолжит сбор без блока замеров: ${e.message || e}`);
+    const empty = emptyMeasurementsBundle(reportDate);
+    companyMeasurementsCache.set(reportDate, empty);
+    return empty;
+  }
   const measurementDealIds = [...new Set(
     measurementTasks
       .map(task => Number(task?.parent?.id || 0))
@@ -678,26 +928,21 @@ async function buildCompanyMeasurementsBundle(reportDate, history) {
   )];
 
   if (!measurementDealIds.length) {
-    const empty = {
-      measurements: [],
-      measurementsSummary: {
-        defaultDays: 30,
-        ytdStart: '',
-        managerNames: [],
-        byManager: [],
-        measurers: [],
-        outcomeCounts: {},
-        byMeasurer: [],
-        daily: [],
-        totals: { total: 0, scheduled: 0, progressed: 0, toContract: 0, toWork: 0, stalled: 0 },
-        compare30d: buildMeasurementsComparison([], reportDate),
-      },
-    };
+    const empty = emptyMeasurementsBundle(reportDate);
     companyMeasurementsCache.set(reportDate, empty);
     return empty;
   }
 
-  const dealTasks = await loadTasksByIds(measurementDealIds);
+  let dealTasks = [];
+  try {
+    dealTasks = await loadTasksByIds(measurementDealIds);
+  } catch (e) {
+    if (isPlanfixRateLimitError(e)) throw e;
+    console.log(`  ⚠️ Сделки замеров недоступны, отчет продолжит сбор без блока замеров: ${e.message || e}`);
+    const empty = emptyMeasurementsBundle(reportDate);
+    companyMeasurementsCache.set(reportDate, empty);
+    return empty;
+  }
   const commentsByTask = {};
   const subtasksById = new Map((measurementTasks || []).map(task => [task.id, task]));
 
@@ -729,9 +974,13 @@ async function buildCompanyMeasurementsBundle(reportDate, history) {
   return cached;
 }
 
-async function getManagerDeals(userId, reportDate) {
-  const seenIds = new Set();
-  const all = [];
+async function loadActivityRegistryForDate(reportDate) {
+  if (activityRegistryCache.has(reportDate)) {
+    console.log(`  Реестр активности: кэш за ${reportDate}`);
+    return activityRegistryCache.get(reportDate);
+  }
+
+  const byUser = new Map();
   let offset = 0;
 
   while (true) {
@@ -742,12 +991,14 @@ async function getManagerDeals(userId, reportDate) {
         d = await pf(`/directory/${DIRECTORY_ID}/entry/list`, { offset, pageSize: 100, fields: DIR_FIELDS });
         break;
       } catch (e) {
+        if (isPlanfixRateLimitError(e)) throw e;
         if (attempt < 3) {
           await sleep(2000 * attempt);
           continue;
         }
         console.log(` ⚠️ ${e.message}`);
-        return all;
+        activityRegistryCache.set(reportDate, byUser);
+        return byUser;
       }
     }
 
@@ -760,11 +1011,10 @@ async function getManagerDeals(userId, reportDate) {
       const date = fields[FIELD_DATE]?.stringValue || '';
       if (date !== reportDate) continue;
       const empId = String(fields[FIELD_EMPLOYEE]?.value?.id || '').replace('user:', '');
-      if (empId !== String(userId)) continue;
       const taskId = fields[FIELD_TASK_ID]?.value?.id;
-      if (taskId && !seenIds.has(taskId)) {
-        seenIds.add(taskId);
-        all.push(taskId);
+      if (empId && taskId) {
+        if (!byUser.has(empId)) byUser.set(empId, new Set());
+        byUser.get(empId).add(taskId);
       }
     }
 
@@ -773,6 +1023,13 @@ async function getManagerDeals(userId, reportDate) {
     await sleep(300);
   }
 
+  activityRegistryCache.set(reportDate, byUser);
+  return byUser;
+}
+
+async function getManagerDeals(userId, reportDate) {
+  const registry = await loadActivityRegistryForDate(reportDate);
+  const all = [...(registry.get(String(userId)) || [])];
   console.log(`  ✅ Уникальных сделок: ${all.length}`);
   return all;
 }
@@ -791,6 +1048,7 @@ async function getDealCommentsResult(taskId) {
         });
         break;
       } catch (e) {
+        if (isPlanfixRateLimitError(e)) throw e;
         if (attempt < 3) {
           await sleep(2000 * attempt);
           continue;
@@ -835,12 +1093,12 @@ async function parseComment(c, reportDate, transcriptionCache, allowWhisper) {
   let transcription = c.mangoTranscription || null;
   if (type === 'outCall' || type === 'inCall') {
     transcription = transcription || extractTranscription(c.description);
-    if (!transcription && (POLZA_KEY || OPENAI_KEY) && transcriptionCache) {
+    if (!transcription && transcriptionCache) {
       transcription = await transcribeCallIfNeeded({ transcription, files: c.files || [] }, transcriptionCache, allowNewTranscription);
     }
   }
 
-  if (!transcription && type === 'note' && (POLZA_KEY || OPENAI_KEY) && transcriptionCache) {
+  if (!transcription && type === 'note' && transcriptionCache) {
     const cFiles = c.files || [];
     const hasCallRecording = !!findCallAudioFile(cFiles);
     if (hasCallRecording) {
@@ -961,6 +1219,81 @@ function itemStamp(item) {
   return dt.getTime() + (timeToMinNode(item?.time || '') * 60000);
 }
 
+function isHistoryManagerActivity(item, mgrPfName) {
+  const owner = item?.owner || item?.employee || '';
+  return !!owner && (!mgrPfName || owner.includes(mgrPfName));
+}
+
+function collectRecentHistoryDates(history, reportDate, reportDateObj, mgrPfName) {
+  const dates = new Set();
+  if (!reportDateObj) return dates;
+
+  const maybeAddDate = (date, item) => {
+    if (!date || date === reportDate || !isHistoryManagerActivity(item, mgrPfName)) return;
+    const d = parsePfDate(date);
+    if (!d) return;
+    const daysAgo = (reportDateObj - d) / 86400000;
+    if (daysAgo > 0 && daysAgo <= 30) dates.add(date);
+  };
+
+  for (const dealHist of Object.values(history.deals || {})) {
+    for (const c of [...(dealHist.comments || []), ...(dealHist.contactCalls || [])]) {
+      maybeAddDate(c.date, c);
+    }
+    for (const call of dealHist.calls || []) {
+      maybeAddDate(call.date, call);
+    }
+  }
+
+  return dates;
+}
+
+function collectRelevantHistoryDealIds(history, dates, mgrPfName, seedIds = []) {
+  const ids = new Set((seedIds || []).map(String).filter(Boolean));
+  const scopedDates = new Set([...dates].filter(Boolean));
+  if (!scopedDates.size) return ids;
+
+  for (const [dealId, dealHist] of Object.entries(history.deals || {})) {
+    if (ids.has(String(dealId))) continue;
+
+    const dayComments = [
+      ...(dealHist.comments || []),
+      ...(dealHist.contactCalls || []),
+    ].filter(c => scopedDates.has(c.date));
+    const dayCalls = (dealHist.calls || []).filter(call => scopedDates.has(call.date));
+
+    if (dayComments.some(c => isHistoryManagerActivity(c, mgrPfName)) ||
+      dayCalls.some(call => isHistoryManagerActivity(call, mgrPfName))) {
+      ids.add(String(dealId));
+    }
+  }
+
+  return ids;
+}
+
+function buildScopedBackfillDates(reportDate, historyDatesSet) {
+  const raw = String(process.env.TRANSCRIPTION_BACKFILL_DATES || '').trim();
+  if (!raw) {
+    if (REPORT_BACKFILL_HISTORY) return new Set([reportDate, ...historyDatesSet].filter(Boolean));
+    return new Set([reportDate].filter(Boolean));
+  }
+
+  const requested = new Set(
+    raw
+      .split(/[,\s;|]+/)
+      .map(v => v.trim())
+      .filter(v => /^\d{2}-\d{2}-\d{4}$/.test(v)),
+  );
+  if (!requested.size) return new Set([reportDate].filter(Boolean));
+  requested.add(reportDate);
+  return requested;
+}
+
+function shouldBackfillHistoryTranscriptions() {
+  const rawDates = String(process.env.TRANSCRIPTION_BACKFILL_DATES || '').trim();
+  return REPORT_BACKFILL_HISTORY || !!rawDates;
+}
+
 function buildDayFromHistory(history, dateDMY, dealTasksMap, mgrPfName) {
   const result = [];
 
@@ -971,10 +1304,12 @@ function buildDayFromHistory(history, dateDMY, dealTasksMap, mgrPfName) {
     ].sort((a, b) => itemStamp(a) - itemStamp(b));
 
     const dayComments = allComments.filter(c => c.date === dateDMY);
-    if (!dayComments.length) continue;
+    const dayDataTagCalls = (dealHist.calls || []).filter(call => call.date === dateDMY);
+    if (!dayComments.length && !dayDataTagCalls.length) continue;
 
     const hasMgrActivity = dayComments.some(c => c.owner && c.owner.includes(mgrPfName));
-    if (!hasMgrActivity) continue;
+    const hasMgrCalls = dayDataTagCalls.some(call => call.employee && call.employee.includes(mgrPfName));
+    if (!hasMgrActivity && !hasMgrCalls) continue;
 
     const task = dealTasksMap[Number(dealId)];
     const cf = {};
@@ -1012,6 +1347,25 @@ function buildDayFromHistory(history, dateDMY, dealTasksMap, mgrPfName) {
       files: c.files || [],
     }));
 
+    for (const call of dayDataTagCalls) {
+      const isDupe = actions.some(a =>
+        (a.type === 'outCall' || a.type === 'inCall' || a.type === 'ndz') &&
+        Math.abs(timeToMinNode(a.time) - timeToMinNode(call.time)) < 5,
+      );
+      if (!isDupe) {
+        actions.push({
+          type: call.type === 'Входящий' ? 'inCall' : 'outCall',
+          time: call.time,
+          text: `${call.type || 'Звонок'} ${call.contact || ''} ${call.phone || ''}`.trim(),
+          owner: call.employee || '',
+          transcription: null,
+          source: 'datatag',
+          duration: call.duration,
+        });
+      }
+    }
+    actions.sort((a, b) => timeToMinNode(a.time) - timeToMinNode(b.time));
+
     const isSnow = (deal.name || '').toLowerCase().startsWith('вывоз снега');
     const assessKey = `assess_${dealId}_${dateDMY}_${isSnow ? 'v20' : 'v20a'}`;
 
@@ -1022,7 +1376,7 @@ function buildDayFromHistory(history, dateDMY, dealTasksMap, mgrPfName) {
       dayCalls: actions.filter(a => a.type === 'outCall' || a.type === 'inCall' || a.type === 'ndz').length,
       planfixScript: null,
       allComments,
-      allCalls: [],
+      allCalls: dealHist.calls || [],
       allAnalyses: [],
       scriptHistory: {
         total: 0,
@@ -1103,10 +1457,12 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
   };
 
   const taskIds = await getManagerDeals(userId, reportDate);
+  throwIfPlanfixRateLimited();
   let allManagerTasks = [];
   try {
     allManagerTasks = await getAllTasks(userId);
   } catch (e) {
+    if (isPlanfixRateLimitError(e)) throw e;
     console.log(`  ⚠️ Все сделки менеджера не удалось загрузить: ${e.message}`);
   }
 
@@ -1114,6 +1470,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
   try {
     lightTasks = await getLightTasks(userId);
   } catch (e) {
+    if (isPlanfixRateLimitError(e)) throw e;
     console.log(`  ⚠️ Воронку не удалось загрузить полностью: ${e.message}`);
   }
 
@@ -1123,16 +1480,23 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     const multiDaySummary = {};
     const managerSummaries = { day: null, week: null, month: null };
     const aiCache = loadAiCache();
-    const historyDatesSet = new Set();
-
-    for (const [, dealHist] of Object.entries(history.deals || {})) {
-      for (const c of [...(dealHist.comments || []), ...(dealHist.contactCalls || [])]) {
-        if (!c.date || c.date === reportDate || !reportDateObj) continue;
-        const d = parsePfDate(c.date);
-        if (!d) continue;
-        const daysAgo = (reportDateObj - d) / 86400000;
-        if (daysAgo > 0 && daysAgo <= 30) historyDatesSet.add(c.date);
-      }
+    const historyDatesSet = collectRecentHistoryDates(history, reportDate, reportDateObj, mgrPfName);
+    if (shouldBackfillHistoryTranscriptions()) {
+      const scopedBackfillDates = buildScopedBackfillDates(reportDate, historyDatesSet);
+      const scopedBackfillDealIds = collectRelevantHistoryDealIds(history, scopedBackfillDates, mgrPfName);
+      await backfillHistoryCallTranscriptions(
+        history,
+        buildTranscriptionCacheFromAiCache(),
+        reportDate,
+        null,
+        {
+          dealIds: scopedBackfillDealIds,
+          dates: scopedBackfillDates,
+          managerContext: { managerAlias: mgrAlias, managerName: mgrPfName },
+        },
+      );
+    } else if (historyDatesSet.size) {
+      console.log(`  🎧 История звонков: пропущена догрузка старых аудио (${historyDatesSet.size} дней; включить --backfill-history)`);
     }
 
     const pastDays = [...historyDatesSet].sort((a, b) => parsePfDate(b) - parsePfDate(a));
@@ -1142,22 +1506,25 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
         const dayDeals = buildDayFromHistory(history, dayDMY, {}, mgrPfName);
         if (!dayDeals.length) continue;
 
-        if ((DEEPSEEK_KEY || POLZA_KEY) && !isTimeUp()) {
+        if (AI_ENABLED && REPORT_HISTORY_AI && !isTimeUp()) {
           const needAi = dayDeals.filter(da => !da.aiAssessment);
           for (const da of needAi) {
             if (isTimeUp()) break;
-            da.aiAssessment = await aiDealFullAssessment(da, dayDMY, history, true);
+            da.aiAssessment = await aiDealFullAssessment(da, dayDMY, history, false);
           }
           multiDaySummary[dayDMY] = await aiDaySummary(dayDeals, dayDMY, aiCache, mgrAlias);
         }
 
         multiDayActivity[dayDMY] = dayDeals;
       }
+      if (AI_ENABLED && !REPORT_HISTORY_AI) {
+        console.log(`  🤖 ИИ за прошлые дни: пропущено (${pastDays.length} дней; включить --history-ai)`);
+      }
     }
 
-    if ((DEEPSEEK_KEY || POLZA_KEY) && Object.keys(multiDayActivity).length > 1) {
-      managerSummaries.week = await aiManagerSummary(multiDayActivity, multiDaySummary, [], [], 7, reportDate, aiCache, mgrAlias, true);
-      managerSummaries.month = await aiManagerSummary(multiDayActivity, multiDaySummary, [], [], 30, reportDate, aiCache, mgrAlias, true);
+    if (AI_ENABLED && Object.keys(multiDayActivity).length > 1) {
+      managerSummaries.week = await aiManagerSummary(multiDayActivity, multiDaySummary, [], [], 7, reportDate, aiCache, mgrAlias, false);
+      managerSummaries.month = await aiManagerSummary(multiDayActivity, multiDaySummary, [], [], 30, reportDate, aiCache, mgrAlias, false);
       saveAiCache(aiCache);
     }
 
@@ -1211,6 +1578,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
         if (task) rawTasks.push(task);
         break;
       } catch (e) {
+        if (isPlanfixRateLimitError(e)) throw e;
         if (attempt < 3) {
           await sleep(2000 * attempt);
           continue;
@@ -1247,6 +1615,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
         const task = (d.tasks || [])[0];
         if (task) dealTasksById.set(task.id, task);
       } catch (e) {
+        if (isPlanfixRateLimitError(e)) throw e;
         console.log(`    ⚠️ Не удалось загрузить родителя #${parentId}: ${e.message}`);
       }
       await sleep(100);
@@ -1306,7 +1675,8 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       };
       contactInfoCache[id] = info;
       return info;
-    } catch {
+    } catch (e) {
+      if (isPlanfixRateLimitError(e)) throw e;
       contactInfoCache[id] = { phones: [] };
       return contactInfoCache[id];
     }
@@ -1438,7 +1808,8 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
           filters: [{ type: 58, operator: 'equal', value: parentId }],
           fields: 'id,name,parent,status,dateTime,dataTags,template,assignees',
         });
-      } catch {
+      } catch (e) {
+        if (isPlanfixRateLimitError(e)) throw e;
         partialSubtaskRootIds.add(String(rootId));
         return;
       }
@@ -1507,6 +1878,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
           });
           break;
         } catch (e) {
+          if (isPlanfixRateLimitError(e)) throw e;
           if (attempt < 4) {
             await sleep(1500 * attempt);
             continue;
@@ -1602,7 +1974,9 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
           }
         }
       }
-    } catch {}
+    } catch (e) {
+      if (isPlanfixRateLimitError(e)) throw e;
+    }
 
     await sleep(100);
   }
@@ -1642,6 +2016,12 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
   }
 
   async function loadFilteredEntries(tagId, dateField, fields) {
+    const cacheKey = `${tagId}:${dateField}:${reportDate}:${fields}`;
+    if (dataTagEntryCache.has(cacheKey)) {
+      console.log(`  DataTag ${tagId}: кэш за ${reportDate}`);
+      return dataTagEntryCache.get(cacheKey);
+    }
+
     const result = {};
     let offset = 0;
 
@@ -1660,6 +2040,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
           }],
         });
       } catch (e) {
+        if (isPlanfixRateLimitError(e)) throw e;
         console.log(`  ⚠️ DataTag ${tagId}: ${e.message}`);
         break;
       }
@@ -1672,6 +2053,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       await sleep(50);
     }
 
+    dataTagEntryCache.set(cacheKey, result);
     return result;
   }
 
@@ -1699,6 +2081,26 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       phone: call['Номер контакта'] || '',
       source: 'datatag',
     });
+  }
+
+  const linkedCallKeys = new Set(Object.values(callsByTask).flat().map(call => String(call.key)));
+  const unlinkedManagerCalls = Object.entries(allCallEntries)
+    .map(([key, call]) => ({
+      key,
+      date: call['Дата'] || '',
+      time: call['Время'] || '',
+      type: call['Тип'] || '',
+      duration: parseInt(call['Продолжительность (сек.)'] || '0', 10) || 0,
+      employee: call['Сотрудник'] || '',
+      contact: call['Контакт'] || '',
+      phone: call['Номер контакта'] || '',
+      source: 'datatag-unlinked',
+    }))
+    .filter(call => (call.employee || '').includes(mgrPfName))
+    .filter(call => !linkedCallKeys.has(String(call.key)));
+
+  if (unlinkedManagerCalls.length) {
+    console.log(`  ⚠️ Непривязанные звонки DataTag: ${unlinkedManagerCalls.length} (не добавляю в карточки сделок)`);
   }
 
   const analysisByTask = {};
@@ -1774,6 +2176,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     const deal = ensureDeal(history, card.id);
     rememberDealStatus(history, card, reportDate);
     deal.comments = commentsByTask[card.id] || [];
+    deal.calls = mergeCallsByKey(deal.calls || [], card.calls || []);
     if (!deal.commentsPartial) deal.commentsLoaded = true;
     if (partialContactTasks.has(String(card.id))) {
       deal.contactCalls = mergeCommentsById(deal.contactCalls || [], contactCallsByTask[card.id] || []);
@@ -1782,6 +2185,38 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       deal.contactCalls = contactCallsByTask[card.id] || [];
       deal.contactCallsPartial = false;
     }
+  }
+
+  const historyDatesSet = collectRecentHistoryDates(history, reportDate, reportDateObj, mgrPfName);
+  if (shouldBackfillHistoryTranscriptions()) {
+    const scopedBackfillDates = buildScopedBackfillDates(reportDate, historyDatesSet);
+    const scopedBackfillDealIds = collectRelevantHistoryDealIds(
+      history,
+      scopedBackfillDates,
+      mgrPfName,
+      dealCards.map(card => card.id),
+    );
+    await backfillHistoryCallTranscriptions(
+      history,
+      transcriptionCache,
+      reportDate,
+      transcriptionStats,
+      {
+        dealIds: scopedBackfillDealIds,
+        dates: scopedBackfillDates,
+        managerContext: { managerAlias: managerCfg.alias, managerName: mgrPfName },
+      },
+    );
+  } else if (historyDatesSet.size) {
+    console.log(`  🎧 История звонков: пропущена догрузка старых аудио (${historyDatesSet.size} дней; включить --backfill-history)`);
+  }
+  if (
+    transcriptionStats.historyMissing ||
+    transcriptionStats.historyCached ||
+    transcriptionStats.historyTranscribed ||
+    transcriptionStats.historySkippedNoProvider
+  ) {
+    console.log(`  🎧 История релевантных разговоров: ${transcriptionStats.historyMissing || 0} без текста, ${transcriptionStats.historyCached || 0} из кэша, ${transcriptionStats.historyTranscribed || 0} через Whisper, ${transcriptionStats.historySkippedNoProvider || 0} ждут ключ Whisper`);
   }
 
   const totalActive = lightTasks.length
@@ -1938,32 +2373,33 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
   const reportDayDeals = buildDayActivityServer(reportDate);
 
   console.log(`  🤖 День отчета ${reportDate}: ${reportDayDeals.length} сделок`);
-  if (reportDayDeals.length && (DEEPSEEK_KEY || POLZA_KEY)) {
+  if (reportDayDeals.length && AI_ENABLED) {
     const isSnow = name => (name || '').toLowerCase().startsWith('вывоз снега');
-    const cached = reportDayDeals.filter(da => {
+    const aiEligibleReportDayDeals = reportDayDeals.filter(da => !da.isUnlinkedCalls);
+    const cached = aiEligibleReportDayDeals.filter(da => {
       const dealHist = history.deals[String(da.deal.id)];
       const key = `assess_${da.deal.id}_${reportDate}_${isSnow(da.deal.name) ? 'v20' : 'v20a'}`;
       return dealHist?.assessments?.[key];
     }).length;
-    const needAi = reportDayDeals.length - cached;
+    const needAi = aiEligibleReportDayDeals.length - cached;
 
     if (needAi > 0) {
-      console.log(`  🤖 ИИ-оценка ${reportDayDeals.length} сделок за ${reportDate} (${cached} из истории)...`);
+      console.log(`  🤖 ИИ-оценка ${aiEligibleReportDayDeals.length} сделок за ${reportDate} (${cached} из истории)...`);
     } else {
-      process.stdout.write(`  🤖 ${reportDate}: ${reportDayDeals.length} сделок (история) `);
+      process.stdout.write(`  🤖 ${reportDate}: ${aiEligibleReportDayDeals.length} сделок (история) `);
     }
 
     let aiIdx = 0;
-    await parallelMap(reportDayDeals, async (dealActivity) => {
-      if (!isTimeUp()) dealActivity.aiAssessment = await aiDealFullAssessment(dealActivity, reportDate, history, true);
+    await parallelMap(aiEligibleReportDayDeals, async (dealActivity) => {
+      if (!isTimeUp()) dealActivity.aiAssessment = await aiDealFullAssessment(dealActivity, reportDate, history, false);
       aiIdx++;
-      if (needAi > 0) process.stdout.write(`\r    [${aiIdx}/${reportDayDeals.length}]`);
+      if (needAi > 0) process.stdout.write(`\r    [${aiIdx}/${aiEligibleReportDayDeals.length}]`);
     }, CONCURRENCY);
 
     if (needAi > 0) console.log('\n    ✅');
     else console.log('✅');
 
-    multiDaySummary[reportDate] = await aiDaySummary(reportDayDeals, reportDate, aiCache, mgrAlias, true);
+    multiDaySummary[reportDate] = await aiDaySummary(reportDayDeals, reportDate, aiCache, mgrAlias, false);
     saveHistory(history, reportDate);
   }
 
@@ -1971,17 +2407,6 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
 
   const dealTasksMap = {};
   for (const task of dealTasks) dealTasksMap[task.id] = task;
-
-  const historyDatesSet = new Set();
-  for (const [, dealHist] of Object.entries(history.deals || {})) {
-    for (const c of [...(dealHist.comments || []), ...(dealHist.contactCalls || [])]) {
-      if (!c.date || c.date === reportDate || !reportDateObj) continue;
-      const d = parsePfDate(c.date);
-      if (!d) continue;
-      const daysAgo = (reportDateObj - d) / 86400000;
-      if (daysAgo > 0 && daysAgo <= 30) historyDatesSet.add(c.date);
-    }
-  }
 
   const pastDays = [...historyDatesSet].sort((a, b) => parsePfDate(b) - parsePfDate(a));
   console.log(`  📚 Прошлые дни из истории: ${pastDays.length}`);
@@ -1991,14 +2416,14 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     const dayDeals = buildDayFromHistory(history, dayDMY, dealTasksMap, mgrPfName);
     if (!dayDeals.length) continue;
 
-    if ((DEEPSEEK_KEY || POLZA_KEY) && !isTimeUp()) {
-      const needAi = dayDeals.filter(da => !da.aiAssessment);
+    if (AI_ENABLED && REPORT_HISTORY_AI && !isTimeUp()) {
+      const needAi = dayDeals.filter(da => !da.isUnlinkedCalls && !da.aiAssessment);
       if (needAi.length) {
         if (!pastAiGenerated) console.log('  🤖 Догенерация ИИ-оценок за прошлые дни...');
         process.stdout.write(`    ${dayDMY}: ${needAi.length} сделок...`);
         for (const dealActivity of needAi) {
           if (isTimeUp()) break;
-          dealActivity.aiAssessment = await aiDealFullAssessment(dealActivity, dayDMY, history, true);
+          dealActivity.aiAssessment = await aiDealFullAssessment(dealActivity, dayDMY, history, false);
           pastAiGenerated++;
         }
         console.log(' ✅');
@@ -2007,6 +2432,10 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
     }
 
     multiDayActivity[dayDMY] = dayDeals;
+  }
+
+  if (pastDays.length && AI_ENABLED && !REPORT_HISTORY_AI) {
+    console.log(`  🤖 ИИ за прошлые дни: пропущено (${pastDays.length} дней; включить --history-ai)`);
   }
 
   if (pastAiGenerated) {
@@ -2125,13 +2554,13 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
   const allAnalyses = dealCards.flatMap(card => card.analyses);
   const managerSummaries = { day: null, week: null, month: null };
 
-  if (DEEPSEEK_KEY || POLZA_KEY) {
+  if (AI_ENABLED) {
     console.log('\n👔 Генерация отчета для руководителя...');
-    managerSummaries.day = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 1, reportDate, aiCache, mgrAlias, true);
+    managerSummaries.day = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 1, reportDate, aiCache, mgrAlias, false);
     if (managerSummaries.day) process.stdout.write('  ✅ День ');
-    managerSummaries.week = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 7, reportDate, aiCache, mgrAlias, true);
+    managerSummaries.week = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 7, reportDate, aiCache, mgrAlias, false);
     if (managerSummaries.week) process.stdout.write('✅ Неделя ');
-    managerSummaries.month = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 30, reportDate, aiCache, mgrAlias, true);
+    managerSummaries.month = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 30, reportDate, aiCache, mgrAlias, false);
     if (managerSummaries.month) console.log('✅ Месяц');
     saveAiCache(aiCache);
   }

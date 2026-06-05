@@ -4,7 +4,7 @@
 // Независимо проверяет: все ли сделки, звонки, комментарии,
 // подзадачи, контрагенты попали в отчёт. Отправляет результат в Telegram.
 
-const { fs, path, ROOT_DIR, MANAGERS, MANAGERS_LIST, ALLOWED_TEMPLATES } = require('../utils/config');
+const { fs, path, ROOT_DIR, MANAGERS, MANAGERS_LIST, ALLOWED_TEMPLATES, SKIP_STATUSES } = require('../utils/config');
 const {
   sleep, stripHtml, utcToMsk, timeToMinNode, normalizePhone,
 } = require('../utils/helpers');
@@ -27,6 +27,18 @@ function loadReportData(alias) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return null; }
 }
 
+function checkReportDataFreshness(reportData, reportDate) {
+  const actualDate = String(reportData?.reportDate || '').trim();
+  const status = actualDate === reportDate ? 'pass' : 'fail';
+  return {
+    name: 'dataFreshness',
+    status,
+    expectedDate: reportDate,
+    actualDate,
+    generated: reportData?.generated || '',
+  };
+}
+
 function isCallType(type) {
   return type === 'outCall' || type === 'inCall' || type === 'ndz';
 }
@@ -43,19 +55,84 @@ function isAiGeneratedComment(desc) {
 
 // ============ Проверка 1: Полнота сделок ============
 
+async function loadTaskBriefForVerification(taskId) {
+  try {
+    const d = await pf('/task/list', {
+      offset: 0,
+      pageSize: 1,
+      filters: [{ type: 57, operator: 'equal', value: Number(taskId) }],
+      fields: 'id,name,parent,status,template',
+    });
+    return (d.tasks || [])[0] || null;
+  } catch {
+    return null;
+  }
+}
+
+function isReportableDealTask(task) {
+  if (!task) return false;
+  if (task.parent?.id) return false;
+  if (SKIP_STATUSES.includes(task.status?.name || '')) return false;
+  const tplName = task.template?.name || '';
+  if (!tplName) return true;
+  return ALLOWED_TEMPLATES.some(at => tplName.toLowerCase().includes(at.toLowerCase()));
+}
+
 async function checkDealCompleteness(userId, reportDate, reportData) {
   console.log('  🔍 Проверка 1: Полнота сделок...');
-  const pfDealIds = await getManagerDeals(userId, reportDate);
+  const rawPfDealIds = await getManagerDeals(userId, reportDate);
 
   const reportDealIds = (reportData.dailyDealActivity || []).map(d => d.deal?.id).filter(Boolean);
   const reportSet = new Set(reportDealIds);
-  const pfSet = new Set(pfDealIds);
+  const rawMissingFromReport = rawPfDealIds.filter(id => !reportSet.has(id));
+  const unloadableFromPlanfix = [];
+  const nonReportableFromPlanfix = [];
+  const missingFromReport = [];
 
-  const missingFromReport = pfDealIds.filter(id => !reportSet.has(id));
+  for (const id of rawMissingFromReport) {
+    const task = await loadTaskBriefForVerification(id);
+    if (!task) {
+      unloadableFromPlanfix.push(id);
+    } else if (!isReportableDealTask(task)) {
+      nonReportableFromPlanfix.push({
+        id,
+        name: task.name || '',
+        status: task.status?.name || '',
+        template: task.template?.name || '',
+        parentId: task.parent?.id || null,
+      });
+    } else {
+      missingFromReport.push(id);
+    }
+  }
+
+  const pfDealIds = rawPfDealIds.filter(id =>
+    !unloadableFromPlanfix.includes(id) &&
+    !nonReportableFromPlanfix.some(item => item.id === id)
+  );
+  const pfSet = new Set(pfDealIds);
   const extraInReport = reportDealIds.filter(id => !pfSet.has(id));
 
-  const status = missingFromReport.length === 0 ? (extraInReport.length > 0 ? 'warn' : 'pass') : 'fail';
-  return { name: 'dealCompleteness', status, planfixCount: pfDealIds.length, reportCount: reportDealIds.length, missingFromReport, extraInReport };
+  let status = missingFromReport.length === 0
+    ? (extraInReport.length > 0 || unloadableFromPlanfix.length > 0 || nonReportableFromPlanfix.length > 0 ? 'warn' : 'pass')
+    : 'fail';
+  let reason = '';
+  if (rawPfDealIds.length === 0 && reportDealIds.length > 0) {
+    status = 'fail';
+    reason = 'planfix-empty-report-has-data';
+  }
+  return {
+    name: 'dealCompleteness',
+    status,
+    planfixCount: pfDealIds.length,
+    rawPlanfixCount: rawPfDealIds.length,
+    reportCount: reportDealIds.length,
+    missingFromReport,
+    unloadableFromPlanfix,
+    nonReportableFromPlanfix,
+    extraInReport,
+    reason,
+  };
 }
 
 // ============ Проверка 2: Полнота комментариев и звонков ============
@@ -500,6 +577,27 @@ function idSet(items, pickId) {
   return ids;
 }
 
+function getReportDayDeals(reportData, reportDate) {
+  const fromMultiDay = reportData.multiDayActivity?.[reportDate];
+  if (Array.isArray(fromMultiDay) && fromMultiDay.length) return fromMultiDay;
+  if (reportData.reportDate === reportDate && Array.isArray(reportData.dailyDealActivity)) return reportData.dailyDealActivity;
+  return [];
+}
+
+function addActionCallStats(calls, action) {
+  const seconds = Number(action.duration || action.seconds || 0) || 0;
+  calls.totalSeconds += seconds;
+  if (action.type === 'outCall') {
+    calls.outCount += 1;
+    calls.outSeconds += seconds;
+  } else if (action.type === 'inCall') {
+    calls.inCount += 1;
+    calls.inSeconds += seconds;
+  } else if (action.type === 'ndz') {
+    calls.otherCount += 1;
+  }
+}
+
 function buildProductivitySummary(reportData, reportDate) {
   if (!reportData) return null;
 
@@ -522,13 +620,11 @@ function buildProductivitySummary(reportData, reportDate) {
     }
   }
 
-  const todayDeals = reportData.multiDayActivity?.[reportDate] || [];
+  const todayDeals = getReportDayDeals(reportData, reportDate);
   if (!calls.outCount && !calls.inCount && todayDeals.length) {
     for (const dayDeal of todayDeals) {
       for (const action of (dayDeal.actions || [])) {
-        if (action.type === 'outCall') calls.outCount += 1;
-        else if (action.type === 'inCall') calls.inCount += 1;
-        else if (action.type === 'ndz') calls.otherCount += 1;
+        addActionCallStats(calls, action);
       }
     }
   }
@@ -582,18 +678,34 @@ function formatProductivityBlock(reportData, reportDate) {
 
 function formatTelegram(manager, reportDate, checks, reportData = null) {
   const lines = [`<b>📊 Верификация: ${manager.name} (${reportDate})</b>`, ''];
+  const freshness = checks.find(c => c.name === 'dataFreshness');
 
-  const productivityLines = formatProductivityBlock(reportData, reportDate);
+  const productivityLines = freshness?.status === 'fail' ? [] : formatProductivityBlock(reportData, reportDate);
   if (productivityLines.length) {
     lines.push(...productivityLines, '');
+  }
+
+  if (freshness && freshness.status === 'fail') {
+    lines.push(`${statusIcon(freshness.status)} Данные: в файле ${freshness.actualDate || 'нет даты'}, нужно ${freshness.expectedDate}`);
+    if (freshness.generated) lines.push(`  Сгенерировано: ${freshness.generated}`);
   }
 
   // 1. Сделки
   const dc = checks.find(c => c.name === 'dealCompleteness');
   if (dc) {
     lines.push(`${statusIcon(dc.status)} Сделки: ${dc.reportCount}/${dc.planfixCount}`);
+    if (dc.rawPlanfixCount && dc.rawPlanfixCount !== dc.planfixCount) {
+      lines.push(`  Реестр Planfix всего: ${dc.rawPlanfixCount}, проверяемых сделок: ${dc.planfixCount}`);
+    }
+    if (dc.reason === 'planfix-empty-report-has-data') lines.push('  Planfix вернул 0 сделок при непустом отчете');
     if (dc.missingFromReport.length > 0) {
       lines.push(`  Пропущены: ${dc.missingFromReport.map(id => `#${id}`).join(', ')}`);
+    }
+    if (dc.unloadableFromPlanfix?.length > 0) {
+      lines.push(`  Не загружаются как задача Planfix: ${dc.unloadableFromPlanfix.map(id => `#${id}`).join(', ')}`);
+    }
+    if (dc.nonReportableFromPlanfix?.length > 0) {
+      lines.push(`  Не сделки/служебные: ${dc.nonReportableFromPlanfix.map(item => `#${item.id}`).join(', ')}`);
     }
   }
 
@@ -661,9 +773,18 @@ function formatConsole(manager, reportDate, checks) {
 
   for (const c of checks) {
     lines.push(`${statusIcon(c.status)} ${c.name}`);
+    if (c.name === 'dataFreshness') {
+      lines.push(`  expected: ${c.expectedDate}, data: ${c.actualDate || 'missing'}, generated: ${c.generated || 'unknown'}`);
+    }
     if (c.name === 'dealCompleteness') {
       lines.push(`  Planfix: ${c.planfixCount}, отчёт: ${c.reportCount}`);
+      if (c.rawPlanfixCount && c.rawPlanfixCount !== c.planfixCount) {
+        lines.push(`  Реестр Planfix всего: ${c.rawPlanfixCount}, проверяемых сделок: ${c.planfixCount}`);
+      }
+      if (c.reason === 'planfix-empty-report-has-data') lines.push('  Planfix returned 0 deals while report has data');
       if (c.missingFromReport.length) lines.push(`  Пропущены: ${c.missingFromReport.join(', ')}`);
+      if (c.unloadableFromPlanfix?.length) lines.push(`  Не загружаются как задача Planfix: ${c.unloadableFromPlanfix.join(', ')}`);
+      if (c.nonReportableFromPlanfix?.length) lines.push(`  Не сделки/служебные: ${c.nonReportableFromPlanfix.map(item => item.id).join(', ')}`);
     }
     if (c.name === 'callCompleteness' && c.totalMissing > 0) {
       for (const d of c.dealResults.filter(d => d.missingCalls.length > 0)) {
@@ -701,6 +822,18 @@ async function verifyManagerReport(alias, reportDate) {
 
   const aiCache = loadAiCache();
   const checks = [];
+  const freshness = checkReportDataFreshness(reportData, reportDate);
+  checks.push(freshness);
+
+  if (freshness.status === 'fail') {
+    checks.push(checkHtmlFiles(alias, reportDate));
+    console.log(formatConsole(manager, reportDate, checks));
+    if (isTelegramConfigured()) {
+      const msg = formatTelegram(manager, reportDate, checks, reportData);
+      await sendTelegramMessage(msg);
+    }
+    return { manager, reportDate, checks };
+  }
 
   // 1. Полнота сделок
   checks.push(await checkDealCompleteness(manager.userId, reportDate, reportData));

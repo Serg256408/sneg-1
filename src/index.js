@@ -6,10 +6,13 @@ const { fs, path, ROOT_DIR, TOKEN, MANAGERS, MANAGERS_LIST } = require('./utils/
 const { sleep, pad2 } = require('./utils/helpers');
 const { loadAiCache, saveAiCache } = require('./core/cache');
 const { buildDealCards } = require('./core/deals');
-const { getAllTasks, getActiveTasks, getLightTasks } = require('./api/planfix');
-const { pf } = require('./api/planfix');
+const {
+  pf, getAllTasks, getActiveTasks, getLightTasks,
+  getPlanfixRestStats, diffPlanfixRestStats, savePlanfixRestUsage,
+} = require('./api/planfix');
 const { generateHtml } = require('./report/html');
 const { generateDashboard } = require('./report/dashboard');
+const { writeFileWithRetry, writeJsonWithRetry } = require('./utils/safe-write');
 
 // ============ Пути файлов для менеджера ============
 function mgrDataFile(alias) { return path.join(ROOT_DIR, 'data', `${alias}_latest.json`); }
@@ -24,9 +27,9 @@ function writeManagerHtmlOutputs(mgr, outData) {
 
   if (!fs.existsSync(mgrDeployDir(mgr.alias))) fs.mkdirSync(mgrDeployDir(mgr.alias), { recursive: true });
 
-  fs.writeFileSync(mgrReportFile(mgr.alias), htmlReport, 'utf8');
-  fs.writeFileSync(path.join(ROOT_DIR, 'report.html'), htmlRoot, 'utf8');
-  fs.writeFileSync(path.join(mgrDeployDir(mgr.alias), 'index.html'), htmlDeploy, 'utf8');
+  writeFileWithRetry(mgrReportFile(mgr.alias), htmlReport);
+  writeFileWithRetry(path.join(ROOT_DIR, 'report.html'), htmlRoot);
+  writeFileWithRetry(path.join(mgrDeployDir(mgr.alias), 'index.html'), htmlDeploy);
 }
 
 function reportDateToIso(reportDate) {
@@ -41,6 +44,14 @@ function htmlizeText(text) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/\r?\n/g, '<br>');
+}
+
+function formatPlanfixUsageLine(usage) {
+  const top = (usage?.topEndpoints || [])
+    .slice(0, 4)
+    .map(item => `${item.endpoint}=${item.count}`)
+    .join(', ');
+  return `  📡 Planfix API: ${usage?.total || 0} запросов${top ? ` (${top})` : ''}`;
 }
 
 function buildDealAssessmentComment(aa, reportDate) {
@@ -152,7 +163,9 @@ async function runForManager(mgr, reportDate) {
   for (const d of [path.join(ROOT_DIR, 'data'), path.join(ROOT_DIR, 'reports'), mgrDeployDir(mgr.alias)])
     if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 
+  const planfixApiStart = getPlanfixRestStats();
   const result = await buildDealCards(mgr.userId, reportDate, mgr.pfName);
+  const planfixApiUsage = diffPlanfixRestStats(planfixApiStart);
   const {
     dealCards, dailyReports, allCalls, allAnalyses, dailyActivity, funnelCards, funnelChanges, scriptCompliance,
     dailyDealActivity, aiDaySummaryText, multiDayActivity, multiDaySummary,
@@ -169,6 +182,7 @@ async function runForManager(mgr, reportDate) {
   console.log(`  📝 Анализов новых сделок: ${scriptCompliance.total}`);
   console.log(`  🤖 ИИ-сделок за день: ${dailyDealActivity.length}`);
   console.log(`  📐 Замеров в базе: ${(measurements || []).length}`);
+  console.log(formatPlanfixUsageLine(planfixApiUsage));
 
   const outData = {
     generated: new Date().toISOString(),
@@ -185,11 +199,25 @@ async function runForManager(mgr, reportDate) {
     measurements: measurements || [],
     measurementsSummary: measurementsSummary || {},
     measurementsComparison: measurementsComparison || {},
+    planfixApiUsage,
   };
 
   // Сохраняем данные (per-manager + совместимость со старым latest_data.json)
-  fs.writeFileSync(mgrDataFile(mgr.alias), JSON.stringify(outData, null, 2), 'utf8');
-  fs.writeFileSync(path.join(ROOT_DIR, 'latest_data.json'), JSON.stringify(outData, null, 2), 'utf8');
+  writeJsonWithRetry(mgrDataFile(mgr.alias), outData);
+  writeJsonWithRetry(path.join(ROOT_DIR, 'latest_data.json'), outData);
+  savePlanfixRestUsage({
+    scope: 'manager',
+    reportDate,
+    managerAlias: mgr.alias,
+    managerName: mgr.name,
+    total: planfixApiUsage.total,
+    cumulativeTotal: planfixApiUsage.cumulativeTotal,
+    byEndpoint: planfixApiUsage.byEndpoint,
+    topEndpoints: planfixApiUsage.topEndpoints,
+    rateLimit: planfixApiUsage.rateLimit,
+    startedAt: planfixApiUsage.startedAt,
+    finishedAt: planfixApiUsage.finishedAt,
+  });
 
   // HTML
   const htmlPath = mgrReportFile(mgr.alias);
@@ -303,6 +331,7 @@ async function main() {
       await runForManager(mgr, reportDate);
     }
     generateDashboard(reportDate, mgrDataFile);
+    savePlanfixRestUsage({ scope: 'all-managers', reportDate, managerCount: MANAGERS_LIST.length });
     console.log('\n✅ Все отчёты готовы!');
     return;
   }
@@ -314,6 +343,7 @@ async function main() {
 
   await runForManager(mgr, reportDate);
   generateDashboard(reportDate, mgrDataFile);
+  savePlanfixRestUsage({ scope: 'single-manager', reportDate, managerAlias: mgr.alias, managerName: mgr.name });
 
   try {
     const { exec } = require('child_process');

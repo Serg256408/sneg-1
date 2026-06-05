@@ -3,6 +3,7 @@
 // ============================================================
 
 const { fs, path, ROOT_DIR, MANAGERS_LIST } = require('../utils/config');
+const { writeFileWithRetry } = require('../utils/safe-write');
 
 function generateDashboard(date, mgrDataFile) {
   const deployDir = path.join(ROOT_DIR, 'deploy');
@@ -468,7 +469,7 @@ function addManager(){
 
   html += `<div class="footer">Обновлено: ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК</div></div></body></html>`;
 
-  fs.writeFileSync(path.join(deployDir, 'index.html'), html, 'utf8');
+  writeFileWithRetry(path.join(deployDir, 'index.html'), html);
   console.log(`\n📊 Дашборд: deploy/index.html (${cards.length} менеджеров)`);
 }
 

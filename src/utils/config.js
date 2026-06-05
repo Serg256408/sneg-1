@@ -15,6 +15,16 @@ const TOKEN = (process.env.PLANFIX_TOKEN || '').trim();
 const OPENAI_KEY = (process.env.OPENAI_API_KEY || '').trim();
 const DEEPSEEK_KEY = (process.env.DEEPSEEK_API_KEY || '').trim();
 const POLZA_KEY = (process.env.POLZA_API_KEY || '').trim();
+const REPORT_SKIP_AI = process.argv.includes('--no-ai') ||
+  /^(1|true|yes|on)$/i.test((process.env.REPORT_SKIP_AI || '').trim());
+const AI_ENABLED = !!(DEEPSEEK_KEY || POLZA_KEY) && !REPORT_SKIP_AI;
+const REPORT_SKIP_MEASUREMENTS = process.argv.includes('--no-measurements') ||
+  /^(1|true|yes|on)$/i.test((process.env.REPORT_SKIP_MEASUREMENTS || '').trim());
+const REPORT_BACKFILL_HISTORY = process.argv.includes('--backfill-history') ||
+  /^(1|true|yes|on)$/i.test((process.env.REPORT_BACKFILL_HISTORY || '').trim());
+const REPORT_HISTORY_AI = process.argv.includes('--history-ai') ||
+  process.argv.includes('--ai-history') ||
+  /^(1|true|yes|on)$/i.test((process.env.REPORT_HISTORY_AI || '').trim());
 const TELEGRAM_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
 const TELEGRAM_CHAT_ID = (process.env.TELEGRAM_CHAT_ID || '').trim();
 const MANGO_API_KEY = (process.env.MANGO_API_KEY || '').trim();
@@ -60,7 +70,8 @@ const FUNNEL_ORDER = [
 ];
 
 module.exports = {
-  ROOT_DIR, API_URL, TOKEN, OPENAI_KEY, DEEPSEEK_KEY, POLZA_KEY, AUTH,
+  ROOT_DIR, API_URL, TOKEN, OPENAI_KEY, DEEPSEEK_KEY, POLZA_KEY,
+  REPORT_SKIP_AI, AI_ENABLED, REPORT_SKIP_MEASUREMENTS, REPORT_BACKFILL_HISTORY, REPORT_HISTORY_AI, AUTH,
   TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
   MANGO_API_KEY, MANGO_API_SALT, MANGO_MANAGER_EXTENSIONS, MANGO_MATCH_WINDOW_MIN,
   TRANSCRIPTION_CACHE_FILE, AI_CACHE_FILE,

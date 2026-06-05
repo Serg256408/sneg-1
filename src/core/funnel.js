@@ -4,6 +4,7 @@
 
 const { fs } = require('../utils/config');
 const { FUNNEL_ORDER } = require('../utils/config');
+const { writeJsonWithRetry } = require('../utils/safe-write');
 
 // ============ СНИМКИ ВОРОНКИ ============
 
@@ -21,7 +22,7 @@ function saveSnapshot(dealCards, snapshotFile) {
   for (const d of dealCards) {
     snapshot.deals[d.id] = { name: d.name, status: d.status };
   }
-  fs.writeFileSync(snapshotFile, JSON.stringify(snapshot, null, 2), 'utf8');
+  writeJsonWithRetry(snapshotFile, snapshot);
   return snapshot;
 }
 

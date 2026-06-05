@@ -3,6 +3,7 @@
 // ============================================================
 
 const { fs, path, ROOT_DIR } = require('../utils/config');
+const { writeJsonWithRetry } = require('../utils/safe-write');
 
 const HISTORY_FILE = path.join(ROOT_DIR, 'deal_history.json');
 
@@ -48,16 +49,11 @@ function loadHistory() {
   }
 }
 
-/**
- * Безопасная запись: write tmp → rename (атомарная замена)
- */
 function saveHistory(history, dateDMY) {
   history.meta.lastUpdate = dateDMY || history.meta.lastUpdate;
   history.meta.version = HISTORY_VERSION;
 
-  const tmp = HISTORY_FILE + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(history, null, 2), 'utf8');
-  fs.renameSync(tmp, HISTORY_FILE);
+  writeJsonWithRetry(HISTORY_FILE, history);
 
   const count = Object.keys(history.deals).length;
   console.log(`  💾 История сохранена: ${count} сделок`);
