@@ -1,9 +1,9 @@
 {
-  "generated": "2026-06-06T20:40:46.670Z",
+  "generated": "2026-06-07T20:48:24.735Z",
   "manager": "Михаил",
   "managerPfName": "Михаил",
   "managerAlias": "mikhail",
-  "reportDate": "06-06-2026",
+  "reportDate": "07-06-2026",
   "dealCards": [],
   "dailyReports": [],
   "dailyActivity": {
@@ -41,7 +41,7 @@
   "dailyDealActivity": [],
   "aiDaySummaryText": null,
   "multiDayActivity": {
-    "06-06-2026": [],
+    "07-06-2026": [],
     "04-06-2026": [
       {
         "deal": {
@@ -6450,7 +6450,7 @@
     "month": null
   },
   "incomingByDate": {},
-  "snapshotDate": "2026-06-05T20:41:45.741Z",
+  "snapshotDate": "2026-06-06T20:40:46.376Z",
   "measurements": [
     {
       "id": 33711,
@@ -7232,47 +7232,6 @@
       ]
     },
     {
-      "id": 33193,
-      "dealId": 33232,
-      "dealName": "!!! РГАЭ Хоз. отдел ямочный 270м2/Большая Пироговская ул., 17, стр. 2, Москва",
-      "counterparty": "РГАЭ Хоз. отдел",
-      "dealCreatedAt": "22-05-2026",
-      "dealSum": 587000,
-      "manager": "Ия Боровая",
-      "managerAlias": "borovaya",
-      "measurer": "Миша (Масис) Бригадир",
-      "measurementCreatedAt": "21-05-2026",
-      "scheduledAt": "21-05-2026",
-      "currentDealStatus": "Договор и Оплата",
-      "outcome": "to_contract",
-      "contractDate": "03-06-2026",
-      "workDate": null,
-      "progressedDate": "03-06-2026",
-      "closedDate": null,
-      "lastRelevantActivityAt": "03-06-2026",
-      "latestResultText": "Анна Васильцова здесь у нас все отправлено и согласованно? пока он не ушёл в отпуск надо подписать все",
-      "timeline": [
-        {
-          "type": "measurement",
-          "label": "Замер создан",
-          "date": "21-05-2026",
-          "time": "14:15"
-        },
-        {
-          "type": "scheduled",
-          "label": "Замер назначен",
-          "date": "21-05-2026",
-          "time": ""
-        },
-        {
-          "type": "result",
-          "label": "Анна Васильцова здесь у нас все отправлено и согласованно? пока он не ушёл в отпуск надо подписать все",
-          "date": "03-06-2026",
-          "time": "16:06"
-        }
-      ]
-    },
-    {
       "id": 33186,
       "dealId": 33185,
       "dealName": "Ямочн ремонт+асфальт/д. Сгонники, ул. Промышленная, вл7, ст6,/20-05-2026",
@@ -7310,6 +7269,47 @@
           "label": "Ок",
           "date": "05-06-2026",
           "time": "13:30"
+        }
+      ]
+    },
+    {
+      "id": 33193,
+      "dealId": 33232,
+      "dealName": "!!! РГАЭ Хоз. отдел ямочный 270м2/Большая Пироговская ул., 17, стр. 2, Москва",
+      "counterparty": "РГАЭ Хоз. отдел",
+      "dealCreatedAt": "22-05-2026",
+      "dealSum": 587000,
+      "manager": "Ия Боровая",
+      "managerAlias": "borovaya",
+      "measurer": "Миша (Масис) Бригадир",
+      "measurementCreatedAt": "21-05-2026",
+      "scheduledAt": "21-05-2026",
+      "currentDealStatus": "Договор и Оплата",
+      "outcome": "to_contract",
+      "contractDate": "03-06-2026",
+      "workDate": null,
+      "progressedDate": "03-06-2026",
+      "closedDate": null,
+      "lastRelevantActivityAt": "03-06-2026",
+      "latestResultText": "Анна Васильцова здесь у нас все отправлено и согласованно? пока он не ушёл в отпуск надо подписать все",
+      "timeline": [
+        {
+          "type": "measurement",
+          "label": "Замер создан",
+          "date": "21-05-2026",
+          "time": "14:15"
+        },
+        {
+          "type": "scheduled",
+          "label": "Замер назначен",
+          "date": "21-05-2026",
+          "time": ""
+        },
+        {
+          "type": "result",
+          "label": "Анна Васильцова здесь у нас все отправлено и согласованно? пока он не ушёл в отпуск надо подписать все",
+          "date": "03-06-2026",
+          "time": "16:06"
         }
       ]
     },
@@ -7806,47 +7806,6 @@
       ]
     },
     {
-      "id": 32791,
-      "dealId": 20015,
-      "dealName": "Погодина Надежда/ТАМАРА/Гофрокомбинат/ устройство пожарного въезда /Павловский посад/19-08-2024/01.04.2025",
-      "counterparty": "ООО \"ПП ГОФРОКОМБИНАТ\"",
-      "dealCreatedAt": "19-08-2024",
-      "dealSum": 2004019,
-      "manager": "Екатерина Миронова",
-      "managerAlias": "екатерина_миронова",
-      "measurer": "Саша Бригадир",
-      "measurementCreatedAt": "30-04-2026",
-      "scheduledAt": "30-04-2026",
-      "currentDealStatus": "Клиент принимает решение",
-      "outcome": "progressed",
-      "contractDate": null,
-      "workDate": null,
-      "progressedDate": "15-05-2026",
-      "closedDate": null,
-      "lastRelevantActivityAt": "15-05-2026",
-      "latestResultText": "Тамара, добрый вечер! Скорректировала коммерческое предложение с учётом уточнения: — Работы по укладке асфальта — измеряются в м². — Сам материал (асфальтобетонная смесь) — постав…",
-      "timeline": [
-        {
-          "type": "measurement",
-          "label": "Замер создан",
-          "date": "30-04-2026",
-          "time": "12:09"
-        },
-        {
-          "type": "scheduled",
-          "label": "Замер назначен",
-          "date": "30-04-2026",
-          "time": ""
-        },
-        {
-          "type": "result",
-          "label": "Тамара, добрый вечер! Скорректировала коммерческое предложение с учётом уточнения: — Работы по укладке асфальта — измеряются в м². — Сам материал (асфальтобетонная смесь) — постав…",
-          "date": "15-05-2026",
-          "time": "17:56"
-        }
-      ]
-    },
-    {
       "id": 32781,
       "dealId": 32780,
       "dealName": "ООО \"ТЕНГРИ\" /Ремонт трещин /30-04-2026",
@@ -7884,6 +7843,47 @@
           "label": "отправила диме",
           "date": "14-05-2026",
           "time": "11:49"
+        }
+      ]
+    },
+    {
+      "id": 32791,
+      "dealId": 20015,
+      "dealName": "Погодина Надежда/ТАМАРА/Гофрокомбинат/ устройство пожарного въезда /Павловский посад/19-08-2024/01.04.2025",
+      "counterparty": "ООО \"ПП ГОФРОКОМБИНАТ\"",
+      "dealCreatedAt": "19-08-2024",
+      "dealSum": 2004019,
+      "manager": "Екатерина Миронова",
+      "managerAlias": "екатерина_миронова",
+      "measurer": "Саша Бригадир",
+      "measurementCreatedAt": "30-04-2026",
+      "scheduledAt": "30-04-2026",
+      "currentDealStatus": "Клиент принимает решение",
+      "outcome": "progressed",
+      "contractDate": null,
+      "workDate": null,
+      "progressedDate": "15-05-2026",
+      "closedDate": null,
+      "lastRelevantActivityAt": "15-05-2026",
+      "latestResultText": "Тамара, добрый вечер! Скорректировала коммерческое предложение с учётом уточнения: — Работы по укладке асфальта — измеряются в м². — Сам материал (асфальтобетонная смесь) — постав…",
+      "timeline": [
+        {
+          "type": "measurement",
+          "label": "Замер создан",
+          "date": "30-04-2026",
+          "time": "12:09"
+        },
+        {
+          "type": "scheduled",
+          "label": "Замер назначен",
+          "date": "30-04-2026",
+          "time": ""
+        },
+        {
+          "type": "result",
+          "label": "Тамара, добрый вечер! Скорректировала коммерческое предложение с учётом уточнения: — Работы по укладке асфальта — измеряются в м². — Сам материал (асфальтобетонная смесь) — постав…",
+          "date": "15-05-2026",
+          "time": "17:56"
         }
       ]
     },
@@ -8175,47 +8175,6 @@
       ]
     },
     {
-      "id": 32512,
-      "dealId": 32511,
-      "dealName": "Андрей / трещины 500мп/ООО «ТД -ВИК»/ 16-04-2026",
-      "counterparty": "ООО \"ТД-ВИК\"",
-      "dealCreatedAt": "16-04-2026",
-      "dealSum": 551000,
-      "manager": "Анна Васильцова",
-      "managerAlias": "анна_васильцова",
-      "measurer": "Саша Бригадир",
-      "measurementCreatedAt": "16-04-2026",
-      "scheduledAt": "16-04-2026",
-      "currentDealStatus": "Отложенная",
-      "outcome": "unknown",
-      "contractDate": null,
-      "workDate": null,
-      "progressedDate": null,
-      "closedDate": null,
-      "lastRelevantActivityAt": "01-06-2026",
-      "latestResultText": "Сделка перешла в статус Отложенная",
-      "timeline": [
-        {
-          "type": "measurement",
-          "label": "Замер создан",
-          "date": "16-04-2026",
-          "time": "11:52"
-        },
-        {
-          "type": "scheduled",
-          "label": "Замер назначен",
-          "date": "16-04-2026",
-          "time": ""
-        },
-        {
-          "type": "result",
-          "label": "Сделка перешла в статус Отложенная",
-          "date": "01-06-2026",
-          "time": "17:23"
-        }
-      ]
-    },
-    {
       "id": 32498,
       "dealId": 22526,
       "dealName": "Аитов Валерий Харисович/ в Истринском р/05-02-2025",
@@ -8253,6 +8212,47 @@
           "label": "Клиент судя по общим впечатлениям очень проблемный, склад с техникой покажи, встречу организуй, и все в таком духе",
           "date": "27-05-2026",
           "time": "14:21"
+        }
+      ]
+    },
+    {
+      "id": 32512,
+      "dealId": 32511,
+      "dealName": "Андрей / трещины 500мп/ООО «ТД -ВИК»/ 16-04-2026",
+      "counterparty": "ООО \"ТД-ВИК\"",
+      "dealCreatedAt": "16-04-2026",
+      "dealSum": 551000,
+      "manager": "Анна Васильцова",
+      "managerAlias": "анна_васильцова",
+      "measurer": "Саша Бригадир",
+      "measurementCreatedAt": "16-04-2026",
+      "scheduledAt": "16-04-2026",
+      "currentDealStatus": "Отложенная",
+      "outcome": "unknown",
+      "contractDate": null,
+      "workDate": null,
+      "progressedDate": null,
+      "closedDate": null,
+      "lastRelevantActivityAt": "01-06-2026",
+      "latestResultText": "Сделка перешла в статус Отложенная",
+      "timeline": [
+        {
+          "type": "measurement",
+          "label": "Замер создан",
+          "date": "16-04-2026",
+          "time": "11:52"
+        },
+        {
+          "type": "scheduled",
+          "label": "Замер назначен",
+          "date": "16-04-2026",
+          "time": ""
+        },
+        {
+          "type": "result",
+          "label": "Сделка перешла в статус Отложенная",
+          "date": "01-06-2026",
+          "time": "17:23"
         }
       ]
     },
@@ -8749,47 +8749,6 @@
       ]
     },
     {
-      "id": 32196,
-      "dealId": 32169,
-      "dealName": "Анастасия/ Ямочный/ТРЦ НОРА /180м2 /31.03.2026",
-      "counterparty": "Анастасия, пр Андропова, 22 ТРЦ Нора",
-      "dealCreatedAt": "31-03-2026",
-      "dealSum": 619950,
-      "manager": "Ия Боровая",
-      "managerAlias": "borovaya",
-      "measurer": "Саша Бригадир",
-      "measurementCreatedAt": "01-04-2026",
-      "scheduledAt": "01-04-2026",
-      "currentDealStatus": "Сделка завершена",
-      "outcome": "stalled",
-      "contractDate": null,
-      "workDate": null,
-      "progressedDate": null,
-      "closedDate": null,
-      "lastRelevantActivityAt": "12-05-2026",
-      "latestResultText": "Там сделали ремонт . Привет. Я позвоню ей сейчас Напиши потом, но она не берет ((( ее закрывать?",
-      "timeline": [
-        {
-          "type": "measurement",
-          "label": "Замер создан",
-          "date": "01-04-2026",
-          "time": "12:50"
-        },
-        {
-          "type": "scheduled",
-          "label": "Замер назначен",
-          "date": "01-04-2026",
-          "time": ""
-        },
-        {
-          "type": "result",
-          "label": "Там сделали ремонт . Привет. Я позвоню ей сейчас Напиши потом, но она не берет ((( ее закрывать?",
-          "date": "12-05-2026",
-          "time": "17:23"
-        }
-      ]
-    },
-    {
       "id": 32182,
       "dealId": 32181,
       "dealName": "Юрий Кфс / Асфальтирование / МКАД 38 км, вл.6А, стр. 1/ремонт 145м2",
@@ -8827,6 +8786,47 @@
           "label": "Сделка перешла в статус Сделка завершена",
           "date": "28-04-2026",
           "time": "11:32"
+        }
+      ]
+    },
+    {
+      "id": 32196,
+      "dealId": 32169,
+      "dealName": "Анастасия/ Ямочный/ТРЦ НОРА /180м2 /31.03.2026",
+      "counterparty": "Анастасия, пр Андропова, 22 ТРЦ Нора",
+      "dealCreatedAt": "31-03-2026",
+      "dealSum": 619950,
+      "manager": "Ия Боровая",
+      "managerAlias": "borovaya",
+      "measurer": "Саша Бригадир",
+      "measurementCreatedAt": "01-04-2026",
+      "scheduledAt": "01-04-2026",
+      "currentDealStatus": "Сделка завершена",
+      "outcome": "stalled",
+      "contractDate": null,
+      "workDate": null,
+      "progressedDate": null,
+      "closedDate": null,
+      "lastRelevantActivityAt": "12-05-2026",
+      "latestResultText": "Там сделали ремонт . Привет. Я позвоню ей сейчас Напиши потом, но она не берет ((( ее закрывать?",
+      "timeline": [
+        {
+          "type": "measurement",
+          "label": "Замер создан",
+          "date": "01-04-2026",
+          "time": "12:50"
+        },
+        {
+          "type": "scheduled",
+          "label": "Замер назначен",
+          "date": "01-04-2026",
+          "time": ""
+        },
+        {
+          "type": "result",
+          "label": "Там сделали ремонт . Привет. Я позвоню ей сейчас Напиши потом, но она не берет ((( ее закрывать?",
+          "date": "12-05-2026",
+          "time": "17:23"
         }
       ]
     },
@@ -15620,6 +15620,15 @@
       },
       {
         "date": "06-06-2026",
+        "dealsCreated": 0,
+        "enteredMeasurement": 0,
+        "scheduledMeasurements": 0,
+        "progressed": 0,
+        "toContract": 0,
+        "toWork": 0
+      },
+      {
+        "date": "07-06-2026",
         "dealsCreated": 0,
         "enteredMeasurement": 0,
         "scheduledMeasurements": 0,
