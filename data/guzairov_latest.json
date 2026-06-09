@@ -1,9 +1,9 @@
 {
-  "generated": "2026-06-08T21:23:07.199Z",
+  "generated": "2026-06-09T21:16:15.928Z",
   "manager": "Артем Гузаиров",
   "managerPfName": "Гузаиров",
   "managerAlias": "guzairov",
-  "reportDate": "08-06-2026",
+  "reportDate": "09-06-2026",
   "dealCards": [],
   "dailyReports": [],
   "dailyActivity": {
@@ -9841,7 +9841,7 @@
   "dailyDealActivity": [],
   "aiDaySummaryText": null,
   "multiDayActivity": {
-    "08-06-2026": [],
+    "09-06-2026": [],
     "01-06-2026": [
       {
         "deal": {
@@ -71326,6 +71326,23 @@
             "sourceTaskName": "АБТ/ М4  Ремонт асфальтного покрытия СК",
             "sourceParentId": null,
             "sourceTaskTemplateId": 121
+          },
+          {
+            "id": 12391326,
+            "date": "09-06-2026",
+            "time": "09:00",
+            "type": "note",
+            "text": "Сегодня необходимо совершить целевое действие по сделке:\n\nи назначить новое целевое действие",
+            "owner": "Robot-3",
+            "transcription": null,
+            "transcriptionSource": "planfix",
+            "mangoRecording": null,
+            "files": [],
+            "source": "deal",
+            "sourceTaskId": 33522,
+            "sourceTaskName": "АБТ/ М4  Ремонт асфальтного покрытия СК",
+            "sourceParentId": null,
+            "sourceTaskTemplateId": 121
           }
         ],
         "allCalls": [],
@@ -122693,7 +122710,7 @@
     "month": null
   },
   "incomingByDate": {},
-  "snapshotDate": "2026-06-07T21:03:10.405Z",
+  "snapshotDate": "2026-06-08T21:23:06.933Z",
   "measurements": [
     {
       "id": 33749,
@@ -122714,7 +122731,7 @@
       "progressedDate": null,
       "closedDate": null,
       "lastRelevantActivityAt": "09-06-2026",
-      "latestResultText": "Замер",
+      "latestResultText": "кп после замера",
       "timeline": [
         {
           "type": "measurement",
@@ -122730,9 +122747,9 @@
         },
         {
           "type": "result",
-          "label": "Замер",
+          "label": "кп после замера",
           "date": "09-06-2026",
-          "time": ""
+          "time": "17:25"
         }
       ]
     },
@@ -122742,20 +122759,20 @@
       "dealName": "Игорь ямочный зернистый 250м2/Дмитровское шоссе 31А, д Грибки",
       "counterparty": "Игорь",
       "dealCreatedAt": "04-06-2026",
-      "dealSum": 562250,
+      "dealSum": 697250,
       "manager": "Ия Боровая",
       "managerAlias": "borovaya",
       "measurer": "Артем Бригадир",
       "measurementCreatedAt": "08-06-2026",
       "scheduledAt": "08-06-2026",
-      "currentDealStatus": "Замер",
-      "outcome": "unknown",
+      "currentDealStatus": "Клиент принимает решение",
+      "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": null,
+      "progressedDate": "09-06-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "08-06-2026",
-      "latestResultText": "Были Артем (Грагат) и Дмитрий. Данные для расчета прлучены. Посчитаю завтра",
+      "lastRelevantActivityAt": "09-06-2026",
+      "latestResultText": "Здравствуйте! Была смета на 537500 стала на 697250? вт, 9 июн. 2026 г. в 18:02, iya-Transkom &lt;transcom50010@mail.ru&gt;:",
       "timeline": [
         {
           "type": "measurement",
@@ -122771,9 +122788,9 @@
         },
         {
           "type": "result",
-          "label": "Были Артем (Грагат) и Дмитрий. Данные для расчета прлучены. Посчитаю завтра",
-          "date": "08-06-2026",
-          "time": "18:24"
+          "label": "Здравствуйте! Была смета на 537500 стала на 697250? вт, 9 июн. 2026 г. в 18:02, iya-Transkom &lt;transcom50010@mail.ru&gt;:",
+          "date": "09-06-2026",
+          "time": "19:22"
         }
       ]
     },
@@ -122793,10 +122810,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "08-06-2026",
+      "progressedDate": "09-06-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "08-06-2026",
-      "latestResultText": "Пришлите пожалуйста ваши реквизиты. для заполнения договора",
+      "lastRelevantActivityAt": "09-06-2026",
+      "latestResultText": "Добрый день, Михаил Высылаю вам шаблон договора для ознакомления По любым вопросам звоните или пишите, буду рада вам помочь! Компания ООО «Транском»Менеджер по работе с клиентамиИ…",
       "timeline": [
         {
           "type": "measurement",
@@ -122812,9 +122829,9 @@
         },
         {
           "type": "result",
-          "label": "Пришлите пожалуйста ваши реквизиты. для заполнения договора",
-          "date": "08-06-2026",
-          "time": "18:17"
+          "label": "Добрый день, Михаил Высылаю вам шаблон договора для ознакомления По любым вопросам звоните или пишите, буду рада вам помочь! Компания ООО «Транском»Менеджер по работе с клиентамиИ…",
+          "date": "09-06-2026",
+          "time": "16:56"
         }
       ]
     },
@@ -122865,7 +122882,7 @@
       "dealName": "Сергей ТЦ ямочный 450м2/ Москва Сигнальный проезд, 17",
       "counterparty": "Сергей, Ямочный в ТЦ",
       "dealCreatedAt": "02-06-2026",
-      "dealSum": 0,
+      "dealSum": 1236800,
       "manager": "Ия Боровая",
       "managerAlias": "borovaya",
       "measurer": "Артем Бригадир",
@@ -122875,10 +122892,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "08-06-2026",
+      "progressedDate": "09-06-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "08-06-2026",
-      "latestResultText": "нет информации по разметке, жду",
+      "lastRelevantActivityAt": "09-06-2026",
+      "latestResultText": "Екатерина Миронова Сергей все помнит, знает понимает по поводу праздников и прочего, но все же еще ждет предложения на подачу, к нам преетнзий нет, все получил, ждет от других еще…",
       "timeline": [
         {
           "type": "measurement",
@@ -122894,9 +122911,9 @@
         },
         {
           "type": "result",
-          "label": "нет информации по разметке, жду",
-          "date": "08-06-2026",
-          "time": "18:50"
+          "label": "Екатерина Миронова Сергей все помнит, знает понимает по поводу праздников и прочего, но все же еще ждет предложения на подачу, к нам преетнзий нет, все получил, ждет от других еще…",
+          "date": "09-06-2026",
+          "time": "15:51"
         }
       ]
     },
@@ -122942,47 +122959,6 @@
       ]
     },
     {
-      "id": 33581,
-      "dealId": 33267,
-      "dealName": "Запрос ТКП асфальт Реутов (КОМУС)1050м2/г. Реутов, ул.Никольская, д.2",
-      "counterparty": "Калашникова Виктория Дмитриевна",
-      "dealCreatedAt": "25-05-2026",
-      "dealSum": 0,
-      "manager": "Ия Боровая",
-      "managerAlias": "borovaya",
-      "measurer": "Саша Бригадир",
-      "measurementCreatedAt": "01-06-2026",
-      "scheduledAt": "01-06-2026",
-      "currentDealStatus": "Клиент принимает решение",
-      "outcome": "progressed",
-      "contractDate": null,
-      "workDate": null,
-      "progressedDate": "08-06-2026",
-      "closedDate": null,
-      "lastRelevantActivityAt": "08-06-2026",
-      "latestResultText": "Презентация проекта: Запрос ТКП асфальт Реутов (КОМУС)1050м2/г. Реутов, ул.Никольская, д.2 завтра выслать план работ",
-      "timeline": [
-        {
-          "type": "measurement",
-          "label": "Замер создан",
-          "date": "01-06-2026",
-          "time": "11:32"
-        },
-        {
-          "type": "scheduled",
-          "label": "Замер назначен",
-          "date": "01-06-2026",
-          "time": ""
-        },
-        {
-          "type": "result",
-          "label": "Презентация проекта: Запрос ТКП асфальт Реутов (КОМУС)1050м2/г. Реутов, ул.Никольская, д.2 завтра выслать план работ",
-          "date": "08-06-2026",
-          "time": "18:04"
-        }
-      ]
-    },
-    {
       "id": 33582,
       "dealId": 33558,
       "dealName": "ремонт покрытия производственной площадки 2000м2/ Солнечногорский район, дер. Пешки, д.2 корп 2/Соколов Вадим",
@@ -123020,6 +122996,47 @@
           "label": "Добрый день! Я за границей. Предложение увидел. Отвечу --- С уважением, Директор ООО \"Сокол-Т\" Соколин Вадим Георгиевич тел. (499) 110-24-00, моб. (985) 762-30-29 (903) 799-30-29 …",
           "date": "04-06-2026",
           "time": "13:16"
+        }
+      ]
+    },
+    {
+      "id": 33581,
+      "dealId": 33267,
+      "dealName": "Запрос ТКП асфальт Реутов (КОМУС)1050м2/г. Реутов, ул.Никольская, д.2",
+      "counterparty": "Калашникова Виктория Дмитриевна",
+      "dealCreatedAt": "25-05-2026",
+      "dealSum": 0,
+      "manager": "Ия Боровая",
+      "managerAlias": "borovaya",
+      "measurer": "Саша Бригадир",
+      "measurementCreatedAt": "01-06-2026",
+      "scheduledAt": "01-06-2026",
+      "currentDealStatus": "Клиент принимает решение",
+      "outcome": "progressed",
+      "contractDate": null,
+      "workDate": null,
+      "progressedDate": "09-06-2026",
+      "closedDate": null,
+      "lastRelevantActivityAt": "09-06-2026",
+      "latestResultText": "Добрый день Высылаю план работ на вашем объекте будем рады сотрдничеству По любым вопросам звоните или пишите, буду рада вам помочь! Компания ООО «Транском»Менеджер по работе с кл…",
+      "timeline": [
+        {
+          "type": "measurement",
+          "label": "Замер создан",
+          "date": "01-06-2026",
+          "time": "11:32"
+        },
+        {
+          "type": "scheduled",
+          "label": "Замер назначен",
+          "date": "01-06-2026",
+          "time": ""
+        },
+        {
+          "type": "result",
+          "label": "Добрый день Высылаю план работ на вашем объекте будем рады сотрдничеству По любым вопросам звоните или пишите, буду рада вам помочь! Компания ООО «Транском»Менеджер по работе с кл…",
+          "date": "09-06-2026",
+          "time": "17:42"
         }
       ]
     },
@@ -123408,10 +123425,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "08-06-2026",
+      "progressedDate": "09-06-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "08-06-2026",
-      "latestResultText": "Екатерина Миронова сюда нужен счет и план работ",
+      "lastRelevantActivityAt": "09-06-2026",
+      "latestResultText": "Екатерина Миронова жду план работ",
       "timeline": [
         {
           "type": "measurement",
@@ -123427,9 +123444,9 @@
         },
         {
           "type": "result",
-          "label": "Екатерина Миронова сюда нужен счет и план работ",
-          "date": "08-06-2026",
-          "time": "18:36"
+          "label": "Екатерина Миронова жду план работ",
+          "date": "09-06-2026",
+          "time": "17:29"
         }
       ]
     },
@@ -123531,10 +123548,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "02-06-2026",
+      "progressedDate": "09-06-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "02-06-2026",
-      "latestResultText": "собирают инфо, в понедельник отправит все кп в тендр отдел и будет решение",
+      "lastRelevantActivityAt": "09-06-2026",
+      "latestResultText": "Затягивают с рассмотрением, до праздников не успеют созвон после к концу недели",
       "timeline": [
         {
           "type": "measurement",
@@ -123550,9 +123567,9 @@
         },
         {
           "type": "result",
-          "label": "собирают инфо, в понедельник отправит все кп в тендр отдел и будет решение",
-          "date": "02-06-2026",
-          "time": "16:43"
+          "label": "Затягивают с рассмотрением, до праздников не успеют созвон после к концу недели",
+          "date": "09-06-2026",
+          "time": "17:40"
         }
       ]
     },
@@ -123570,12 +123587,12 @@
       "scheduledAt": "21-05-2026",
       "currentDealStatus": "Договор и Оплата",
       "outcome": "to_contract",
-      "contractDate": "08-06-2026",
+      "contractDate": "09-06-2026",
       "workDate": null,
-      "progressedDate": "08-06-2026",
+      "progressedDate": "09-06-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "08-06-2026",
-      "latestResultText": "https://yandex.ru/maps/-/CPdPiFkh",
+      "lastRelevantActivityAt": "09-06-2026",
+      "latestResultText": "Доброе утро! Как приедете на парковку (ориентир магазин ТВОЕ), позвоните мне . Я вам объясню как к нам пройти.",
       "timeline": [
         {
           "type": "measurement",
@@ -123591,9 +123608,9 @@
         },
         {
           "type": "result",
-          "label": "https://yandex.ru/maps/-/CPdPiFkh",
-          "date": "08-06-2026",
-          "time": "18:29"
+          "label": "Доброе утро! Как приедете на парковку (ориентир магазин ТВОЕ), позвоните мне . Я вам объясню как к нам пройти.",
+          "date": "09-06-2026",
+          "time": "09:31"
         }
       ]
     },
@@ -123693,12 +123710,12 @@
       "scheduledAt": "20-05-2026",
       "currentDealStatus": "Договор и Оплата",
       "outcome": "to_contract",
-      "contractDate": "08-06-2026",
+      "contractDate": "09-06-2026",
       "workDate": null,
-      "progressedDate": "08-06-2026",
+      "progressedDate": "09-06-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "08-06-2026",
-      "latestResultText": "написала в мах, жду ответ",
+      "lastRelevantActivityAt": "09-06-2026",
+      "latestResultText": "ответил в мах Пока согласовываем",
       "timeline": [
         {
           "type": "measurement",
@@ -123714,9 +123731,9 @@
         },
         {
           "type": "result",
-          "label": "написала в мах, жду ответ",
-          "date": "08-06-2026",
-          "time": "18:02"
+          "label": "ответил в мах Пока согласовываем",
+          "date": "09-06-2026",
+          "time": "16:59"
         }
       ]
     },
@@ -123736,10 +123753,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "03-06-2026",
+      "progressedDate": "09-06-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "03-06-2026",
-      "latestResultText": "еще неделя, прозвон в пн",
+      "lastRelevantActivityAt": "09-06-2026",
+      "latestResultText": "работает до 17, набрать завтра",
       "timeline": [
         {
           "type": "measurement",
@@ -123755,9 +123772,9 @@
         },
         {
           "type": "result",
-          "label": "еще неделя, прозвон в пн",
-          "date": "03-06-2026",
-          "time": "17:59"
+          "label": "работает до 17, набрать завтра",
+          "date": "09-06-2026",
+          "time": "17:23"
         }
       ]
     },
@@ -124060,14 +124077,14 @@
       "measurer": "Манук Бригадир",
       "measurementCreatedAt": "06-05-2026",
       "scheduledAt": "06-05-2026",
-      "currentDealStatus": "Клиент принимает решение",
-      "outcome": "progressed",
+      "currentDealStatus": "Отложенная",
+      "outcome": "unknown",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "15-05-2026",
+      "progressedDate": null,
       "closedDate": null,
-      "lastRelevantActivityAt": "15-05-2026",
-      "latestResultText": "Позвонила мужу Александру, сказал денег не хватает, ничего пака делать не будут, перезвоню в июне",
+      "lastRelevantActivityAt": "09-06-2026",
+      "latestResultText": "Нет ресурсов, скорей всего на сл год только, не говорит сроков, отправить им план работ",
       "timeline": [
         {
           "type": "measurement",
@@ -124083,9 +124100,9 @@
         },
         {
           "type": "result",
-          "label": "Позвонила мужу Александру, сказал денег не хватает, ничего пака делать не будут, перезвоню в июне",
-          "date": "15-05-2026",
-          "time": "14:00"
+          "label": "Нет ресурсов, скорей всего на сл год только, не говорит сроков, отправить им план работ",
+          "date": "09-06-2026",
+          "time": "18:34"
         }
       ]
     },
@@ -124310,10 +124327,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "28-05-2026",
+      "progressedDate": "09-06-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "28-05-2026",
-      "latestResultText": "теперь отобразилось. спасибо",
+      "lastRelevantActivityAt": "09-06-2026",
+      "latestResultText": "ждем результаты рассмотрения, у них все долго, узнать что по сб",
       "timeline": [
         {
           "type": "measurement",
@@ -124329,9 +124346,9 @@
         },
         {
           "type": "result",
-          "label": "теперь отобразилось. спасибо",
-          "date": "28-05-2026",
-          "time": "12:18"
+          "label": "ждем результаты рассмотрения, у них все долго, узнать что по сб",
+          "date": "09-06-2026",
+          "time": "17:05"
         }
       ]
     },
@@ -124474,10 +124491,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "05-06-2026",
+      "progressedDate": "09-06-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "05-06-2026",
-      "latestResultText": "{log26} {event1}",
+      "lastRelevantActivityAt": "09-06-2026",
+      "latestResultText": "жду информации по скидке или бонусу",
       "timeline": [
         {
           "type": "measurement",
@@ -124493,9 +124510,9 @@
         },
         {
           "type": "result",
-          "label": "{log26} {event1}",
-          "date": "05-06-2026",
-          "time": "18:12"
+          "label": "жду информации по скидке или бонусу",
+          "date": "09-06-2026",
+          "time": "17:03"
         }
       ]
     },
@@ -124638,10 +124655,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "04-06-2026",
+      "progressedDate": "09-06-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "04-06-2026",
-      "latestResultText": "Отправила Светлане кп в мах",
+      "lastRelevantActivityAt": "09-06-2026",
+      "latestResultText": "ждем результаты конкурса",
       "timeline": [
         {
           "type": "measurement",
@@ -124657,9 +124674,9 @@
         },
         {
           "type": "result",
-          "label": "Отправила Светлане кп в мах",
-          "date": "04-06-2026",
-          "time": "11:49"
+          "label": "ждем результаты конкурса",
+          "date": "09-06-2026",
+          "time": "17:02"
         }
       ]
     },
@@ -125212,10 +125229,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "03-06-2026",
+      "progressedDate": "09-06-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "03-06-2026",
-      "latestResultText": "не готов сейчас, еще неделю паузы просит",
+      "lastRelevantActivityAt": "09-06-2026",
+      "latestResultText": "Что значит на завтра?) мы работаем, сначала надо уточнить, жди",
       "timeline": [
         {
           "type": "measurement",
@@ -125231,9 +125248,9 @@
         },
         {
           "type": "result",
-          "label": "не готов сейчас, еще неделю паузы просит",
-          "date": "03-06-2026",
-          "time": "16:25"
+          "label": "Что значит на завтра?) мы работаем, сначала надо уточнить, жди",
+          "date": "09-06-2026",
+          "time": "17:18"
         }
       ]
     },
@@ -125253,10 +125270,10 @@
       "outcome": "progressed",
       "contractDate": null,
       "workDate": null,
-      "progressedDate": "28-05-2026",
+      "progressedDate": "09-06-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "28-05-2026",
-      "latestResultText": "на стопе 2 недели, созвон",
+      "lastRelevantActivityAt": "09-06-2026",
+      "latestResultText": "на совещании, завтра в течении дня должен собрать ответ по нашей заявке и схеме",
       "timeline": [
         {
           "type": "measurement",
@@ -125272,9 +125289,9 @@
         },
         {
           "type": "result",
-          "label": "на стопе 2 недели, созвон",
-          "date": "28-05-2026",
-          "time": "18:28"
+          "label": "на совещании, завтра в течении дня должен собрать ответ по нашей заявке и схеме",
+          "date": "09-06-2026",
+          "time": "17:20"
         }
       ]
     },
@@ -125579,12 +125596,12 @@
       "scheduledAt": "23-03-2026",
       "currentDealStatus": "Выполнение Работы",
       "outcome": "to_work",
-      "contractDate": "05-06-2026",
-      "workDate": "05-06-2026",
-      "progressedDate": "05-06-2026",
+      "contractDate": "09-06-2026",
+      "workDate": "09-06-2026",
+      "progressedDate": "09-06-2026",
       "closedDate": null,
-      "lastRelevantActivityAt": "05-06-2026",
-      "latestResultText": "с Анной только что обсуждали, что гарантию меняем с 12 мес на 24 мес",
+      "lastRelevantActivityAt": "09-06-2026",
+      "latestResultText": "Константин ждет с утра мешеного звонка, готов встретить",
       "timeline": [
         {
           "type": "measurement",
@@ -125600,9 +125617,9 @@
         },
         {
           "type": "result",
-          "label": "с Анной только что обсуждали, что гарантию меняем с 12 мес на 24 мес",
-          "date": "05-06-2026",
-          "time": "16:16"
+          "label": "Константин ждет с утра мешеного звонка, готов встретить",
+          "date": "09-06-2026",
+          "time": "15:50"
         }
       ]
     },
@@ -125991,11 +126008,11 @@
         "measurer": "Артем Бригадир",
         "total": 14,
         "scheduled": 14,
-        "progressed": 8,
+        "progressed": 9,
         "toContract": 2,
         "toWork": 1,
         "stalled": 4,
-        "sum": 25292204
+        "sum": 26664004
       },
       {
         "measurer": "Миша Бригадир",
@@ -126011,7 +126028,7 @@
         "measurer": "Манук Бригадир",
         "total": 8,
         "scheduled": 8,
-        "progressed": 6,
+        "progressed": 5,
         "toContract": 0,
         "toWork": 0,
         "stalled": 1,
@@ -131750,7 +131767,7 @@
         "dealsCreated": 0,
         "enteredMeasurement": 0,
         "scheduledMeasurements": 0,
-        "progressed": 3,
+        "progressed": 2,
         "toContract": 0,
         "toWork": 0
       },
@@ -131867,7 +131884,7 @@
         "dealsCreated": 3,
         "enteredMeasurement": 3,
         "scheduledMeasurements": 3,
-        "progressed": 3,
+        "progressed": 1,
         "toContract": 1,
         "toWork": 0
       },
@@ -131912,7 +131929,7 @@
         "dealsCreated": 1,
         "enteredMeasurement": 1,
         "scheduledMeasurements": 1,
-        "progressed": 4,
+        "progressed": 3,
         "toContract": 1,
         "toWork": 1
       },
@@ -131921,7 +131938,7 @@
         "dealsCreated": 0,
         "enteredMeasurement": 1,
         "scheduledMeasurements": 1,
-        "progressed": 4,
+        "progressed": 2,
         "toContract": 0,
         "toWork": 0
       },
@@ -131930,7 +131947,7 @@
         "dealsCreated": 1,
         "enteredMeasurement": 1,
         "scheduledMeasurements": 1,
-        "progressed": 6,
+        "progressed": 5,
         "toContract": 0,
         "toWork": 0
       },
@@ -131939,9 +131956,9 @@
         "dealsCreated": 0,
         "enteredMeasurement": 1,
         "scheduledMeasurements": 1,
-        "progressed": 4,
-        "toContract": 1,
-        "toWork": 1
+        "progressed": 2,
+        "toContract": 0,
+        "toWork": 0
       },
       {
         "date": "06-06-2026",
@@ -131966,8 +131983,17 @@
         "dealsCreated": 0,
         "enteredMeasurement": 1,
         "scheduledMeasurements": 1,
-        "progressed": 11,
-        "toContract": 4,
+        "progressed": 5,
+        "toContract": 2,
+        "toWork": 1
+      },
+      {
+        "date": "09-06-2026",
+        "dealsCreated": 0,
+        "enteredMeasurement": 1,
+        "scheduledMeasurements": 1,
+        "progressed": 15,
+        "toContract": 3,
         "toWork": 1
       }
     ],
@@ -131980,14 +132006,14 @@
       "stalled": 13
     },
     "compare30d": {
-      "enteredMeasurement": 27,
-      "scheduledMeasurements": 27,
+      "enteredMeasurement": 28,
+      "scheduledMeasurements": 28,
       "progressed": 47,
       "toContract": 9,
       "toWork": 5,
       "stalled": 8,
-      "contractRate": 33,
-      "workRate": 19
+      "contractRate": 32,
+      "workRate": 18
     }
   },
   "measurementsComparison": {
