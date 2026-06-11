@@ -564,6 +564,9 @@ function renderMets(calls,analyses,reports,cards){
   }
   var totalCalls=mdaCallCount||calls.length;
   var totalDurMin=mdaCallCount?Math.round(mdaCallDur/60):Math.round(durSec/60);
+  var apiUsage=D.planfixApiUsage||{};
+  var apiValue=apiUsage.total!==undefined?apiUsage.total:'—';
+  var apiColor=(apiUsage.rateLimit&&apiUsage.rateLimit.active)?'#f87171':'#60a5fa';
   const items=[
     {v:newCount,l:'Новых сегодня',c:'#a78bfa'},
     {v:workedCount,l:'Обработано',c:'#818cf8'},
@@ -575,6 +578,7 @@ function renderMets(calls,analyses,reports,cards){
     {v:sum(reports,'contract'),l:'Договор/оплата',c:'#34d399'},
     {v:rev?fmt(rev)+'₽':'—',l:'Поступило',c:'#fbbf24'},
     {v:sum(reports,'kpSent'),l:'КП',c:'#f472b6'},
+    {v:apiValue,l:'Planfix API',c:apiColor},
   ];
   document.getElementById('mets').innerHTML=items.map(i=>'<div class="met"><div class="met-l">'+i.l+'</div><div class="met-v" style="color:'+i.c+'">'+i.v+'</div></div>').join('');
 }

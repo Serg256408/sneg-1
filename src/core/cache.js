@@ -3,6 +3,7 @@
 // ============================================================
 
 const { fs, TRANSCRIPTION_CACHE_FILE, AI_CACHE_FILE } = require('../utils/config');
+const { writeJsonWithRetry } = require('../utils/safe-write');
 
 function loadTranscriptionCache(silent = false) {
   try {
@@ -20,7 +21,7 @@ function loadTranscriptionCache(silent = false) {
 }
 
 function saveTranscriptionCache(cache) {
-  fs.writeFileSync(TRANSCRIPTION_CACHE_FILE, JSON.stringify(cache, null, 2), 'utf8');
+  writeJsonWithRetry(TRANSCRIPTION_CACHE_FILE, cache);
 }
 
 function loadAiCache() {
@@ -29,7 +30,7 @@ function loadAiCache() {
 }
 
 function saveAiCache(cache) {
-  fs.writeFileSync(AI_CACHE_FILE, JSON.stringify(cache, null, 2), 'utf8');
+  writeJsonWithRetry(AI_CACHE_FILE, cache);
 }
 
 module.exports = { loadTranscriptionCache, saveTranscriptionCache, loadAiCache, saveAiCache };

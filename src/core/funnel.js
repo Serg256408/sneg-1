@@ -4,27 +4,7 @@
 
 const { fs } = require('../utils/config');
 const { FUNNEL_ORDER } = require('../utils/config');
-
-function sleepSync(ms) {
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
-}
-
-function writeJsonWithRetry(filePath, data) {
-  const tmp = `${filePath}.${process.pid}.tmp`;
-  let lastError = null;
-  for (let attempt = 1; attempt <= 6; attempt++) {
-    try {
-      fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf8');
-      fs.renameSync(tmp, filePath);
-      return;
-    } catch (e) {
-      lastError = e;
-      try { if (fs.existsSync(tmp)) fs.unlinkSync(tmp); } catch {}
-      if (attempt < 6) sleepSync(150 * attempt);
-    }
-  }
-  throw lastError;
-}
+const { writeJsonWithRetry } = require('../utils/safe-write');
 
 // ============ СНИМКИ ВОРОНКИ ============
 
