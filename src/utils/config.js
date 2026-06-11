@@ -49,6 +49,13 @@ for (const m of MANAGERS_LIST) {
 const AUTH = { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' };
 
 const CONCURRENCY = 10;
+const parsedAiConcurrency = parseInt(
+  process.env.REPORT_AI_CONCURRENCY || process.env.AI_CONCURRENCY || (POLZA_KEY && !DEEPSEEK_KEY ? '2' : String(CONCURRENCY)),
+  10,
+);
+const AI_CONCURRENCY = Number.isFinite(parsedAiConcurrency) && parsedAiConcurrency > 0
+  ? parsedAiConcurrency
+  : CONCURRENCY;
 const START_TIME = Date.now();
 const isCI = !!process.env.CI || !!process.env.GITHUB_ACTIONS;
 const TIME_LIMIT_MS = isCI ? 150 * 60 * 1000 : Infinity;
@@ -76,7 +83,7 @@ module.exports = {
   MANGO_API_KEY, MANGO_API_SALT, MANGO_MANAGER_EXTENSIONS, MANGO_MATCH_WINDOW_MIN,
   TRANSCRIPTION_CACHE_FILE, AI_CACHE_FILE,
   MANAGERS_FILE, MANAGERS_LIST, MANAGERS,
-  CONCURRENCY, START_TIME, isCI, TIME_LIMIT_MS, MAX_DAYS_CI,
+  CONCURRENCY, AI_CONCURRENCY, START_TIME, isCI, TIME_LIMIT_MS, MAX_DAYS_CI,
   timeLeft, isTimeUp,
   CALL_TAG, ANALYSIS_TAG, DEAL_FIELDS, ALLOWED_TEMPLATES,
   SKIP_STATUSES, NEW_STATUSES, FUNNEL_ORDER,

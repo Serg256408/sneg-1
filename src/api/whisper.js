@@ -18,6 +18,14 @@ let warnedNoTranscriptionProvider = false;
 let downloadFailureCache = null;
 const warnedCachedDownloadFailures = new Set();
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function isRateLimitText(text) {
+  return /429|rate.?limit|too many|слишком много|много запросов/i.test(String(text || ''));
+}
+
 function getFileName(file) {
   if (typeof file === 'string') return file.trim();
   return String(file?.name || file?.fileName || '').trim();
@@ -186,19 +194,32 @@ async function polzaTranscribe(audioPath) {
   const { execFileSync } = require('child_process');
   const models = ['openai/whisper-1', 'openai/gpt-4o-mini-transcribe'];
   for (const model of models) {
-    try {
-      const result = execFileSync('curl', [
-        '-s', '-L', '--ssl-no-revoke',
-        'https://polza.ai/api/v1/audio/transcriptions',
-        '-H', `Authorization: Bearer ${POLZA_KEY}`,
-        '-F', `file=@${audioPath}`,
-        '-F', `model=${model}`,
-        '-F', 'language=ru',
-        '-F', 'response_format=json',
-      ], { encoding: 'utf8', timeout: 120000 });
-      const text = parseTranscriptionResponse(result, 'Polza Whisper', model);
-      if (text) return text;
-    } catch {}
+    for (let attempt = 1; attempt <= 4; attempt++) {
+      try {
+        const result = execFileSync('curl', [
+          '-s', '-L', '--ssl-no-revoke',
+          'https://polza.ai/api/v1/audio/transcriptions',
+          '-H', `Authorization: Bearer ${POLZA_KEY}`,
+          '-F', `file=@${audioPath}`,
+          '-F', `model=${model}`,
+          '-F', 'language=ru',
+          '-F', 'response_format=json',
+        ], { encoding: 'utf8', timeout: 120000 });
+        const text = parseTranscriptionResponse(result, 'Polza Whisper', model);
+        if (text) return text;
+        if (isRateLimitText(result) && attempt < 4) {
+          await sleep(Math.min(60000, 5000 * attempt));
+          continue;
+        }
+        break;
+      } catch (e) {
+        if (attempt < 4 && isRateLimitText(e.message)) {
+          await sleep(Math.min(60000, 5000 * attempt));
+          continue;
+        }
+        break;
+      }
+    }
   }
   return null;
 }

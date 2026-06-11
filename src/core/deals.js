@@ -7,7 +7,7 @@ const {
 } = require('../utils/helpers');
 const { extractTranscription, isNoAnswerTranscription, getNoAnswerLabel, hasCallRecordingFile } = require('./transcription');
 const {
-  CONCURRENCY, SKIP_STATUSES, DEAL_FIELDS, POLZA_KEY, OPENAI_KEY, AI_ENABLED,
+  CONCURRENCY, AI_CONCURRENCY, SKIP_STATUSES, DEAL_FIELDS, POLZA_KEY, OPENAI_KEY, AI_ENABLED,
   REPORT_SKIP_MEASUREMENTS, REPORT_BACKFILL_HISTORY, REPORT_HISTORY_AI, isTimeUp,
   CALL_TAG, ANALYSIS_TAG, ALLOWED_TEMPLATES, ROOT_DIR, MANAGERS_LIST, fs, path,
 } = require('../utils/config');
@@ -2422,7 +2422,7 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
       if (!isTimeUp()) dealActivity.aiAssessment = await aiDealFullAssessment(dealActivity, reportDate, history, false);
       aiIdx++;
       if (needAi > 0) process.stdout.write(`\r    [${aiIdx}/${aiEligibleReportDayDeals.length}]`);
-    }, CONCURRENCY);
+    }, AI_CONCURRENCY);
 
     if (needAi > 0) console.log('\n    ✅');
     else console.log('✅');

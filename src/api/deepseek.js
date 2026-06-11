@@ -4,6 +4,19 @@
 
 const { fs, path, os, OPENAI_KEY, DEEPSEEK_KEY, POLZA_KEY } = require('../utils/config');
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function isRateLimitMessage(code, message) {
+  const text = `${code || ''} ${message || ''}`;
+  return /429|rate.?limit|too many|слишком много|много запросов/i.test(text);
+}
+
+function retryDelayMs(attempt, rateLimited) {
+  return rateLimited ? Math.min(60000, 5000 * attempt) : 2000 * attempt;
+}
+
 async function openaiChat(prompt, systemPrompt, maxTokens, model) {
   const isDeepSeek = model && model.startsWith('deepseek');
   let apiKey = isDeepSeek ? DEEPSEEK_KEY : OPENAI_KEY;
@@ -26,7 +39,7 @@ async function openaiChat(prompt, systemPrompt, maxTokens, model) {
     max_tokens: maxTokens || 1000,
   });
   const tmp = path.join(os.tmpdir(), 'oai_' + Date.now() + '.json');
-  const maxRetries = 3;
+  const maxRetries = parseInt(process.env.AI_MAX_RETRIES || '6', 10) || 6;
   try {
     fs.writeFileSync(tmp, body);
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -42,6 +55,7 @@ async function openaiChat(prompt, systemPrompt, maxTokens, model) {
         if (parsed.error) {
           const errCode = parsed.error.code || '';
           const errMsg = parsed.error.message || '';
+          const rateLimited = isRateLimitMessage(errCode, errMsg);
           console.error(`    ⚠️ API error: ${errMsg}`);
           if (errCode === 'invalid_api_key' || errMsg.includes('Incorrect API key')) return null;
           if (isDeepSeek && POLZA_KEY && apiUrl.includes('deepseek.com')) {
@@ -53,14 +67,17 @@ async function openaiChat(prompt, systemPrompt, maxTokens, model) {
             fs.writeFileSync(tmp, newBody);
             continue;
           }
-          if (attempt < maxRetries) { await new Promise(r => setTimeout(r, 2000 * attempt)); continue; }
+          if (attempt < maxRetries) {
+            await sleep(retryDelayMs(attempt, rateLimited));
+            continue;
+          }
           return null;
         }
         return (parsed.choices && parsed.choices[0] && parsed.choices[0].message && parsed.choices[0].message.content) || null;
       } catch (e) {
         if (attempt < maxRetries) {
           process.stdout.write(`⟳`);
-          await new Promise(r => setTimeout(r, 2000 * attempt));
+          await sleep(retryDelayMs(attempt, isRateLimitMessage('', e.message)));
           continue;
         }
         console.error(`    ⚠️ ${isDeepSeek ? 'DeepSeek' : 'OpenAI'} error (${maxRetries} attempts): ${e.message.substring(0, 100)}`);
