@@ -10,7 +10,7 @@ on:
       managers:
         description: 'Comma-separated manager aliases'
         required: false
-        default: 'borovaya,guzairov'
+        default: 'borovaya'
 
 permissions:
   contents: read
