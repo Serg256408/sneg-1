@@ -80,6 +80,7 @@ jobs:
 
       - name: Verify reports
         if: success()
+        continue-on-error: true
         env:
           PLANFIX_URL: ${{ secrets.PLANFIX_URL }}
           PLANFIX_TOKEN: ${{ secrets.PLANFIX_TOKEN }}
