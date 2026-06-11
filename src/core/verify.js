@@ -82,7 +82,10 @@ async function checkDealCompleteness(userId, reportDate, reportData) {
   console.log('  🔍 Проверка 1: Полнота сделок...');
   const rawPfDealIds = await getManagerDeals(userId, reportDate);
 
-  const reportDealIds = (reportData.dailyDealActivity || []).map(d => d.deal?.id).filter(Boolean);
+  const reportDealIds = (reportData.dailyDealActivity || [])
+    .filter(d => !d.isUnlinkedCalls)
+    .map(d => d.deal?.id)
+    .filter(Boolean);
   const reportSet = new Set(reportDealIds);
   const rawMissingFromReport = rawPfDealIds.filter(id => !reportSet.has(id));
   const unloadableFromPlanfix = [];
@@ -180,7 +183,7 @@ function classifyComment(c) {
 async function checkDealCallsCompleteness(reportData) {
   console.log('  🔍 Проверка 2: Полнота комментариев и звонков...');
   const dealResults = [];
-  const dailyDeals = reportData.dailyDealActivity || [];
+  const dailyDeals = (reportData.dailyDealActivity || []).filter(item => !item.isUnlinkedCalls);
   const reportDate = reportData.reportDate || '';
 
   for (const item of dailyDeals) {
@@ -397,7 +400,7 @@ function classifyUntranscribedAction(item, action, mangoCalls, mangoEnabled) {
 
 async function checkTranscriptions(reportData, aiCache) {
   console.log('  🔍 Проверка 3: Транскрибации...');
-  const dailyDeals = reportData.dailyDealActivity || [];
+  const dailyDeals = (reportData.dailyDealActivity || []).filter(item => !item.isUnlinkedCalls);
   let totalCalls = 0, transcribed = 0, ndz = 0, coveredByTranscription = 0, untranscribed = 0;
   const untranscribedList = [];
   const coveredList = [];
@@ -490,7 +493,7 @@ function checkAiAssessments(reportData) {
 
 function checkAutoSend(reportData, aiCache, reportDate) {
   console.log('  🔍 Проверка 5: Автоотправка в Planfix...');
-  const dailyDeals = reportData.dailyDealActivity || [];
+  const dailyDeals = (reportData.dailyDealActivity || []).filter(item => !item.isUnlinkedCalls);
   const shouldSendDeals = dailyDeals.filter(d => d.aiAssessment?.missing?.length > 0);
   const notSent = [];
   let sentCount = 0;

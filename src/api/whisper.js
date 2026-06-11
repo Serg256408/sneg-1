@@ -127,6 +127,7 @@ function looksLikeHtmlOrError(buf) {
 function downloadPlanfixFile(fileId) {
   const { execFileSync } = require('child_process');
   const url = `${API_URL}/file/${fileId}/download`;
+  let lastHttpStatus = '';
   const tmpFile = path.join(
     os.tmpdir(),
     `pf_audio_${fileId}_${process.pid}_${Date.now()}_${Math.random().toString(36).slice(2)}.mp3`,
@@ -135,11 +136,11 @@ function downloadPlanfixFile(fileId) {
     if (isPlanfixRateLimited()) return null;
     try {
       registerPlanfixRestRequest('GET', url);
-      execFileSync('curl', [
-        '-s', '-L', '--ssl-no-revoke', '-o', tmpFile,
+      lastHttpStatus = String(execFileSync('curl', [
+        '-s', '-L', '--ssl-no-revoke', '-w', '%{http_code}', '-o', tmpFile,
         url,
         '-H', `Authorization: Bearer ${TOKEN}`,
-      ], { timeout: 60000 });
+      ], { encoding: 'utf8', timeout: 60000 })).trim();
       const stat = fs.statSync(tmpFile);
       if (stat.size < 100) {
         try { fs.unlinkSync(tmpFile); } catch {}
@@ -156,6 +157,9 @@ function downloadPlanfixFile(fileId) {
     } catch {
       try { fs.unlinkSync(tmpFile); } catch {}
     }
+  }
+  if (lastHttpStatus && lastHttpStatus !== '200') {
+    console.log(`    Warning: Planfix file ${fileId} download HTTP ${lastHttpStatus}`);
   }
   return null;
 }
