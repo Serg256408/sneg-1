@@ -2426,6 +2426,15 @@ async function buildDealCards(userId, reportDate, mgrPfName) {
 
     if (needAi > 0) console.log('\n    ✅');
     else console.log('✅');
+    const assessedCount = aiEligibleReportDayDeals.filter(da => da.aiAssessment).length;
+    const missingAssessmentIds = aiEligibleReportDayDeals
+      .filter(da => !da.aiAssessment)
+      .map(da => da.deal?.id)
+      .filter(Boolean);
+    console.log(`  🤖 ИИ-оценки готовы: ${assessedCount}/${aiEligibleReportDayDeals.length}`);
+    if (missingAssessmentIds.length) {
+      console.log(`  ⚠️ Нет ИИ-оценки: ${missingAssessmentIds.slice(0, 30).map(id => `#${id}`).join(', ')}${missingAssessmentIds.length > 30 ? '...' : ''}`);
+    }
 
     multiDaySummary[reportDate] = await aiDaySummary(reportDayDeals, reportDate, aiCache, mgrAlias, false);
     saveHistory(history, reportDate);

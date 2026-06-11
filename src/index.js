@@ -92,7 +92,17 @@ async function autoSendDealRecommendations(dailyDealActivity, reportDate, aiCach
     return !aiCache[`sent_${da.deal.id}_${reportDate}`];
   });
 
-  if (!toSend.length) return;
+  if (!toSend.length) {
+    const eligible = dailyDealActivity.filter(da => !da.isUnlinkedCalls);
+    const assessed = eligible.filter(da => da.aiAssessment).length;
+    const withRecommendations = eligible.filter(da => da.aiAssessment?.missing?.length > 0).length;
+    if (eligible.length && assessed < eligible.length) {
+      console.log(`  ⚠️ ИИ-рекомендации не отправлены: AI-оценки есть только у ${assessed}/${eligible.length} сделок за ${reportDate}`);
+    } else {
+      console.log(`  ℹ️ ИИ-рекомендации: новых кандидатов на отправку нет (${withRecommendations} сделок с рекомендациями, остальные уже отправлены или без замечаний)`);
+    }
+    return;
+  }
 
   console.log(`\n📤 Автоотправка ИИ-рекомендаций в Planfix (${toSend.length} сделок за ${reportDate})...`);
   let sent = 0;

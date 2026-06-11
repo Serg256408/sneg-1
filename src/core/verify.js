@@ -467,7 +467,7 @@ async function checkTranscriptions(reportData, aiCache) {
 
 function checkAiAssessments(reportData) {
   console.log('  🔍 Проверка 4: ИИ-оценки...');
-  const dailyDeals = reportData.dailyDealActivity || [];
+  const dailyDeals = (reportData.dailyDealActivity || []).filter(item => !item.isUnlinkedCalls);
   const missing = [];
   const invalid = [];
   let assessed = 0;
@@ -504,10 +504,11 @@ function checkAutoSend(reportData, aiCache, reportDate) {
 
   const alias = reportData.managerAlias || '';
   const mgrKey = `sent_manager_${alias}_${reportDate}`;
+  const shouldSendManager = !!(reportData.aiDaySummaryText || reportData.managerSummaries?.day);
   const managerSummarySent = !!aiCache[mgrKey];
 
-  const status = notSent.length === 0 ? 'pass' : 'warn';
-  return { name: 'autoSend', status, shouldSend: shouldSendDeals.length, sent: sentCount, notSent, managerSummarySent };
+  const status = notSent.length === 0 && (!shouldSendManager || managerSummarySent) ? 'pass' : 'fail';
+  return { name: 'autoSend', status, shouldSend: shouldSendDeals.length, sent: sentCount, notSent, shouldSendManager, managerSummarySent };
 }
 
 // ============ Проверка 6: HTML-файлы ============
@@ -747,6 +748,7 @@ function formatTelegram(manager, reportDate, checks, reportData = null) {
   const as = checks.find(c => c.name === 'autoSend');
   if (as) {
     lines.push(`${statusIcon(as.status)} Автоотправка: ${as.sent}/${as.shouldSend}`);
+    if (as.shouldSendManager && !as.managerSummarySent) lines.push('  Сводка менеджера не отправлена');
   }
 
   // 6. HTML
@@ -801,6 +803,7 @@ function formatConsole(manager, reportDate, checks) {
     }
     if (c.name === 'autoSend') {
       lines.push(`  Отправлено: ${c.sent}/${c.shouldSend}`);
+      if (c.shouldSendManager && !c.managerSummarySent) lines.push('  Сводка менеджера не отправлена');
     }
   }
 

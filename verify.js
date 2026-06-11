@@ -22,17 +22,21 @@ async function main() {
   const dateArg = args.find(a => /^\d{2}-\d{2}-\d{4}$/.test(a));
   const aliasArg = args.find(a => !a.startsWith('--') && !/^\d{2}-\d{2}-\d{4}$/.test(a));
   const reportDate = dateArg || todayDMY();
+  const results = [];
 
   console.log(`\n🔎 Верификатор отчётов (${reportDate})\n`);
 
   if (isAll) {
     for (const mgr of MANAGERS_LIST) {
-      await verifyManagerReport(mgr.alias, reportDate);
+      results.push(await verifyManagerReport(mgr.alias, reportDate));
     }
   } else {
     const alias = aliasArg || 'borovaya';
-    await verifyManagerReport(alias, reportDate);
+    results.push(await verifyManagerReport(alias, reportDate));
   }
+
+  const failed = results.some(result => result?.checks?.some(check => check.status === 'fail'));
+  if (failed) process.exitCode = 1;
 }
 
 main().catch(err => {
