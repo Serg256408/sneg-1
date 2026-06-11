@@ -491,6 +491,11 @@ function checkAiAssessments(reportData) {
 
 // ============ Проверка 5: Автоотправка ============
 
+function reportDateToIso(reportDate) {
+  const m = String(reportDate || '').match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : null;
+}
+
 function checkAutoSend(reportData, aiCache, reportDate) {
   console.log('  🔍 Проверка 5: Автоотправка в Planfix...');
   const dailyDeals = (reportData.dailyDealActivity || []).filter(item => !item.isUnlinkedCalls);
@@ -507,11 +512,24 @@ function checkAutoSend(reportData, aiCache, reportDate) {
 
   const alias = reportData.managerAlias || '';
   const mgrKey = `sent_manager_${alias}_${reportDate}`;
-  const shouldSendManager = !!(reportData.aiDaySummaryText || reportData.managerSummaries?.day);
+  const managerSummaryAvailable = !!(reportData.aiDaySummaryText || reportData.managerSummaries?.day);
+  const reportTaskDate = reportDateToIso(reportDate);
+  const managerSummaryTarget = (reportData.dailyReports || []).find(r => r.date === reportTaskDate);
+  const shouldSendManager = managerSummaryAvailable && !!managerSummaryTarget;
+  const managerSummarySkippedNoTask = managerSummaryAvailable && !managerSummaryTarget;
   const managerSummarySent = !!aiCache[mgrKey];
 
   const status = notSent.length === 0 && (!shouldSendManager || managerSummarySent) ? 'pass' : 'fail';
-  return { name: 'autoSend', status, shouldSend: shouldSendDeals.length, sent: sentCount, notSent, shouldSendManager, managerSummarySent };
+  return {
+    name: 'autoSend',
+    status,
+    shouldSend: shouldSendDeals.length,
+    sent: sentCount,
+    notSent,
+    shouldSendManager,
+    managerSummarySent,
+    managerSummarySkippedNoTask,
+  };
 }
 
 // ============ Проверка 6: HTML-файлы ============
@@ -752,6 +770,7 @@ function formatTelegram(manager, reportDate, checks, reportData = null) {
   if (as) {
     lines.push(`${statusIcon(as.status)} Автоотправка: ${as.sent}/${as.shouldSend}`);
     if (as.shouldSendManager && !as.managerSummarySent) lines.push('  Сводка менеджера не отправлена');
+    if (as.managerSummarySkippedNoTask) lines.push('  Сводка менеджера пропущена: задача ежедневного отчета не найдена');
   }
 
   // 6. HTML
@@ -807,6 +826,7 @@ function formatConsole(manager, reportDate, checks) {
     if (c.name === 'autoSend') {
       lines.push(`  Отправлено: ${c.sent}/${c.shouldSend}`);
       if (c.shouldSendManager && !c.managerSummarySent) lines.push('  Сводка менеджера не отправлена');
+      if (c.managerSummarySkippedNoTask) lines.push('  Сводка менеджера пропущена: задача ежедневного отчета не найдена');
     }
   }
 
