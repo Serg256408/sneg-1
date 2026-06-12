@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { fs, path, os, API_URL, TOKEN, OPENAI_KEY, POLZA_KEY, isTimeUp } = require('../utils/config');
+const { fs, path, os, API_URL, TOKEN, POLZA_KEY, isTimeUp } = require('../utils/config');
 const {
   saveAiCache, loadAiCache, loadTranscriptionCache, saveTranscriptionCache,
 } = require('../core/cache');
@@ -224,38 +224,13 @@ async function polzaTranscribe(audioPath) {
   return null;
 }
 
-async function openaiTranscribe(audioPath) {
-  const { execFileSync } = require('child_process');
-  const models = ['gpt-4o-mini-transcribe', 'whisper-1'];
-  for (const model of models) {
-    try {
-      const result = execFileSync('curl', [
-        '-s', '-L', '--ssl-no-revoke',
-        'https://api.openai.com/v1/audio/transcriptions',
-        '-H', `Authorization: Bearer ${OPENAI_KEY}`,
-        '-F', `file=@${audioPath}`,
-        '-F', `model=${model}`,
-        '-F', 'language=ru',
-        '-F', 'response_format=json',
-      ], { encoding: 'utf8', timeout: 120000 });
-      const text = parseTranscriptionResponse(result, 'OpenAI Whisper', model);
-      if (text) return text;
-    } catch {}
-  }
-  return null;
-}
-
 async function whisperTranscribe(audioPath) {
   if (POLZA_KEY) {
     const text = await polzaTranscribe(audioPath);
     if (text) return text;
   }
-  if (OPENAI_KEY) {
-    const text = await openaiTranscribe(audioPath);
-    if (text) return text;
-  }
-  if (!POLZA_KEY && !OPENAI_KEY && !warnedNoTranscriptionProvider) {
-    console.log('    Warning: POLZA_API_KEY or OPENAI_API_KEY is not set, new calls cannot be transcribed');
+  if (!POLZA_KEY && !warnedNoTranscriptionProvider) {
+    console.log('    Warning: POLZA_API_KEY is not set, new calls cannot be transcribed');
     warnedNoTranscriptionProvider = true;
   }
   return null;
@@ -291,7 +266,7 @@ async function transcribeCallIfNeeded(comment, cache, allowNew) {
     console.log(`    Warning: call audio has no Planfix file id (${getFileName(audioFile)})`);
     return null;
   }
-  if (!POLZA_KEY && !OPENAI_KEY) {
+  if (!POLZA_KEY) {
     await whisperTranscribe(null);
     return null;
   }
@@ -341,7 +316,7 @@ async function transcribeExternalAudioIfNeeded(audioFile, audioPath, cache) {
   const cached = getCachedTranscription(cache, audioFile);
   if (cached) return cached;
 
-  if (!POLZA_KEY && !OPENAI_KEY) {
+  if (!POLZA_KEY) {
     await whisperTranscribe(null);
     return null;
   }

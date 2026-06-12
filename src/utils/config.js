@@ -12,12 +12,10 @@ const ROOT_DIR = path.join(__dirname, '..', '..');
 
 const API_URL = (process.env.PLANFIX_URL || '').trim().replace(/\/+$/, '');
 const TOKEN = (process.env.PLANFIX_TOKEN || '').trim();
-const OPENAI_KEY = (process.env.OPENAI_API_KEY || '').trim();
-const DEEPSEEK_KEY = (process.env.DEEPSEEK_API_KEY || '').trim();
 const POLZA_KEY = (process.env.POLZA_API_KEY || '').trim();
 const REPORT_SKIP_AI = process.argv.includes('--no-ai') ||
   /^(1|true|yes|on)$/i.test((process.env.REPORT_SKIP_AI || '').trim());
-const AI_ENABLED = !!(DEEPSEEK_KEY || POLZA_KEY) && !REPORT_SKIP_AI;
+const AI_ENABLED = !!POLZA_KEY && !REPORT_SKIP_AI;
 const REPORT_SKIP_MEASUREMENTS = process.argv.includes('--no-measurements') ||
   /^(1|true|yes|on)$/i.test((process.env.REPORT_SKIP_MEASUREMENTS || '').trim());
 const REPORT_BACKFILL_HISTORY = process.argv.includes('--backfill-history') ||
@@ -50,7 +48,7 @@ const AUTH = { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/
 
 const CONCURRENCY = 10;
 const parsedAiConcurrency = parseInt(
-  process.env.REPORT_AI_CONCURRENCY || process.env.AI_CONCURRENCY || (POLZA_KEY && !DEEPSEEK_KEY ? '2' : String(CONCURRENCY)),
+  process.env.REPORT_AI_CONCURRENCY || process.env.AI_CONCURRENCY || (POLZA_KEY ? '2' : String(CONCURRENCY)),
   10,
 );
 const AI_CONCURRENCY = Number.isFinite(parsedAiConcurrency) && parsedAiConcurrency > 0
@@ -77,7 +75,7 @@ const FUNNEL_ORDER = [
 ];
 
 module.exports = {
-  ROOT_DIR, API_URL, TOKEN, OPENAI_KEY, DEEPSEEK_KEY, POLZA_KEY,
+  ROOT_DIR, API_URL, TOKEN, POLZA_KEY,
   REPORT_SKIP_AI, AI_ENABLED, REPORT_SKIP_MEASUREMENTS, REPORT_BACKFILL_HISTORY, REPORT_HISTORY_AI, AUTH,
   TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
   MANGO_API_KEY, MANGO_API_SALT, MANGO_MANAGER_EXTENSIONS, MANGO_MATCH_WINDOW_MIN,

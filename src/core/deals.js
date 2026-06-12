@@ -7,7 +7,7 @@ const {
 } = require('../utils/helpers');
 const { extractTranscription, isNoAnswerTranscription, getNoAnswerLabel, hasCallRecordingFile } = require('./transcription');
 const {
-  CONCURRENCY, AI_CONCURRENCY, SKIP_STATUSES, DEAL_FIELDS, POLZA_KEY, OPENAI_KEY, AI_ENABLED,
+  CONCURRENCY, AI_CONCURRENCY, SKIP_STATUSES, DEAL_FIELDS, POLZA_KEY, AI_ENABLED,
   REPORT_SKIP_MEASUREMENTS, REPORT_BACKFILL_HISTORY, REPORT_HISTORY_AI, isTimeUp,
   CALL_TAG, ANALYSIS_TAG, ALLOWED_TEMPLATES, ROOT_DIR, MANAGERS_LIST, fs, path,
 } = require('../utils/config');
@@ -383,7 +383,7 @@ async function transcribeMangoMatchIntoTarget(target, match, transcriptionCache,
     if (stats) stats.mangoCached += 1;
     return cached;
   }
-  if (!POLZA_KEY && !OPENAI_KEY) {
+  if (!POLZA_KEY) {
     if (stats) stats.mangoFailed += 1;
     return null;
   }
@@ -549,7 +549,7 @@ function hasUsefulHistoryCallTranscription(deal, call) {
 }
 
 async function backfillHistoryCallTranscriptions(history, transcriptionCache, reportDate, stats = null, scope = {}) {
-  const providerAvailable = !!(POLZA_KEY || OPENAI_KEY);
+  const providerAvailable = !!POLZA_KEY;
   const scopedDealIds = scope.dealIds ? new Set([...scope.dealIds].map(String)) : null;
   const scopedDates = scope.dates ? new Set([...scope.dates].filter(Boolean)) : null;
   const managerContext = scope.managerContext || {};

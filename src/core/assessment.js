@@ -3,7 +3,7 @@
 // ============================================================
 
 const { calculateSalaryScore } = require('./scoring');
-const { openaiChat } = require('../api/deepseek');
+const { aiChat } = require('../api/deepseek');
 const { ensureDeal } = require('./history');
 const { hasCallRecordingFile } = require('./transcription');
 
@@ -327,7 +327,7 @@ ${isSnow ? `ПРАВИЛА ОЦЕНКИ:
   const systemMsg = isSnow
     ? 'Ты аналитик отдела продаж компании ТрансКом (вывоз снега). Анализируй историю сделок и оценивай выполнение скрипта продаж. Отвечай строго в JSON.'
     : 'Ты аналитик отдела продаж компании ТрансКом (асфальтирование). Анализируй историю сделок и оценивай выполнение скрипта продаж по шаблону "Сделка". Отвечай строго в JSON.';
-  const raw = await openaiChat(prompt, systemMsg, 2000, 'deepseek-chat');
+  const raw = await aiChat(prompt, systemMsg, 2000, 'deepseek-chat');
   if (!raw) return null;
   try {
     const clean = raw.replace(/```json?\s*/g, '').replace(/```/g, '').trim();

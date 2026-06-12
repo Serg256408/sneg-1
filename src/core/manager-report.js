@@ -4,7 +4,7 @@
 
 const { parsePfDate } = require('../utils/helpers');
 const { loadAiCache, saveAiCache } = require('./cache');
-const { openaiChat } = require('../api/deepseek');
+const { aiChat } = require('../api/deepseek');
 const { FUNNEL_ORDER } = require('../utils/config');
 
 async function aiDaySummary(dailyDeals, reportDate, aiCache, mgrAlias, forceRefresh) {
@@ -49,7 +49,7 @@ ${dealsText}
 
 КРИТИЧЕСКОЕ ПРАВИЛО: При каждом упоминании сделки ОБЯЗАТЕЛЬНО пиши "#ID название" (например: #31766 "Асфальтирование/4200м2"). НИКОГДА не упоминай сделку без #ID. Пиши конкретно, без воды.`;
 
-  const result = await openaiChat(prompt, 'Ты аналитик отдела продаж компании ТрансКом. Пиши кратко, по-русски, с номерами сделок.', 1500, 'deepseek-chat');
+  const result = await aiChat(prompt, 'Ты аналитик отдела продаж компании ТрансКом. Пиши кратко, по-русски, с номерами сделок.', 1500, 'deepseek-chat');
   if (result) {
     aiCache[cacheKey] = result;
     saveAiCache(aiCache);
@@ -178,7 +178,7 @@ ${closing.length ? closing.map(d => `- #${d.id} "${d.name}" — ${d.dealSum || 0
 
 КРИТИЧЕСКОЕ ПРАВИЛО: При КАЖДОМ упоминании сделки ОБЯЗАТЕЛЬНО пиши "#ID название" (например: #31766 "Асфальтирование/4200м2"). НИКОГДА не упоминай сделку без #ID. Пиши конкретно с именами, номерами и суммами.`;
 
-  const result = await openaiChat(prompt, 'Ты бизнес-аналитик, составляешь отчёт для директора. Пиши по-русски, конкретно, с цифрами и именами.', 2000, 'deepseek-chat');
+  const result = await aiChat(prompt, 'Ты бизнес-аналитик, составляешь отчёт для директора. Пиши по-русски, конкретно, с цифрами и именами.', 2000, 'deepseek-chat');
   if (result) {
     aiCache[cacheKey] = result;
     saveAiCache(aiCache);

@@ -5,7 +5,7 @@
 const {
   fs, path, CONCURRENCY, isCI, MAX_DAYS_CI, isTimeUp,
   CALL_TAG, ANALYSIS_TAG, ALLOWED_TEMPLATES, SKIP_STATUSES,
-  FUNNEL_ORDER, POLZA_KEY, OPENAI_KEY, DEEPSEEK_KEY, ROOT_DIR,
+  FUNNEL_ORDER, POLZA_KEY, ROOT_DIR,
 } = require('../utils/config');
 
 const {
@@ -17,7 +17,7 @@ const { loadAiCache, saveAiCache } = require('../core/cache');
 const { extractTranscription } = require('../core/transcription');
 const { calculateSalaryScore } = require('../core/scoring');
 const { pf, getTaskComments, getContactComments } = require('../api/planfix');
-const { openaiChat } = require('../api/deepseek');
+const { aiChat } = require('../api/deepseek');
 const { transcribeCallIfNeeded } = require('../api/whisper');
 const { aiDealFullAssessment } = require('./assessment');
 const { aiDaySummary, aiManagerSummary } = require('./manager-report');
@@ -289,7 +289,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias, mgr, light
         }
       }
       // note-комментарии с mp3-файлами "Запись звонка" — тоже транскрибируем
-      if (!transcription && type === 'note' && OPENAI_KEY) {
+      if (!transcription && type === 'note' && POLZA_KEY) {
         const cFiles = c.files || [];
         const hasCallRecording = cFiles.some(f => {
           const fn = (f.name || f.fileName || '').toLowerCase();
@@ -621,7 +621,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias, mgr, light
   const reportDayDeals = buildDayActivityServer(reportDMY);
   console.log(`  🤖 День отчёта ${reportDMY}: ${reportDayDeals.length} сделок`);
 
-  if (reportDayDeals.length && (DEEPSEEK_KEY || POLZA_KEY)) {
+  if (reportDayDeals.length && POLZA_KEY) {
     const isSnow = n => (n || '').toLowerCase().startsWith('вывоз снега');
     const cached = reportDayDeals.filter(da => {
       const dh = history.deals[String(da.deal.id)];
@@ -679,7 +679,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias, mgr, light
     if (!dayDeals.length) continue;
     multiDayActivity[dayDMY] = dayDeals;
     // Итог дня из кэша (или генерируем если нет)
-    if (DEEPSEEK_KEY || POLZA_KEY) {
+    if (POLZA_KEY) {
       multiDaySummary[dayDMY] = await aiDaySummary(dayDeals, dayDMY, aiCache, mgrAlias);
     }
   }
@@ -783,7 +783,7 @@ async function buildDealCards(tasks, mgrPfName, reportDate, mgrAlias, mgr, light
 
   // === Итоги для руководителя (день / неделя / месяц) ===
   const managerSummaries = { day: null, week: null, month: null };
-  if (DEEPSEEK_KEY || POLZA_KEY) {
+  if (POLZA_KEY) {
     console.log(`\n👔 Генерация отчёта для руководителя...`);
     managerSummaries.day = await aiManagerSummary(multiDayActivity, multiDaySummary, dealCards, funnelChanges, 1, reportDMY, aiCache, mgrAlias, true);
     if (managerSummaries.day) process.stdout.write('  ✅ День ');

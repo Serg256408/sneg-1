@@ -58,9 +58,6 @@ jobs:
         env:
           PLANFIX_URL: ${{ secrets.PLANFIX_URL }}
           PLANFIX_TOKEN: ${{ secrets.PLANFIX_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
           POLZA_API_KEY: ${{ secrets.POLZA_API_KEY }}
           MANGO_API_KEY: ${{ secrets.MANGO_API_KEY }}
           MANGO_API_SALT: ${{ secrets.MANGO_API_SALT }}

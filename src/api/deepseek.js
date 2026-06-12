@@ -1,8 +1,6 @@
-// ============================================================
-// deepseek.js — ИИ-чат (DeepSeek, OpenAI, Polza.ai)
-// ============================================================
+// AI chat provider. The runtime intentionally uses Polza.ai only.
 
-const { fs, path, os, OPENAI_KEY, DEEPSEEK_KEY, POLZA_KEY } = require('../utils/config');
+const { fs, path, os, POLZA_KEY } = require('../utils/config');
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -17,37 +15,33 @@ function retryDelayMs(attempt, rateLimited) {
   return rateLimited ? Math.min(60000, 5000 * attempt) : 2000 * attempt;
 }
 
-async function openaiChat(prompt, systemPrompt, maxTokens, model) {
-  const isDeepSeek = model && model.startsWith('deepseek');
-  let apiKey = isDeepSeek ? DEEPSEEK_KEY : OPENAI_KEY;
-  let apiUrl = isDeepSeek ? 'https://api.deepseek.com/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
-  const polzaFallback = isDeepSeek && POLZA_KEY;
-  if (!apiKey && polzaFallback) {
-    apiKey = POLZA_KEY;
-    apiUrl = 'https://polza.ai/api/v1/chat/completions';
-    model = 'deepseek/deepseek-chat';
-  }
-  if (!apiKey) return null;
+async function aiChat(prompt, systemPrompt, maxTokens, model) {
+  if (!POLZA_KEY) return null;
+
   const { execFileSync } = require('child_process');
   const body = JSON.stringify({
-    model: model || 'gpt-4o-mini',
+    model: model && String(model).includes('/') ? model : 'deepseek/deepseek-chat',
     messages: [
-      { role: 'system', content: systemPrompt || 'Ты аналитик отдела продаж компании по вывозу снега ТрансКом. Отвечай кратко, по-русски.' },
+      {
+        role: 'system',
+        content: systemPrompt || 'Ты аналитик отдела продаж компании ТрансКом. Отвечай кратко, по-русски.',
+      },
       { role: 'user', content: prompt },
     ],
     temperature: 0.3,
     max_tokens: maxTokens || 1000,
   });
-  const tmp = path.join(os.tmpdir(), 'oai_' + Date.now() + '.json');
+  const tmp = path.join(os.tmpdir(), `polza_${Date.now()}.json`);
   const maxRetries = parseInt(process.env.AI_MAX_RETRIES || '6', 10) || 6;
+
   try {
     fs.writeFileSync(tmp, body);
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const r = execFileSync('curl', [
           '-s', '-L', '--ssl-no-revoke', '--connect-timeout', '15', '--max-time', '90', '-X', 'POST',
-          apiUrl,
-          '-H', `Authorization: Bearer ${apiKey}`,
+          'https://polza.ai/api/v1/chat/completions',
+          '-H', `Authorization: Bearer ${POLZA_KEY}`,
           '-H', 'Content-Type: application/json',
           '-d', `@${tmp}`,
         ], { encoding: 'utf8', timeout: 120000 });
@@ -56,31 +50,22 @@ async function openaiChat(prompt, systemPrompt, maxTokens, model) {
           const errCode = parsed.error.code || '';
           const errMsg = parsed.error.message || '';
           const rateLimited = isRateLimitMessage(errCode, errMsg);
-          console.error(`    ⚠️ API error: ${errMsg}`);
+          console.error(`    Polza.ai API error: ${errMsg}`);
           if (errCode === 'invalid_api_key' || errMsg.includes('Incorrect API key')) return null;
-          if (isDeepSeek && POLZA_KEY && apiUrl.includes('deepseek.com')) {
-            console.log('    🔄 DeepSeek недоступен, переключаюсь на Polza.ai...');
-            apiKey = POLZA_KEY;
-            apiUrl = 'https://polza.ai/api/v1/chat/completions';
-            model = 'deepseek/deepseek-chat';
-            const newBody = JSON.stringify({ ...JSON.parse(body), model });
-            fs.writeFileSync(tmp, newBody);
-            continue;
-          }
           if (attempt < maxRetries) {
             await sleep(retryDelayMs(attempt, rateLimited));
             continue;
           }
           return null;
         }
-        return (parsed.choices && parsed.choices[0] && parsed.choices[0].message && parsed.choices[0].message.content) || null;
+        return parsed.choices?.[0]?.message?.content || null;
       } catch (e) {
         if (attempt < maxRetries) {
-          process.stdout.write(`⟳`);
+          process.stdout.write('.');
           await sleep(retryDelayMs(attempt, isRateLimitMessage('', e.message)));
           continue;
         }
-        console.error(`    ⚠️ ${isDeepSeek ? 'DeepSeek' : 'OpenAI'} error (${maxRetries} attempts): ${e.message.substring(0, 100)}`);
+        console.error(`    Polza.ai error (${maxRetries} attempts): ${e.message.substring(0, 100)}`);
         return null;
       }
     }
@@ -90,4 +75,4 @@ async function openaiChat(prompt, systemPrompt, maxTokens, model) {
   }
 }
 
-module.exports = { openaiChat };
+module.exports = { aiChat };
