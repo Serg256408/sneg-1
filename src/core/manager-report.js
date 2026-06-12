@@ -4,7 +4,7 @@
 
 const { parsePfDate } = require('../utils/helpers');
 const { loadAiCache, saveAiCache } = require('./cache');
-const { aiChat } = require('../api/deepseek');
+const { aiChat } = require('../api/polza');
 const { FUNNEL_ORDER } = require('../utils/config');
 
 async function aiDaySummary(dailyDeals, reportDate, aiCache, mgrAlias, forceRefresh) {

@@ -3,7 +3,7 @@
 // ============================================================
 
 const { calculateSalaryScore } = require('./scoring');
-const { aiChat } = require('../api/deepseek');
+const { aiChat } = require('../api/polza');
 const { ensureDeal } = require('./history');
 const { hasCallRecordingFile } = require('./transcription');
 
