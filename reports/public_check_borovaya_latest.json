@@ -1,0 +1,18 @@
+{
+  "alias": "borovaya",
+  "expectedDate": "11-06-2026",
+  "url": "https://serg256408.github.io/sneg-1/borovaya/index.html?fresh=1781246585688",
+  "checkedAt": "2026-06-12T06:43:11.887Z",
+  "durationMs": 6200,
+  "ok": true,
+  "checks": {
+    "http": true,
+    "date": true,
+    "content": true
+  },
+  "httpStatus": 200,
+  "reportDate": "11-06-2026",
+  "generated": "2026-06-11T23:07:01.291Z",
+  "bytes": 68622233,
+  "error": ""
+}

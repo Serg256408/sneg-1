@@ -6,6 +6,7 @@
 //   node verify.js borovaya 05-04-2026     — один менеджер
 //   node verify.js --all 05-04-2026        — все менеджеры
 //   node verify.js --all                   — все, за сегодня
+//   node verify.js --all --no-telegram     — проверить без отправки Telegram
 
 require('dotenv').config({ quiet: true });
 const { MANAGERS_LIST } = require('./src/utils/config');
@@ -35,7 +36,10 @@ async function main() {
     results.push(await verifyManagerReport(alias, reportDate));
   }
 
-  const failed = results.some(result => result?.checks?.some(check => check.status === 'fail'));
+  const failed = results.some(result =>
+    result?.summary?.controlStatus === 'fail' ||
+    result?.checks?.some(check => check.status === 'fail')
+  );
   if (failed) process.exitCode = 1;
 }
 

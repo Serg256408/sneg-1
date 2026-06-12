@@ -15,6 +15,9 @@ const { getManagerDeals, getDealComments, parseComment } = require('./deals');
 const { extractTranscription, hasCallRecordingFile } = require('./transcription');
 const { sendTelegramMessage, isTelegramConfigured } = require('../api/telegram');
 
+const TELEGRAM_DISABLED = process.argv.includes('--no-telegram') ||
+  /^(1|true|yes|on)$/i.test(String(process.env.REPORT_VERIFY_NO_TELEGRAM || '').trim());
+
 // ============ Утилиты ============
 
 function todayDMY() {
@@ -698,9 +701,303 @@ function formatProductivityBlock(reportData, reportDate) {
   return lines;
 }
 
-function formatTelegram(manager, reportDate, checks, reportData = null) {
+function checkByName(checks, name) {
+  return (checks || []).find(c => c.name === name) || null;
+}
+
+function overallStatus(checks) {
+  if ((checks || []).some(c => c.status === 'fail')) return 'fail';
+  if ((checks || []).some(c => c.status === 'warn')) return 'warn';
+  if ((checks || []).some(c => c.status === 'pending')) return 'pending';
+  return 'pass';
+}
+
+function statusWord(status) {
+  const map = {
+    pass: 'OK',
+    warn: 'WARN',
+    fail: 'FAIL',
+    skip: 'OFF',
+    pending: 'WAIT',
+  };
+  return map[status] || String(status || 'WAIT').toUpperCase();
+}
+
+function htmlEscape(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function charLength(value) {
+  return [...String(value ?? '')].length;
+}
+
+function truncateCell(value, max = 42) {
+  const text = String(value ?? '-');
+  const chars = [...text];
+  if (chars.length <= max) return text;
+  return `${chars.slice(0, Math.max(0, max - 3)).join('')}...`;
+}
+
+function padCell(value, width) {
+  const text = String(value ?? '-');
+  return `${text}${' '.repeat(Math.max(0, width - charLength(text)))}`;
+}
+
+function sumCallCheck(callCheck, pick) {
+  return (callCheck?.dealResults || []).reduce((sum, row) => sum + (Number(pick(row)) || 0), 0);
+}
+
+function countBrokenHtmlFiles(htmlCheck) {
+  return (htmlCheck?.files || []).filter(f => !f.exists || !f.valid).length;
+}
+
+function buildTelegramControlState(telegramState = {}) {
+  if (telegramState.disabled) return { status: 'skip', value: 'отключено', detail: '--no-telegram/env' };
+  if (telegramState.configured === false) return { status: 'warn', value: 'нет настроек', detail: 'токен/chat_id не заданы' };
+  if (telegramState.checked && telegramState.sent === true) return { status: 'pass', value: 'отправлен', detail: '' };
+  if (telegramState.checked && telegramState.sent === false) return { status: 'fail', value: 'ошибка', detail: 'Telegram API не принял сообщение' };
+  if (telegramState.configured) return { status: 'pending', value: 'отправка', detail: 'проверяется после отправки' };
+  return { status: 'pending', value: 'не проверено', detail: '' };
+}
+
+function buildControlSummary(manager, reportDate, checks, reportData = null, telegramState = {}) {
+  const freshness = checkByName(checks, 'dataFreshness');
+  const deals = checkByName(checks, 'dealCompleteness');
+  const calls = checkByName(checks, 'callCompleteness');
+  const transcriptions = checkByName(checks, 'transcriptions');
+  const ai = checkByName(checks, 'aiAssessments');
+  const autoSend = checkByName(checks, 'autoSend');
+  const html = checkByName(checks, 'htmlFiles');
+  const productivity = freshness?.status === 'fail' ? null : buildProductivitySummary(reportData, reportDate);
+  const telegram = buildTelegramControlState(telegramState);
+
+  const planfixCalls = calls ? sumCallCheck(calls, row => row.totalPfCalls) : null;
+  const reportCalls = calls ? sumCallCheck(calls, row => row.report?.calls) : null;
+  const htmlTotal = html?.files?.length || 0;
+  const htmlOk = (html?.files || []).filter(f => f.exists && f.valid).length;
+  const aiMissing = (ai?.missing || []).length;
+  const aiInvalid = (ai?.invalid || []).length;
+  const autoSendManagerMissing = autoSend?.shouldSendManager && !autoSend?.managerSummarySent ? 1 : 0;
+
+  const unresolved = {
+    data: freshness?.status === 'fail' ? 1 : 0,
+    deals: (deals?.missingFromReport || []).length +
+      (deals?.unloadableFromPlanfix || []).length +
+      (deals?.reason === 'planfix-empty-report-has-data' ? 1 : 0),
+    calls: calls?.totalMissing || 0,
+    transcriptions: transcriptions?.untranscribed || 0,
+    ai: aiMissing + aiInvalid,
+    autoSend: (autoSend?.notSent || []).length + autoSendManagerMissing,
+    html: countBrokenHtmlFiles(html),
+    telegram: telegram.status === 'fail' ? 1 : 0,
+  };
+  unresolved.total = Object.values(unresolved).reduce((sum, value) => sum + (Number(value) || 0), 0);
+
+  const rows = [
+    {
+      key: 'dataFreshness',
+      item: 'Дата данных',
+      status: freshness?.status || 'pending',
+      value: `${freshness?.actualDate || '-'} / ${freshness?.expectedDate || reportDate}`,
+      detail: freshness?.generated ? `generated ${freshness.generated}` : '',
+    },
+    {
+      key: 'dealCompleteness',
+      item: 'Сделки',
+      status: deals?.status || 'pending',
+      value: deals ? `${deals.reportCount}/${deals.planfixCount}` : '-',
+      detail: deals ? `нет ${deals.missingFromReport.length}, лишн ${deals.extraInReport.length}, недост ${deals.unloadableFromPlanfix.length}` : '',
+    },
+    {
+      key: 'callCompleteness',
+      item: 'Звонки',
+      status: calls?.status || 'pending',
+      value: calls ? `${reportCalls}/${planfixCalls}` : (productivity ? `${productivity.calls.outCount + productivity.calls.inCount + productivity.calls.otherCount}` : '-'),
+      detail: calls ? `пропущено ${calls.totalMissing}` : '',
+    },
+    {
+      key: 'transcriptions',
+      item: 'Расшифровки',
+      status: transcriptions?.status || 'pending',
+      value: transcriptions ? `${transcriptions.transcribed}/${transcriptions.totalCalls}` : '-',
+      detail: transcriptions ? `НДЗ ${transcriptions.ndz}, покрыто ${transcriptions.coveredByTranscription}, нереш ${transcriptions.untranscribed}` : '',
+    },
+    {
+      key: 'aiAssessments',
+      item: 'ИИ-оценки',
+      status: ai?.status || 'pending',
+      value: ai ? `${ai.assessed}/${ai.total}` : '-',
+      detail: ai ? `нет ${aiMissing}, битых ${aiInvalid}` : '',
+    },
+    {
+      key: 'autoSend',
+      item: 'Рекомендации',
+      status: autoSend?.status || 'pending',
+      value: autoSend ? `${autoSend.sent}/${autoSend.shouldSend}` : '-',
+      detail: autoSend ? `не ушло ${(autoSend.notSent || []).length}, сводка ${autoSendManagerMissing ? 'нет' : 'ок'}` : '',
+    },
+    {
+      key: 'htmlFiles',
+      item: 'HTML/данные',
+      status: html?.status || 'pending',
+      value: html ? `${htmlOk}/${htmlTotal}` : '-',
+      detail: html ? `ошибок ${countBrokenHtmlFiles(html)}` : '',
+    },
+    {
+      key: 'telegram',
+      item: 'Telegram',
+      status: telegram.status,
+      value: telegram.value,
+      detail: telegram.detail,
+    },
+    {
+      key: 'unresolved',
+      item: 'Нерешено',
+      status: unresolved.total === 0 ? 'pass' : 'fail',
+      value: String(unresolved.total),
+      detail: `data ${unresolved.data}, deals ${unresolved.deals}, calls ${unresolved.calls}, tr ${unresolved.transcriptions}, ai ${unresolved.ai}, send ${unresolved.autoSend}, html ${unresolved.html}`,
+    },
+  ];
+
+  return {
+    managerAlias: reportData?.managerAlias || '',
+    managerName: manager?.name || '',
+    reportDate,
+    generated: reportData?.generated || '',
+    checkedAt: new Date().toISOString(),
+    overallStatus: overallStatus(checks),
+    controlStatus: unresolved.total === 0 ? 'pass' : 'fail',
+    rows,
+    metrics: {
+      deals: deals ? {
+        report: deals.reportCount,
+        planfix: deals.planfixCount,
+        missing: deals.missingFromReport.length,
+        extra: deals.extraInReport.length,
+        unloadable: deals.unloadableFromPlanfix.length,
+      } : null,
+      calls: calls ? {
+        report: reportCalls,
+        planfix: planfixCalls,
+        missing: calls.totalMissing,
+      } : null,
+      transcriptions: transcriptions ? {
+        total: transcriptions.totalCalls,
+        transcribed: transcriptions.transcribed,
+        ndz: transcriptions.ndz,
+        coveredByTranscription: transcriptions.coveredByTranscription,
+        untranscribed: transcriptions.untranscribed,
+        reasons: transcriptions.untranscribedReasons,
+      } : null,
+      ai: ai ? {
+        total: ai.total,
+        assessed: ai.assessed,
+        missing: aiMissing,
+        invalid: aiInvalid,
+      } : null,
+      autoSend: autoSend ? {
+        sent: autoSend.sent,
+        shouldSend: autoSend.shouldSend,
+        notSent: (autoSend.notSent || []).length,
+        managerSummarySent: !!autoSend.managerSummarySent,
+        managerSummaryRequired: !!autoSend.shouldSendManager,
+        managerSummarySkippedNoTask: !!autoSend.managerSummarySkippedNoTask,
+      } : null,
+      html: html ? {
+        ok: htmlOk,
+        total: htmlTotal,
+        broken: countBrokenHtmlFiles(html),
+      } : null,
+      productivity,
+      telegram: {
+        disabled: !!telegramState.disabled,
+        configured: !!telegramState.configured,
+        checked: !!telegramState.checked,
+        sent: telegramState.sent === true,
+        status: telegram.status,
+      },
+      unresolved,
+    },
+  };
+}
+
+function formatControlTable(summary, options = {}) {
+  const { html = false, includeTelegram = true } = options;
+  const headers = ['Пункт', 'Статус', 'Итого', 'Деталь'];
+  const rows = (summary?.rows || [])
+    .filter(row => includeTelegram || row.key !== 'telegram')
+    .map(row => [
+      truncateCell(row.item, 18),
+      statusWord(row.status),
+      truncateCell(row.value, 34),
+      truncateCell(row.detail, 56),
+    ]);
+  const tableRows = [headers, ...rows];
+  const widths = headers.map((_, index) => Math.max(...tableRows.map(row => charLength(row[index]))));
+  const line = values => values.map((value, index) => padCell(value, widths[index])).join(' | ');
+  const separator = widths.map(width => '-'.repeat(width)).join('-+-');
+  const table = [line(headers), separator, ...rows.map(line)].join('\n');
+  return html ? `<pre>${htmlEscape(table)}</pre>` : table;
+}
+
+function safeReportDate(reportDate) {
+  return String(reportDate || 'unknown').replace(/[^0-9A-Za-z_-]+/g, '-');
+}
+
+function writeVerificationArtifacts(alias, summary, checks) {
+  const payload = {
+    ...summary,
+    checks,
+  };
+  const safeDate = safeReportDate(summary.reportDate);
+  const targets = [
+    path.join(ROOT_DIR, 'reports', `verification_${alias}_${safeDate}.json`),
+    path.join(ROOT_DIR, 'reports', `verification_${alias}_latest.json`),
+    path.join(ROOT_DIR, 'data', `${alias}_verification_latest.json`),
+  ];
+  for (const target of targets) {
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+  }
+  return targets;
+}
+
+async function sendVerificationTelegram(manager, reportDate, checks, reportData) {
+  const configured = isTelegramConfigured();
+  if (TELEGRAM_DISABLED) return { disabled: true, configured, checked: true, sent: null };
+  if (!configured) return { disabled: false, configured: false, checked: true, sent: null };
+  const msg = formatTelegram(manager, reportDate, checks, reportData, { configured: true });
+  const sent = await sendTelegramMessage(msg);
+  return { disabled: false, configured: true, checked: true, sent };
+}
+
+function finalizeVerificationConsole(alias, manager, reportDate, checks, reportData, telegramState) {
+  const summary = buildControlSummary(manager, reportDate, checks, reportData, telegramState);
+  const artifactPaths = writeVerificationArtifacts(alias, summary, checks);
+  console.log(`  Verification JSON: ${path.relative(ROOT_DIR, artifactPaths[1])}`);
+  return { summary, artifactPaths };
+}
+
+function logTelegramDelivery(telegramState) {
+  if (telegramState.disabled) {
+    console.log('  Telegram: disabled');
+  } else if (!telegramState.configured) {
+    console.log('  Telegram: not configured');
+  } else {
+    console.log(`  Telegram: ${telegramState.sent ? 'sent' : 'failed'}`);
+  }
+}
+
+function formatTelegram(manager, reportDate, checks, reportData = null, telegramState = {}) {
   const lines = [`<b>📊 Верификация: ${manager.name} (${reportDate})</b>`, ''];
   const freshness = checks.find(c => c.name === 'dataFreshness');
+
+  const controlSummary = buildControlSummary(manager, reportDate, checks, reportData, telegramState);
+  lines.push('<b>Контрольная таблица</b>');
+  lines.push(formatControlTable(controlSummary, { html: true, includeTelegram: false }), '');
 
   const productivityLines = freshness?.status === 'fail' ? [] : formatProductivityBlock(reportData, reportDate);
   if (productivityLines.length) {
@@ -792,8 +1089,11 @@ function formatTelegram(manager, reportDate, checks, reportData = null) {
 
 // ============ Форматирование для консоли ============
 
-function formatConsole(manager, reportDate, checks) {
+function formatConsole(manager, reportDate, checks, reportData = null, telegramState = {}) {
   const lines = [`\n=== Верификация: ${manager.name} (${reportDate}) ===\n`];
+
+  const controlSummary = buildControlSummary(manager, reportDate, checks, reportData, telegramState);
+  lines.push(formatControlTable(controlSummary), '');
 
   for (const c of checks) {
     lines.push(`${statusIcon(c.status)} ${c.name}`);
@@ -845,6 +1145,12 @@ async function verifyManagerReport(alias, reportDate) {
 
   const reportData = loadReportData(alias);
   if (!reportData) { console.error(`  ❌ Нет данных: data/${alias}_latest.json`); return null; }
+  const pendingTelegramState = {
+    disabled: TELEGRAM_DISABLED,
+    configured: !TELEGRAM_DISABLED && isTelegramConfigured(),
+    checked: false,
+    sent: null,
+  };
 
   const aiCache = loadAiCache();
   const checks = [];
@@ -853,12 +1159,11 @@ async function verifyManagerReport(alias, reportDate) {
 
   if (freshness.status === 'fail') {
     checks.push(checkHtmlFiles(alias, reportDate));
-    console.log(formatConsole(manager, reportDate, checks));
-    if (isTelegramConfigured()) {
-      const msg = formatTelegram(manager, reportDate, checks, reportData);
-      await sendTelegramMessage(msg);
-    }
-    return { manager, reportDate, checks };
+    console.log(formatConsole(manager, reportDate, checks, reportData, pendingTelegramState));
+    const telegramState = await sendVerificationTelegram(manager, reportDate, checks, reportData);
+    logTelegramDelivery(telegramState);
+    const { summary, artifactPaths } = finalizeVerificationConsole(alias, manager, reportDate, checks, reportData, telegramState);
+    return { manager, reportDate, checks, summary, telegramSent: telegramState.sent === true, artifactPaths };
   }
 
   // 1. Полнота сделок
@@ -880,15 +1185,21 @@ async function verifyManagerReport(alias, reportDate) {
   checks.push(checkHtmlFiles(alias, reportDate));
 
   // Вывод в консоль
-  console.log(formatConsole(manager, reportDate, checks));
+  console.log(formatConsole(manager, reportDate, checks, reportData, pendingTelegramState));
 
-  // Отправка в Telegram
-  if (isTelegramConfigured()) {
-    const msg = formatTelegram(manager, reportDate, checks, reportData);
-    await sendTelegramMessage(msg);
-  }
+  // Отправка в Telegram и сохранение итогового JSON
+  const telegramState = await sendVerificationTelegram(manager, reportDate, checks, reportData);
+  logTelegramDelivery(telegramState);
+  const { summary, artifactPaths } = finalizeVerificationConsole(alias, manager, reportDate, checks, reportData, telegramState);
 
-  return { manager, reportDate, checks };
+  return { manager, reportDate, checks, summary, telegramSent: telegramState.sent === true, artifactPaths };
 }
 
-module.exports = { verifyManagerReport, formatTelegram, formatConsole };
+module.exports = {
+  verifyManagerReport,
+  formatTelegram,
+  formatConsole,
+  buildControlSummary,
+  formatControlTable,
+  writeVerificationArtifacts,
+};

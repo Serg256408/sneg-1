@@ -7,7 +7,11 @@
     "start": "node server.js",
     "test": "node test.js",
     "watch": "node watch-test.js",
-    "check": "node --check analytics.js"
+    "check": "node --check analytics.js",
+    "verify": "node verify.js --all",
+    "verify:no-telegram": "node verify.js --all --no-telegram",
+    "verify:borovaya": "node verify.js borovaya",
+    "check:public": "node scripts/check-public-report.js borovaya"
   },
   "keywords": [],
   "author": "",
