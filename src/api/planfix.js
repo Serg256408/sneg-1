@@ -160,6 +160,18 @@ function throwIfResponseIsRateLimited(payload, endpoint) {
   if (notePlanfixRateLimit(payload, endpoint)) throw makePlanfixRateLimitError();
 }
 
+function throwIfResponseIsFailure(payload, endpoint) {
+  if (!payload || typeof payload !== 'object') return;
+  const result = typeof payload.result === 'string' ? payload.result.toLowerCase() : '';
+  if (!payload.error && result !== 'fail' && result !== 'error') return;
+
+  const details = payload.error?.message || payload.message || payload.error || JSON.stringify(payload);
+  const err = new Error(`Planfix REST API error (${normalizeEndpoint(endpoint)}): ${String(details).slice(0, 300)}`);
+  err.code = 'PLANFIX_ERROR';
+  err.planfixPayload = payload;
+  throw err;
+}
+
 async function httpPost(url, body, headers) {
   throwIfPlanfixRateLimited();
   registerPlanfixRestRequest('POST', url);
@@ -167,10 +179,12 @@ async function httpPost(url, body, headers) {
     try {
       const data = (await axios.post(url, body, { headers, timeout: 30000, maxRedirects: 10 })).data;
       throwIfResponseIsRateLimited(data, url);
+      throwIfResponseIsFailure(data, url);
       return data;
     } catch (e) {
       if (e.message?.includes('redirect')) { useAxios = false; return httpPost(url, body, headers); }
       throwIfResponseIsRateLimited(e.response?.data || e.message, url);
+      throwIfResponseIsFailure(e.response?.data, url);
       throw e;
     }
   }
@@ -183,6 +197,7 @@ async function httpPost(url, body, headers) {
     a.push('-d', `@${tmp}`);
     const parsed = JSON.parse(execFileSync('curl', a, { encoding: 'utf8', timeout: 30000 }));
     throwIfResponseIsRateLimited(parsed, url);
+    throwIfResponseIsFailure(parsed, url);
     return parsed;
   } finally { try { fs.unlinkSync(tmp); } catch {} }
 }
@@ -194,9 +209,11 @@ async function httpGet(url, headers) {
     try {
       const data = (await axios.get(url, { headers, timeout: 30000 })).data;
       throwIfResponseIsRateLimited(data, url);
+      throwIfResponseIsFailure(data, url);
       return data;
     } catch (e) {
       throwIfResponseIsRateLimited(e.response?.data || e.message, url);
+      throwIfResponseIsFailure(e.response?.data, url);
       throw e;
     }
   }
@@ -205,6 +222,7 @@ async function httpGet(url, headers) {
   for (const [k, v] of Object.entries(headers || {})) a.push('-H', `${k}: ${v}`);
   const parsed = JSON.parse(execFileSync('curl', a, { encoding: 'utf8', timeout: 30000 }));
   throwIfResponseIsRateLimited(parsed, url);
+  throwIfResponseIsFailure(parsed, url);
   return parsed;
 }
 
