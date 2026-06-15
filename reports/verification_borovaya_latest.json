@@ -1,46 +1,46 @@
 {
   "managerAlias": "borovaya",
   "managerName": "Ия Боровая",
-  "reportDate": "14-06-2026",
-  "generated": "2026-06-14T19:37:56.846Z",
-  "checkedAt": "2026-06-14T19:39:21.047Z",
-  "overallStatus": "pass",
-  "controlStatus": "pass",
+  "reportDate": "15-06-2026",
+  "generated": "2026-06-15T20:32:50.447Z",
+  "checkedAt": "2026-06-15T20:34:49.490Z",
+  "overallStatus": "fail",
+  "controlStatus": "fail",
   "rows": [
     {
       "key": "dataFreshness",
       "item": "Дата данных",
       "status": "pass",
-      "value": "14-06-2026 / 14-06-2026",
-      "detail": "generated 2026-06-14T19:37:56.846Z"
+      "value": "15-06-2026 / 15-06-2026",
+      "detail": "generated 2026-06-15T20:32:50.447Z"
     },
     {
       "key": "dealCompleteness",
       "item": "Сделки",
       "status": "pass",
-      "value": "0/0",
+      "value": "35/35",
       "detail": "нет 0, лишн 0, недост 0"
     },
     {
       "key": "callCompleteness",
       "item": "Звонки",
       "status": "pass",
-      "value": "0/0",
+      "value": "28/28",
       "detail": "пропущено 0"
     },
     {
       "key": "transcriptions",
       "item": "Расшифровки",
-      "status": "pass",
-      "value": "0/0",
-      "detail": "НДЗ 0, покрыто 0, нереш 0"
+      "status": "fail",
+      "value": "0/31",
+      "detail": "НДЗ 8, покрыто 0, нереш 23"
     },
     {
       "key": "aiAssessments",
       "item": "ИИ-оценки",
-      "status": "pass",
-      "value": "0/0",
-      "detail": "нет 0, битых 0"
+      "status": "fail",
+      "value": "0/35",
+      "detail": "нет 35, битых 0"
     },
     {
       "key": "autoSend",
@@ -66,36 +66,40 @@
     {
       "key": "unresolved",
       "item": "Нерешено",
-      "status": "pass",
-      "value": "0",
-      "detail": "data 0, deals 0, calls 0, tr 0, ai 0, send 0, html 0"
+      "status": "fail",
+      "value": "58",
+      "detail": "data 0, deals 0, calls 0, tr 23, ai 35, send 0, html 0"
     }
   ],
   "metrics": {
     "deals": {
-      "report": 0,
-      "planfix": 0,
+      "report": 35,
+      "planfix": 35,
       "missing": 0,
       "extra": 0,
       "unloadable": 0
     },
     "calls": {
-      "report": 0,
-      "planfix": 0,
+      "report": 28,
+      "planfix": 28,
       "missing": 0
     },
     "transcriptions": {
-      "total": 0,
+      "total": 31,
       "transcribed": 0,
-      "ndz": 0,
+      "ndz": 8,
       "coveredByTranscription": 0,
-      "untranscribed": 0,
-      "reasons": {}
+      "untranscribed": 23,
+      "reasons": {
+        "mangoRecordNotAttached": 20,
+        "planfixFileMangoNotFound": 1,
+        "planfixFileMangoNoRecord": 2
+      }
     },
     "ai": {
-      "total": 0,
+      "total": 35,
       "assessed": 0,
-      "missing": 0,
+      "missing": 35,
       "invalid": 0
     },
     "autoSend": {
@@ -113,21 +117,21 @@
     },
     "productivity": {
       "calls": {
-        "outCount": 0,
-        "inCount": 0,
+        "outCount": 17,
+        "inCount": 1,
         "otherCount": 0,
-        "outSeconds": 0,
-        "inSeconds": 0,
-        "totalSeconds": 0
+        "outSeconds": 2137,
+        "inSeconds": 53,
+        "totalSeconds": 2190
       },
-      "workedDeals": 0,
-      "newDeals": 0,
-      "oldDeals": 0,
+      "workedDeals": 35,
+      "newDeals": 3,
+      "oldDeals": 32,
       "movement": {
-        "total": 0,
-        "forward": 0,
+        "total": 3,
+        "forward": 1,
         "backward": 0,
-        "unknown": 0
+        "unknown": 2
       }
     },
     "telegram": {
@@ -141,28 +145,28 @@
       "data": 0,
       "deals": 0,
       "calls": 0,
-      "transcriptions": 0,
-      "ai": 0,
+      "transcriptions": 23,
+      "ai": 35,
       "autoSend": 0,
       "html": 0,
       "telegram": 0,
-      "total": 0
+      "total": 58
     }
   },
   "checks": [
     {
       "name": "dataFreshness",
       "status": "pass",
-      "expectedDate": "14-06-2026",
-      "actualDate": "14-06-2026",
-      "generated": "2026-06-14T19:37:56.846Z"
+      "expectedDate": "15-06-2026",
+      "actualDate": "15-06-2026",
+      "generated": "2026-06-15T20:32:50.447Z"
     },
     {
       "name": "dealCompleteness",
       "status": "pass",
-      "planfixCount": 0,
-      "rawPlanfixCount": 0,
-      "reportCount": 0,
+      "planfixCount": 35,
+      "rawPlanfixCount": 35,
+      "reportCount": 35,
       "missingFromReport": [],
       "unloadableFromPlanfix": [],
       "nonReportableFromPlanfix": [],
@@ -172,28 +176,1048 @@
     {
       "name": "callCompleteness",
       "status": "pass",
-      "dealResults": [],
+      "dealResults": [
+        {
+          "dealId": 33871,
+          "dealName": "228238_Оказание клининговых услуг по обслуживанию прилегающей территории, включая расходные материалы",
+          "planfix": {
+            "comments": 4,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 4,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 33769,
+          "dealName": "Генадий ямочный 100м2/Подольск д Борисовка тер-ия ПромтехАльянс д 1",
+          "planfix": {
+            "comments": 24,
+            "calls": 1,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 23,
+            "calls": 1
+          },
+          "totalPfCalls": 1,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "16:30",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 33873,
+          "dealName": "Сообщение с сайта Asfaltsneg.Ru",
+          "planfix": {
+            "comments": 5,
+            "calls": 1,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 5,
+            "calls": 1
+          },
+          "totalPfCalls": 1,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "15:01",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 33715,
+          "dealName": "Игорь ямочный зернистый 250м2/Дмитровское шоссе 31А, д Грибки",
+          "planfix": {
+            "comments": 51,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 50,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 33634,
+          "dealName": "Сергей ТЦ ямочный 450м2/ Москва Сигнальный проезд, 17",
+          "planfix": {
+            "comments": 76,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 75,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 33654,
+          "dealName": "!!! Запрос КП на благоустройство/Царицыно",
+          "planfix": {
+            "comments": 29,
+            "calls": 1,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 28,
+            "calls": 1
+          },
+          "totalPfCalls": 1,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "15:41",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 33773,
+          "dealName": "Ирина горажн кооператив, асфальт цоколь этаж /г. Москва, Анадырский проезд дом 14, корпус 1\nГСК Лось",
+          "planfix": {
+            "comments": 26,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 29,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 33772,
+          "dealName": "Пирог 219м2/г Видное",
+          "planfix": {
+            "comments": 30,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 29,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 33558,
+          "dealName": "ремонт покрытия производственной площадки 2000м2/ Солнечногорский район, дер. Пешки, д.2 корп 2/Соколов Вадим",
+          "planfix": {
+            "comments": 53,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 50,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 33400,
+          "dealName": "Сергей Щелково асфальт 60м2/ 27-05-2026",
+          "planfix": {
+            "comments": 91,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 91,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 33097,
+          "dealName": "!!! Временная дорога 15000м2 Роман/10 км на юг от мкад",
+          "planfix": {
+            "comments": 46,
+            "calls": 1,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 41,
+            "calls": 1
+          },
+          "totalPfCalls": 1,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "16:05",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 33061,
+          "dealName": "!!! ОМПК Огородный проезд 18/ Александр Рябинин / Ямочный ремонт 4000 м2 / Складские и промышленные территории/12-05-2026",
+          "planfix": {
+            "comments": 70,
+            "calls": 1,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 68,
+            "calls": 1
+          },
+          "totalPfCalls": 1,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "16:21",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 33058,
+          "dealName": "!!! Асфальтирование от ООО \"Строительные системы\"  по: г. Москва, пос. Михайлово-Ярцевское, деревня Сенькино-Секерино, ул. Медовая, д. 44, строение 5.",
+          "planfix": {
+            "comments": 63,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 58,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 32571,
+          "dealName": "!!! Укладка асфальта АО \"ГС-СФР\"1500м2/г. Москва, ул. Электродная, д.8",
+          "planfix": {
+            "comments": 96,
+            "calls": 2,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 81,
+            "calls": 2
+          },
+          "totalPfCalls": 2,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "16:28",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 33880,
+          "dealName": "Заявка ЭНМВ АМЗ асфальтирование",
+          "planfix": {
+            "comments": 6,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 6,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 30028,
+          "dealName": "Запрос на парковка+ тротуар/г. Жуковский, ул. Речной проезд, уч. 3А",
+          "planfix": {
+            "comments": 96,
+            "calls": 4,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 88,
+            "calls": 4
+          },
+          "totalPfCalls": 4,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "18:01",
+              "hasAudioFile": true
+            },
+            {
+              "date": "15-06-2026",
+              "time": "17:59",
+              "hasAudioFile": true
+            },
+            {
+              "date": "15-06-2026",
+              "time": "17:12",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 26835,
+          "dealName": "Восстановление асфальта  5-й Войковский проезд дом 28",
+          "planfix": {
+            "comments": 58,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 55,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 22526,
+          "dealName": "Аитов Валерий Харисович/ в Истринском р/05-02-2025",
+          "planfix": {
+            "comments": 84,
+            "calls": 1,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 79,
+            "calls": 1
+          },
+          "totalPfCalls": 1,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 29797,
+          "dealName": "ИП Голыбин Денис Николаевич /  / / 24-12-2025",
+          "planfix": {
+            "comments": 38,
+            "calls": 2,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 35,
+            "calls": 2
+          },
+          "totalPfCalls": 2,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "17:21",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 20015,
+          "dealName": "Погодина Надежда/ТАМАРА/Гофрокомбинат/ устройство пожарного въезда /Павловский посад/19-08-2024/01.04.2025",
+          "planfix": {
+            "comments": 161,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 160,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 32902,
+          "dealName": "запрос благоустройство   ООО АКА щелково 11 770м2",
+          "planfix": {
+            "comments": 79,
+            "calls": 2,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 70,
+            "calls": 2
+          },
+          "totalPfCalls": 2,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "17:26",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 31750,
+          "dealName": "Арина/Асфальтир пл для фур 90000м2 16-03-2026",
+          "planfix": {
+            "comments": 97,
+            "calls": 2,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 81,
+            "calls": 2
+          },
+          "totalPfCalls": 2,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "17:27",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 33188,
+          "dealName": "Алексей / Ямочный ремонт / г. Москва, ул. Авиамоторная 63стр1/ 19-05-2026",
+          "planfix": {
+            "comments": 42,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 40,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 33222,
+          "dealName": "Алиса временная дорога щебнем 480 м2/ Серпухов",
+          "planfix": {
+            "comments": 62,
+            "calls": 1,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 55,
+            "calls": 1
+          },
+          "totalPfCalls": 1,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "17:29",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 33530,
+          "dealName": "ТЗ асфальтобетонного покрытия 1030м2/г. Ступино Первая площадка на ул. Загородной, вторая площадка на\nул. Фрунзе.",
+          "planfix": {
+            "comments": 25,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 24,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 33535,
+          "dealName": "Бортовой камень приглашение на СМР/ шоссе «Солнцево – Бутово – Видное - Каширское шоссе – Молоково –Лыткарино - Томилино – Красково -Железнодорожный»",
+          "planfix": {
+            "comments": 44,
+            "calls": 1,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 42,
+            "calls": 1
+          },
+          "totalPfCalls": 1,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "17:43",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 33566,
+          "dealName": "Запрос на закупку #Z_4832 Ямочный ремонт асфальтового покрытия 500м2/г. Балашиха, м-он Железнодорожный, ул. Автозаводская, д.48А",
+          "planfix": {
+            "comments": 35,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 34,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 33753,
+          "dealName": "Александр замена старого 3100м2/г Жуковский улица Наркомвод, 22/4",
+          "planfix": {
+            "comments": 46,
+            "calls": 1,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 45,
+            "calls": 1
+          },
+          "totalPfCalls": 1,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "17:54",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 33768,
+          "dealName": "Ikon development Чкалов СМР ПОДД",
+          "planfix": {
+            "comments": 23,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 22,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 33811,
+          "dealName": "Запрос коммерческого предложения",
+          "planfix": {
+            "comments": 9,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 9,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        },
+        {
+          "dealId": 33016,
+          "dealName": "!!! АО \"БКСМ\"/Стандартная, 6/Асфальтирование 1500 м2/Манек Алена/Никита Александрович Смирнов/Складские и промышленные территории/12-05-2026",
+          "planfix": {
+            "comments": 46,
+            "calls": 2,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 44,
+            "calls": 2
+          },
+          "totalPfCalls": 2,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "18:17",
+              "hasAudioFile": true
+            },
+            {
+              "date": "15-06-2026",
+              "time": "18:15",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 33267,
+          "dealName": "Запрос ТКП асфальт Реутов (КОМУС)1050м2/г. Реутов, ул.Никольская, д.2",
+          "planfix": {
+            "comments": 78,
+            "calls": 2,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 74,
+            "calls": 2
+          },
+          "totalPfCalls": 2,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "18:18",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 33389,
+          "dealName": "Запрос на КП / Асфальтирование площадки 3400м2/Пента-91 г. Щелково, ул Заводская 2, к 53",
+          "planfix": {
+            "comments": 33,
+            "calls": 1,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 33,
+            "calls": 1
+          },
+          "totalPfCalls": 1,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "18:23",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 31694,
+          "dealName": "Асфальтная крошка 15000 м2/д.Холмы Истринский р-н/Мария Осинкина",
+          "planfix": {
+            "comments": 145,
+            "calls": 2,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 124,
+            "calls": 2
+          },
+          "totalPfCalls": 2,
+          "missingCalls": [],
+          "untranscribedCalls": [
+            {
+              "date": "15-06-2026",
+              "time": "18:27",
+              "hasAudioFile": true
+            }
+          ]
+        },
+        {
+          "dealId": 31684,
+          "dealName": "НИКИЭТ/запрос ТКП на благоустройство территории",
+          "planfix": {
+            "comments": 100,
+            "calls": 0,
+            "subtaskCalls": 0,
+            "contactCalls": 0
+          },
+          "report": {
+            "comments": 90,
+            "calls": 0
+          },
+          "totalPfCalls": 0,
+          "missingCalls": [],
+          "untranscribedCalls": []
+        }
+      ],
       "totalMissing": 0
     },
     {
       "name": "transcriptions",
-      "status": "pass",
-      "totalCalls": 0,
+      "status": "fail",
+      "totalCalls": 31,
       "transcribed": 0,
-      "ndz": 0,
+      "ndz": 8,
       "coveredByTranscription": 0,
-      "untranscribed": 0,
-      "untranscribedReasons": {},
-      "untranscribedReasonText": "",
-      "untranscribedList": [],
+      "untranscribed": 23,
+      "untranscribedReasons": {
+        "mangoRecordNotAttached": 20,
+        "planfixFileMangoNotFound": 1,
+        "planfixFileMangoNoRecord": 2
+      },
+      "untranscribedReasonText": "20 запись Mango есть, но не прикрепилась, 1 файл Planfix есть, Mango не нашёл звонок, 2 файл Planfix есть, в Mango записи нет",
+      "untranscribedList": [
+        {
+          "dealId": 33769,
+          "dealName": "Генадий ямочный 100м2/Подольск д Борисовка тер-ия ПромтехАльянс д 1",
+          "time": "16:30",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 33873,
+          "dealName": "Сообщение с сайта Asfaltsneg.Ru",
+          "time": "15:01",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 33654,
+          "dealName": "!!! Запрос КП на благоустройство/Царицыно",
+          "time": "15:36 - 15:41",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 33654,
+          "dealName": "!!! Запрос КП на благоустройство/Царицыно",
+          "time": "15:41",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 33097,
+          "dealName": "!!! Временная дорога 15000м2 Роман/10 км на юг от мкад",
+          "time": "16:05",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 33061,
+          "dealName": "!!! ОМПК Огородный проезд 18/ Александр Рябинин / Ямочный ремонт 4000 м2 / Складские и промышленные территории/12-05-2026",
+          "time": "16:21",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 32571,
+          "dealName": "!!! Укладка асфальта АО \"ГС-СФР\"1500м2/г. Москва, ул. Электродная, д.8",
+          "time": "16:28",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 30028,
+          "dealName": "Запрос на парковка+ тротуар/г. Жуковский, ул. Речной проезд, уч. 3А",
+          "time": "17:12",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 30028,
+          "dealName": "Запрос на парковка+ тротуар/г. Жуковский, ул. Речной проезд, уч. 3А",
+          "time": "17:59",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 30028,
+          "dealName": "Запрос на парковка+ тротуар/г. Жуковский, ул. Речной проезд, уч. 3А",
+          "time": "18:01",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 29797,
+          "dealName": "ИП Голыбин Денис Николаевич /  / / 24-12-2025",
+          "time": "17:21",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 32902,
+          "dealName": "запрос благоустройство   ООО АКА щелково 11 770м2",
+          "time": "17:26",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 31750,
+          "dealName": "Арина/Асфальтир пл для фур 90000м2 16-03-2026",
+          "time": "17:27",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 33222,
+          "dealName": "Алиса временная дорога щебнем 480 м2/ Серпухов",
+          "time": "17:29",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 33535,
+          "dealName": "Бортовой камень приглашение на СМР/ шоссе «Солнцево – Бутово – Видное - Каширское шоссе – Молоково –Лыткарино - Томилино – Красково -Железнодорожный»",
+          "time": "17:32 - 17:43",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 33535,
+          "dealName": "Бортовой камень приглашение на СМР/ шоссе «Солнцево – Бутово – Видное - Каширское шоссе – Молоково –Лыткарино - Томилино – Красково -Железнодорожный»",
+          "time": "17:43",
+          "reason": "planfixFileMangoNotFound",
+          "reasonLabel": "файл Planfix есть, Mango не нашёл звонок"
+        },
+        {
+          "dealId": 33753,
+          "dealName": "Александр замена старого 3100м2/г Жуковский улица Наркомвод, 22/4",
+          "time": "17:54",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 33016,
+          "dealName": "!!! АО \"БКСМ\"/Стандартная, 6/Асфальтирование 1500 м2/Манек Алена/Никита Александрович Смирнов/Складские и промышленные территории/12-05-2026",
+          "time": "18:13 - 18:15",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 33016,
+          "dealName": "!!! АО \"БКСМ\"/Стандартная, 6/Асфальтирование 1500 м2/Манек Алена/Никита Александрович Смирнов/Складские и промышленные территории/12-05-2026",
+          "time": "18:15",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 33016,
+          "dealName": "!!! АО \"БКСМ\"/Стандартная, 6/Асфальтирование 1500 м2/Манек Алена/Никита Александрович Смирнов/Складские и промышленные территории/12-05-2026",
+          "time": "18:17",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 33267,
+          "dealName": "Запрос ТКП асфальт Реутов (КОМУС)1050м2/г. Реутов, ул.Никольская, д.2",
+          "time": "18:18",
+          "reason": "planfixFileMangoNoRecord",
+          "reasonLabel": "файл Planfix есть, в Mango записи нет"
+        },
+        {
+          "dealId": 33389,
+          "dealName": "Запрос на КП / Асфальтирование площадки 3400м2/Пента-91 г. Щелково, ул Заводская 2, к 53",
+          "time": "18:23",
+          "reason": "mangoRecordNotAttached",
+          "reasonLabel": "запись Mango есть, но не прикрепилась"
+        },
+        {
+          "dealId": 31694,
+          "dealName": "Асфальтная крошка 15000 м2/д.Холмы Истринский р-н/Мария Осинкина",
+          "time": "18:27",
+          "reason": "planfixFileMangoNoRecord",
+          "reasonLabel": "файл Planfix есть, в Mango записи нет"
+        }
+      ],
       "coveredList": []
     },
     {
       "name": "aiAssessments",
-      "status": "pass",
-      "total": 0,
+      "status": "fail",
+      "total": 35,
       "assessed": 0,
-      "missing": [],
+      "missing": [
+        {
+          "dealId": 33871,
+          "dealName": "228238_Оказание клининговых услуг по обслуживанию прилегающей территории, включая расходные материалы"
+        },
+        {
+          "dealId": 33769,
+          "dealName": "Генадий ямочный 100м2/Подольск д Борисовка тер-ия ПромтехАльянс д 1"
+        },
+        {
+          "dealId": 33873,
+          "dealName": "Сообщение с сайта Asfaltsneg.Ru"
+        },
+        {
+          "dealId": 33715,
+          "dealName": "Игорь ямочный зернистый 250м2/Дмитровское шоссе 31А, д Грибки"
+        },
+        {
+          "dealId": 33634,
+          "dealName": "Сергей ТЦ ямочный 450м2/ Москва Сигнальный проезд, 17"
+        },
+        {
+          "dealId": 33654,
+          "dealName": "!!! Запрос КП на благоустройство/Царицыно"
+        },
+        {
+          "dealId": 33773,
+          "dealName": "Ирина горажн кооператив, асфальт цоколь этаж /г. Москва, Анадырский проезд дом 14, корпус 1\nГСК Лось"
+        },
+        {
+          "dealId": 33772,
+          "dealName": "Пирог 219м2/г Видное"
+        },
+        {
+          "dealId": 33558,
+          "dealName": "ремонт покрытия производственной площадки 2000м2/ Солнечногорский район, дер. Пешки, д.2 корп 2/Соколов Вадим"
+        },
+        {
+          "dealId": 33400,
+          "dealName": "Сергей Щелково асфальт 60м2/ 27-05-2026"
+        },
+        {
+          "dealId": 33097,
+          "dealName": "!!! Временная дорога 15000м2 Роман/10 км на юг от мкад"
+        },
+        {
+          "dealId": 33061,
+          "dealName": "!!! ОМПК Огородный проезд 18/ Александр Рябинин / Ямочный ремонт 4000 м2 / Складские и промышленные территории/12-05-2026"
+        },
+        {
+          "dealId": 33058,
+          "dealName": "!!! Асфальтирование от ООО \"Строительные системы\"  по: г. Москва, пос. Михайлово-Ярцевское, деревня Сенькино-Секерино, ул. Медовая, д. 44, строение 5."
+        },
+        {
+          "dealId": 32571,
+          "dealName": "!!! Укладка асфальта АО \"ГС-СФР\"1500м2/г. Москва, ул. Электродная, д.8"
+        },
+        {
+          "dealId": 33880,
+          "dealName": "Заявка ЭНМВ АМЗ асфальтирование"
+        },
+        {
+          "dealId": 30028,
+          "dealName": "Запрос на парковка+ тротуар/г. Жуковский, ул. Речной проезд, уч. 3А"
+        },
+        {
+          "dealId": 26835,
+          "dealName": "Восстановление асфальта  5-й Войковский проезд дом 28"
+        },
+        {
+          "dealId": 22526,
+          "dealName": "Аитов Валерий Харисович/ в Истринском р/05-02-2025"
+        },
+        {
+          "dealId": 29797,
+          "dealName": "ИП Голыбин Денис Николаевич /  / / 24-12-2025"
+        },
+        {
+          "dealId": 20015,
+          "dealName": "Погодина Надежда/ТАМАРА/Гофрокомбинат/ устройство пожарного въезда /Павловский посад/19-08-2024/01.04.2025"
+        },
+        {
+          "dealId": 32902,
+          "dealName": "запрос благоустройство   ООО АКА щелково 11 770м2"
+        },
+        {
+          "dealId": 31750,
+          "dealName": "Арина/Асфальтир пл для фур 90000м2 16-03-2026"
+        },
+        {
+          "dealId": 33188,
+          "dealName": "Алексей / Ямочный ремонт / г. Москва, ул. Авиамоторная 63стр1/ 19-05-2026"
+        },
+        {
+          "dealId": 33222,
+          "dealName": "Алиса временная дорога щебнем 480 м2/ Серпухов"
+        },
+        {
+          "dealId": 33530,
+          "dealName": "ТЗ асфальтобетонного покрытия 1030м2/г. Ступино Первая площадка на ул. Загородной, вторая площадка на\nул. Фрунзе."
+        },
+        {
+          "dealId": 33535,
+          "dealName": "Бортовой камень приглашение на СМР/ шоссе «Солнцево – Бутово – Видное - Каширское шоссе – Молоково –Лыткарино - Томилино – Красково -Железнодорожный»"
+        },
+        {
+          "dealId": 33566,
+          "dealName": "Запрос на закупку #Z_4832 Ямочный ремонт асфальтового покрытия 500м2/г. Балашиха, м-он Железнодорожный, ул. Автозаводская, д.48А"
+        },
+        {
+          "dealId": 33753,
+          "dealName": "Александр замена старого 3100м2/г Жуковский улица Наркомвод, 22/4"
+        },
+        {
+          "dealId": 33768,
+          "dealName": "Ikon development Чкалов СМР ПОДД"
+        },
+        {
+          "dealId": 33811,
+          "dealName": "Запрос коммерческого предложения"
+        },
+        {
+          "dealId": 33016,
+          "dealName": "!!! АО \"БКСМ\"/Стандартная, 6/Асфальтирование 1500 м2/Манек Алена/Никита Александрович Смирнов/Складские и промышленные территории/12-05-2026"
+        },
+        {
+          "dealId": 33267,
+          "dealName": "Запрос ТКП асфальт Реутов (КОМУС)1050м2/г. Реутов, ул.Никольская, д.2"
+        },
+        {
+          "dealId": 33389,
+          "dealName": "Запрос на КП / Асфальтирование площадки 3400м2/Пента-91 г. Щелково, ул Заводская 2, к 53"
+        },
+        {
+          "dealId": 31694,
+          "dealName": "Асфальтная крошка 15000 м2/д.Холмы Истринский р-н/Мария Осинкина"
+        },
+        {
+          "dealId": 31684,
+          "dealName": "НИКИЭТ/запрос ТКП на благоустройство территории"
+        }
+      ],
       "invalid": []
     },
     {
@@ -214,21 +1238,21 @@
           "path": "reports/borovaya.html",
           "label": "Отчёт",
           "exists": true,
-          "sizeKb": 49163,
+          "sizeKb": 59178,
           "valid": true
         },
         {
           "path": "deploy/borovaya/index.html",
           "label": "Deploy",
           "exists": true,
-          "sizeKb": 49163,
+          "sizeKb": 59178,
           "valid": true
         },
         {
           "path": "data/borovaya_latest.json",
           "label": "Данные",
           "exists": true,
-          "sizeKb": 62288,
+          "sizeKb": 75607,
           "valid": true
         }
       ]

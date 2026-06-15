@@ -6833,5 +6833,53 @@
   "sent_24640_11-06-2026": true,
   "sent_33648_11-06-2026": true,
   "sent_33139_11-06-2026": true,
-  "sent_32074_11-06-2026": true
+  "sent_32074_11-06-2026": true,
+  "pf_file_download_fail_1739750": {
+    "ts": "2026-06-15T20:11:50.508Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 15-06-2026 16:05",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_3e089f598dbef108c6f977f593ec038129b8069f": {
+    "ts": "2026-06-15T20:11:50.508Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 15-06-2026 16:05",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1739840": {
+    "ts": "2026-06-15T20:14:26.670Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Калашникова Виктория Дмитриевна 15-06-2026 18:18",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_2c5857446c6b5be085ecec58fca033b116a23e56": {
+    "ts": "2026-06-15T20:14:26.670Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Калашникова Виктория Дмитриевна 15-06-2026 18:18",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1739848": {
+    "ts": "2026-06-15T20:14:29.869Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - 79099863141 15-06-2026 18:27",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_378c807ca096f1bba6af24e2032b1a721d7c04b8": {
+    "ts": "2026-06-15T20:14:29.869Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - 79099863141 15-06-2026 18:27",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1739834": {
+    "ts": "2026-06-15T20:32:49.881Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Екатерина Миронова - Евгений, Олимпийский пр 15-06-2026 18:06",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_4ea37d9b66aaab56a68d10eb1be19d3a51202e7a": {
+    "ts": "2026-06-15T20:32:49.881Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Екатерина Миронова - Евгений, Олимпийский пр 15-06-2026 18:06",
+    "ttlHours": 168
+  }
 }
