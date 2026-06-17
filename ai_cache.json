@@ -6881,5 +6881,53 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Екатерина Миронова - Евгений, Олимпийский пр 15-06-2026 18:06",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1740394": {
+    "ts": "2026-06-17T19:45:27.644Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Марина Замятина - V.Zaitseva@ikon-pm.ru 17-06-2026 15:09",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_17314610c624029c006017201f1e0b393770239f": {
+    "ts": "2026-06-17T19:45:27.644Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Марина Замятина - V.Zaitseva@ikon-pm.ru 17-06-2026 15:09",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1740280": {
+    "ts": "2026-06-17T19:46:41.833Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Сахапов Артур Робертович 17-06-2026 10:40",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_b9a19fdfbe5aca640ffab2614f57c6e809e84b3d": {
+    "ts": "2026-06-17T19:46:41.833Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Сахапов Артур Робертович 17-06-2026 10:40",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1740458": {
+    "ts": "2026-06-17T19:50:09.075Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Ирина 17-06-2026 16:47",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_1213745a3ad8dff7322ea2ec3c86886cf301de12": {
+    "ts": "2026-06-17T19:50:09.075Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Ирина 17-06-2026 16:47",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1740486": {
+    "ts": "2026-06-17T19:50:46.978Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Айдас 17-06-2026 17:23",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_031f237627db0cce018c3ec4cb437ec9ccf9843b": {
+    "ts": "2026-06-17T19:50:46.978Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Айдас 17-06-2026 17:23",
+    "ttlHours": 168
   }
 }
