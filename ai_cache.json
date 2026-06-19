@@ -7001,5 +7001,17 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Шкред Дарья Андреевна - Екатерина Миронова 18-06-2026 12:18",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1741106": {
+    "ts": "2026-06-19T19:35:19.949Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игорь 19-06-2026 16:43",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_ad5b8807a753166a62c99a49fc15c5167985221b": {
+    "ts": "2026-06-19T19:35:19.949Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игорь 19-06-2026 16:43",
+    "ttlHours": 168
   }
 }
