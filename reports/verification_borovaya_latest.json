@@ -1,46 +1,46 @@
 {
   "managerAlias": "borovaya",
   "managerName": "Ия Боровая",
-  "reportDate": "19-06-2026",
-  "generated": "2026-06-19T19:43:44.360Z",
-  "checkedAt": "2026-06-19T19:45:19.763Z",
-  "overallStatus": "fail",
-  "controlStatus": "fail",
+  "reportDate": "20-06-2026",
+  "generated": "2026-06-20T19:37:00.016Z",
+  "checkedAt": "2026-06-20T19:38:27.581Z",
+  "overallStatus": "pass",
+  "controlStatus": "pass",
   "rows": [
     {
       "key": "dataFreshness",
       "item": "Дата данных",
       "status": "pass",
-      "value": "19-06-2026 / 19-06-2026",
-      "detail": "generated 2026-06-19T19:43:44.360Z"
+      "value": "20-06-2026 / 20-06-2026",
+      "detail": "generated 2026-06-20T19:37:00.016Z"
     },
     {
       "key": "dealCompleteness",
       "item": "Сделки",
       "status": "pass",
-      "value": "6/6",
+      "value": "0/0",
       "detail": "нет 0, лишн 0, недост 0"
     },
     {
       "key": "callCompleteness",
       "item": "Звонки",
       "status": "pass",
-      "value": "4/4",
+      "value": "0/0",
       "detail": "пропущено 0"
     },
     {
       "key": "transcriptions",
       "item": "Расшифровки",
-      "status": "fail",
-      "value": "0/4",
-      "detail": "НДЗ 1, покрыто 0, нереш 3"
+      "status": "pass",
+      "value": "0/0",
+      "detail": "НДЗ 0, покрыто 0, нереш 0"
     },
     {
       "key": "aiAssessments",
       "item": "ИИ-оценки",
-      "status": "fail",
-      "value": "0/6",
-      "detail": "нет 6, битых 0"
+      "status": "pass",
+      "value": "0/0",
+      "detail": "нет 0, битых 0"
     },
     {
       "key": "autoSend",
@@ -66,40 +66,36 @@
     {
       "key": "unresolved",
       "item": "Нерешено",
-      "status": "fail",
-      "value": "9",
-      "detail": "data 0, deals 0, calls 0, tr 3, ai 6, send 0, html 0"
+      "status": "pass",
+      "value": "0",
+      "detail": "data 0, deals 0, calls 0, tr 0, ai 0, send 0, html 0"
     }
   ],
   "metrics": {
     "deals": {
-      "report": 6,
-      "planfix": 6,
+      "report": 0,
+      "planfix": 0,
       "missing": 0,
       "extra": 0,
       "unloadable": 0
     },
     "calls": {
-      "report": 4,
-      "planfix": 4,
+      "report": 0,
+      "planfix": 0,
       "missing": 0
     },
     "transcriptions": {
-      "total": 4,
+      "total": 0,
       "transcribed": 0,
-      "ndz": 1,
+      "ndz": 0,
       "coveredByTranscription": 0,
-      "untranscribed": 3,
-      "reasons": {
-        "planfixFileMangoNoRecord": 1,
-        "planfixFileMangoNotFound": 1,
-        "mangoRecordNotAttached": 1
-      }
+      "untranscribed": 0,
+      "reasons": {}
     },
     "ai": {
-      "total": 6,
+      "total": 0,
       "assessed": 0,
-      "missing": 6,
+      "missing": 0,
       "invalid": 0
     },
     "autoSend": {
@@ -117,21 +113,21 @@
     },
     "productivity": {
       "calls": {
-        "outCount": 2,
+        "outCount": 0,
         "inCount": 0,
         "otherCount": 0,
-        "outSeconds": 55,
+        "outSeconds": 0,
         "inSeconds": 0,
-        "totalSeconds": 55
+        "totalSeconds": 0
       },
-      "workedDeals": 6,
-      "newDeals": 1,
-      "oldDeals": 5,
+      "workedDeals": 0,
+      "newDeals": 0,
+      "oldDeals": 0,
       "movement": {
-        "total": 2,
+        "total": 0,
         "forward": 0,
         "backward": 0,
-        "unknown": 2
+        "unknown": 0
       }
     },
     "telegram": {
@@ -145,28 +141,28 @@
       "data": 0,
       "deals": 0,
       "calls": 0,
-      "transcriptions": 3,
-      "ai": 6,
+      "transcriptions": 0,
+      "ai": 0,
       "autoSend": 0,
       "html": 0,
       "telegram": 0,
-      "total": 9
+      "total": 0
     }
   },
   "checks": [
     {
       "name": "dataFreshness",
       "status": "pass",
-      "expectedDate": "19-06-2026",
-      "actualDate": "19-06-2026",
-      "generated": "2026-06-19T19:43:44.360Z"
+      "expectedDate": "20-06-2026",
+      "actualDate": "20-06-2026",
+      "generated": "2026-06-20T19:37:00.016Z"
     },
     {
       "name": "dealCompleteness",
       "status": "pass",
-      "planfixCount": 6,
-      "rawPlanfixCount": 6,
-      "reportCount": 6,
+      "planfixCount": 0,
+      "rawPlanfixCount": 0,
+      "reportCount": 0,
       "missingFromReport": [],
       "unloadableFromPlanfix": [],
       "nonReportableFromPlanfix": [],
@@ -176,200 +172,28 @@
     {
       "name": "callCompleteness",
       "status": "pass",
-      "dealResults": [
-        {
-          "dealId": 33998,
-          "dealName": "Механизированная разработка грунта котлована с вывозом на полигон на объекте ЖК Нексус",
-          "planfix": {
-            "comments": 4,
-            "calls": 0,
-            "subtaskCalls": 0,
-            "contactCalls": 0
-          },
-          "report": {
-            "comments": 4,
-            "calls": 0
-          },
-          "totalPfCalls": 0,
-          "missingCalls": [],
-          "untranscribedCalls": []
-        },
-        {
-          "dealId": 33747,
-          "dealName": "!!! ямочный ремонт 548м2 по ТЗ план/г. Королев, мкр-н Болшево, ул. Советская, д. 73",
-          "planfix": {
-            "comments": 22,
-            "calls": 0,
-            "subtaskCalls": 0,
-            "contactCalls": 0
-          },
-          "report": {
-            "comments": 21,
-            "calls": 0
-          },
-          "totalPfCalls": 0,
-          "missingCalls": [],
-          "untranscribedCalls": []
-        },
-        {
-          "dealId": 33976,
-          "dealName": "Сообщение с сайта Asfaltsneg.Ru",
-          "planfix": {
-            "comments": 6,
-            "calls": 1,
-            "subtaskCalls": 0,
-            "contactCalls": 0
-          },
-          "report": {
-            "comments": 6,
-            "calls": 1
-          },
-          "totalPfCalls": 1,
-          "missingCalls": [],
-          "untranscribedCalls": [
-            {
-              "date": "19-06-2026",
-              "time": "16:43",
-              "hasAudioFile": true
-            }
-          ]
-        },
-        {
-          "dealId": 33773,
-          "dealName": "Ирина горажн кооператив, асфальт цоколь этаж /г. Москва, Анадырский проезд дом 14, корпус 1\nГСК Лось",
-          "planfix": {
-            "comments": 55,
-            "calls": 1,
-            "subtaskCalls": 0,
-            "contactCalls": 0
-          },
-          "report": {
-            "comments": 58,
-            "calls": 1
-          },
-          "totalPfCalls": 1,
-          "missingCalls": [],
-          "untranscribedCalls": [
-            {
-              "date": "19-06-2026",
-              "time": "16:43",
-              "hasAudioFile": true
-            }
-          ]
-        },
-        {
-          "dealId": 33753,
-          "dealName": "Александр замена старого 3100м2/г Жуковский улица Наркомвод, 22/4",
-          "planfix": {
-            "comments": 55,
-            "calls": 0,
-            "subtaskCalls": 0,
-            "contactCalls": 0
-          },
-          "report": {
-            "comments": 54,
-            "calls": 0
-          },
-          "totalPfCalls": 0,
-          "missingCalls": [],
-          "untranscribedCalls": []
-        },
-        {
-          "dealId": 31694,
-          "dealName": "Асфальтная крошка 15000 м2/д.Холмы Истринский р-н/Мария Осинкина",
-          "planfix": {
-            "comments": 149,
-            "calls": 2,
-            "subtaskCalls": 0,
-            "contactCalls": 0
-          },
-          "report": {
-            "comments": 128,
-            "calls": 2
-          },
-          "totalPfCalls": 2,
-          "missingCalls": [],
-          "untranscribedCalls": [
-            {
-              "date": "19-06-2026",
-              "time": "16:51",
-              "hasAudioFile": true
-            }
-          ]
-        }
-      ],
+      "dealResults": [],
       "totalMissing": 0
     },
     {
       "name": "transcriptions",
-      "status": "fail",
-      "totalCalls": 4,
+      "status": "pass",
+      "totalCalls": 0,
       "transcribed": 0,
-      "ndz": 1,
+      "ndz": 0,
       "coveredByTranscription": 0,
-      "untranscribed": 3,
-      "untranscribedReasons": {
-        "planfixFileMangoNoRecord": 1,
-        "planfixFileMangoNotFound": 1,
-        "mangoRecordNotAttached": 1
-      },
-      "untranscribedReasonText": "1 файл Planfix есть, в Mango записи нет, 1 файл Planfix есть, Mango не нашёл звонок, 1 запись Mango есть, но не прикрепилась",
-      "untranscribedList": [
-        {
-          "dealId": 33976,
-          "dealName": "Сообщение с сайта Asfaltsneg.Ru",
-          "time": "16:43",
-          "reason": "planfixFileMangoNoRecord",
-          "reasonLabel": "файл Planfix есть, в Mango записи нет"
-        },
-        {
-          "dealId": 33773,
-          "dealName": "Ирина горажн кооператив, асфальт цоколь этаж /г. Москва, Анадырский проезд дом 14, корпус 1\nГСК Лось",
-          "time": "16:43",
-          "reason": "planfixFileMangoNotFound",
-          "reasonLabel": "файл Planfix есть, Mango не нашёл звонок"
-        },
-        {
-          "dealId": 31694,
-          "dealName": "Асфальтная крошка 15000 м2/д.Холмы Истринский р-н/Мария Осинкина",
-          "time": "16:51",
-          "reason": "mangoRecordNotAttached",
-          "reasonLabel": "запись Mango есть, но не прикрепилась"
-        }
-      ],
+      "untranscribed": 0,
+      "untranscribedReasons": {},
+      "untranscribedReasonText": "",
+      "untranscribedList": [],
       "coveredList": []
     },
     {
       "name": "aiAssessments",
-      "status": "fail",
-      "total": 6,
+      "status": "pass",
+      "total": 0,
       "assessed": 0,
-      "missing": [
-        {
-          "dealId": 33998,
-          "dealName": "Механизированная разработка грунта котлована с вывозом на полигон на объекте ЖК Нексус"
-        },
-        {
-          "dealId": 33747,
-          "dealName": "!!! ямочный ремонт 548м2 по ТЗ план/г. Королев, мкр-н Болшево, ул. Советская, д. 73"
-        },
-        {
-          "dealId": 33976,
-          "dealName": "Сообщение с сайта Asfaltsneg.Ru"
-        },
-        {
-          "dealId": 33773,
-          "dealName": "Ирина горажн кооператив, асфальт цоколь этаж /г. Москва, Анадырский проезд дом 14, корпус 1\nГСК Лось"
-        },
-        {
-          "dealId": 33753,
-          "dealName": "Александр замена старого 3100м2/г Жуковский улица Наркомвод, 22/4"
-        },
-        {
-          "dealId": 31694,
-          "dealName": "Асфальтная крошка 15000 м2/д.Холмы Истринский р-н/Мария Осинкина"
-        }
-      ],
+      "missing": [],
       "invalid": []
     },
     {
@@ -390,21 +214,21 @@
           "path": "reports/borovaya.html",
           "label": "Отчёт",
           "exists": true,
-          "sizeKb": 55395,
+          "sizeKb": 46898,
           "valid": true
         },
         {
           "path": "deploy/borovaya/index.html",
           "label": "Deploy",
           "exists": true,
-          "sizeKb": 55395,
+          "sizeKb": 46898,
           "valid": true
         },
         {
           "path": "data/borovaya_latest.json",
           "label": "Данные",
           "exists": true,
-          "sizeKb": 71356,
+          "sizeKb": 59646,
           "valid": true
         }
       ]
