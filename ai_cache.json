@@ -7013,5 +7013,77 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Игорь 19-06-2026 16:43",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1741250": {
+    "ts": "2026-06-22T20:07:01.901Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Шкред Дарья Андреевна 22-06-2026 11:45",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_9ea48c7748445e344b83b6d2904a69ab3ba2a82b": {
+    "ts": "2026-06-22T20:07:01.901Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Шкред Дарья Андреевна 22-06-2026 11:45",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1741302": {
+    "ts": "2026-06-22T20:10:27.698Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Бурдина Юлия, Мариот Плаза 22-06-2026 13:58",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_6e4fc519c8fa7c8aa3422cb6feb270faa9744540": {
+    "ts": "2026-06-22T20:10:27.698Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Бурдина Юлия, Мариот Плаза 22-06-2026 13:58",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1741308": {
+    "ts": "2026-06-22T20:10:30.706Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игорь 22-06-2026 14:11",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_8a8361addeef7098748a1e790d5b0be1be5e8d0a": {
+    "ts": "2026-06-22T20:10:30.706Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игорь 22-06-2026 14:11",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1741492": {
+    "ts": "2026-06-22T20:12:24.013Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Айдас 22-06-2026 17:21",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_a28b90265d050049adaef045418cc38cbb6aa27f": {
+    "ts": "2026-06-22T20:12:24.013Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Айдас 22-06-2026 17:21",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1741530": {
+    "ts": "2026-06-22T20:13:44.049Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Вячеслав Ситрунов 22-06-2026 18:01",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_18c27044ab13437ecd66640651839c943794775e": {
+    "ts": "2026-06-22T20:13:44.049Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Вячеслав Ситрунов 22-06-2026 18:01",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1741534": {
+    "ts": "2026-06-22T20:14:00.947Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игнатов Александр Николаевич 22-06-2026 18:07",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_54551afd1f7297dee4d6b544c5428551f47bdf59": {
+    "ts": "2026-06-22T20:14:00.947Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игнатов Александр Николаевич 22-06-2026 18:07",
+    "ttlHours": 168
   }
 }
