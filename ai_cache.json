@@ -7085,5 +7085,41 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Игнатов Александр Николаевич 22-06-2026 18:07",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1741920": {
+    "ts": "2026-06-23T19:39:46.586Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Татьяна Сапожникова 23-06-2026 17:17",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_0e0dd1c623a2079369c009fbeb92ca8cb5d8dd35": {
+    "ts": "2026-06-23T19:39:46.586Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Татьяна Сапожникова 23-06-2026 17:17",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1741838": {
+    "ts": "2026-06-23T19:39:49.364Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Татьяна Сапожникова 23-06-2026 15:05",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_80e5645c725bdb644202244e4afd6d87f5ff0bbe": {
+    "ts": "2026-06-23T19:39:49.364Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Татьяна Сапожникова 23-06-2026 15:05",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1741938": {
+    "ts": "2026-06-23T19:42:03.888Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 23-06-2026 17:55",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_4fdbd9e65523d0f2579232a93796e73a3c52f436": {
+    "ts": "2026-06-23T19:42:03.888Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 23-06-2026 17:55",
+    "ttlHours": 168
   }
 }
