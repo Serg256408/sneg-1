@@ -7121,5 +7121,77 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 23-06-2026 17:55",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1742072": {
+    "ts": "2026-06-24T19:36:15.897Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игнатов Александр Николаевич 24-06-2026 10:38",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_13a190a1c7229d375f300e095d6e73cf53e86f54": {
+    "ts": "2026-06-24T19:36:15.897Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игнатов Александр Николаевич 24-06-2026 10:38",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1742126": {
+    "ts": "2026-06-24T19:37:01.325Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Бурдина Юлия, Мариот Плаза 24-06-2026 11:53",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_5e8a49e75b58211c8ae42256c02b094833b171d9": {
+    "ts": "2026-06-24T19:37:01.325Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Бурдина Юлия, Мариот Плаза 24-06-2026 11:53",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1742240": {
+    "ts": "2026-06-24T19:38:07.831Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Артем 24-06-2026 14:25",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_b2b16e450915dd875a5e656f3dc7f1982d303b93": {
+    "ts": "2026-06-24T19:38:07.831Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Артем 24-06-2026 14:25",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1742138": {
+    "ts": "2026-06-24T19:38:43.771Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Белова Виктория Игоревна 24-06-2026 12:07",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_d71eadefe35e8f2581a19cf2cd71d65e5ceced34": {
+    "ts": "2026-06-24T19:38:43.771Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Белова Виктория Игоревна 24-06-2026 12:07",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1742356": {
+    "ts": "2026-06-24T19:39:22.308Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Арина 24-06-2026 18:18",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_0020d9ef9c83eb76e1e17848f28acd9955b62d3d": {
+    "ts": "2026-06-24T19:39:22.308Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Арина 24-06-2026 18:18",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1742358": {
+    "ts": "2026-06-24T19:39:55.357Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - 79099863141 24-06-2026 18:19",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_4596863af7d8a070d1c3d6cf5643bcdc6828d0bf": {
+    "ts": "2026-06-24T19:39:55.357Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - 79099863141 24-06-2026 18:19",
+    "ttlHours": 168
   }
 }
