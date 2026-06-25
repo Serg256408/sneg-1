@@ -7193,5 +7193,41 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - 79099863141 24-06-2026 18:19",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1742894": {
+    "ts": "2026-06-25T19:42:54.303Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 25-06-2026 18:07",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_2122c268491f30be8f1fd80331010d0ec88bc981": {
+    "ts": "2026-06-25T19:42:54.303Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 25-06-2026 18:07",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1742900": {
+    "ts": "2026-06-25T19:43:02.614Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Kalyuzhniy Vitaliy 25-06-2026 18:12",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_a00734aa9c88a8576943ae847899029ca9221771": {
+    "ts": "2026-06-25T19:43:02.614Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Kalyuzhniy Vitaliy 25-06-2026 18:12",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1742910": {
+    "ts": "2026-06-25T19:43:27.770Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игорь 25-06-2026 18:28",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_303f557b7a9e9d2e808a908fbc7336aa476d72b9": {
+    "ts": "2026-06-25T19:43:27.770Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игорь 25-06-2026 18:28",
+    "ttlHours": 168
   }
 }
