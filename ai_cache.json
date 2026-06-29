@@ -7313,5 +7313,29 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - 79099863141 26-06-2026 15:59",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1743524": {
+    "ts": "2026-06-29T19:38:47.317Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игорь 29-06-2026 16:42",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_ddd7edcc5fa9240b7c35030f2d7d9ae146bf518e": {
+    "ts": "2026-06-29T19:38:47.317Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игорь 29-06-2026 16:42",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1743494": {
+    "ts": "2026-06-29T19:57:37.393Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Марина Замятина - Алексей Кирьяк 29-06-2026 16:05",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_05fcc33bbd5e316908ee2f64743e4203d9f533e2": {
+    "ts": "2026-06-29T19:57:37.393Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Марина Замятина - Алексей Кирьяк 29-06-2026 16:05",
+    "ttlHours": 168
   }
 }
