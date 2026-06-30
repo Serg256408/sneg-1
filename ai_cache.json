@@ -7337,5 +7337,221 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Марина Замятина - Алексей Кирьяк 29-06-2026 16:05",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1743850": {
+    "ts": "2026-06-30T19:37:33.485Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Николай СТРОЙСНАБ - Ия Боровая 30-06-2026 12:41",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_43f387716278fd32df46213e866ca620ed231dfb": {
+    "ts": "2026-06-30T19:37:33.485Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Николай СТРОЙСНАБ - Ия Боровая 30-06-2026 12:41",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1743868": {
+    "ts": "2026-06-30T19:37:48.971Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - 79250283488 30-06-2026 13:02",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_a5470191dff6e13940e8bb56280b3dd55e716dbc": {
+    "ts": "2026-06-30T19:37:48.971Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - 79250283488 30-06-2026 13:02",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744020": {
+    "ts": "2026-06-30T19:38:05.319Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - РГАЭ Хоз. отдел 30-06-2026 16:13",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_3cfc6dce13a54ea75374b87be8d1eee75e609e5f": {
+    "ts": "2026-06-30T19:38:05.319Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - РГАЭ Хоз. отдел 30-06-2026 16:13",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1743886": {
+    "ts": "2026-06-30T19:38:18.783Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игорь 30-06-2026 13:23",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_1d78b4cb771b06a08e61a958c631c153d7e368a2": {
+    "ts": "2026-06-30T19:38:18.783Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игорь 30-06-2026 13:23",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1743890": {
+    "ts": "2026-06-30T19:38:40.068Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Михаил 30-06-2026 13:30",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_4bd862352c5256966281a9daba46d4b013466db6": {
+    "ts": "2026-06-30T19:38:40.068Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Михаил 30-06-2026 13:30",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1743960": {
+    "ts": "2026-06-30T19:39:18.181Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Ирина 30-06-2026 14:57",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_f199ba8756dc715cc39db06ea4d273870ff050b5": {
+    "ts": "2026-06-30T19:39:18.181Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Ирина 30-06-2026 14:57",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1743986": {
+    "ts": "2026-06-30T19:39:24.021Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Danilov, Andrey 30-06-2026 15:24",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_818966c1b5c9403eec50cfcbfdb368856db07247": {
+    "ts": "2026-06-30T19:39:24.021Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Danilov, Andrey 30-06-2026 15:24",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744054": {
+    "ts": "2026-06-30T19:39:42.524Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Демидов Алексей Владимирович 30-06-2026 17:15",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_673be99f72789b430c5ab23210e7830215929324": {
+    "ts": "2026-06-30T19:39:42.524Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Демидов Алексей Владимирович 30-06-2026 17:15",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1743860": {
+    "ts": "2026-06-30T19:40:18.626Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка ЗАО Интернефтегазстрой - Екатерина Миронова 30-06-2026 12:52",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_597cef814b95bce69b74fcffa437f1972b102970": {
+    "ts": "2026-06-30T19:40:18.626Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка ЗАО Интернефтегазстрой - Екатерина Миронова 30-06-2026 12:52",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744066": {
+    "ts": "2026-06-30T19:40:42.597Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - игорь 30-06-2026 17:37",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_29074b953e7d9c41062b520ea7c48e0df5aec508": {
+    "ts": "2026-06-30T19:40:42.597Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - игорь 30-06-2026 17:37",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744080": {
+    "ts": "2026-06-30T19:41:05.033Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Kalyuzhniy Vitaliy 30-06-2026 17:53",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_c0474f2a085f574c40b6c68260bf20777d931e78": {
+    "ts": "2026-06-30T19:41:05.033Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Kalyuzhniy Vitaliy 30-06-2026 17:53",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744086": {
+    "ts": "2026-06-30T19:41:16.616Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Качур Михаил Константинович 30-06-2026 18:00",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_94ad54ca93024a3bf6aa3b0eff6c7d7372a4bb97": {
+    "ts": "2026-06-30T19:41:16.616Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Качур Михаил Константинович 30-06-2026 18:00",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744084": {
+    "ts": "2026-06-30T19:41:22.342Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Бабичев Андрей Алексеевич 30-06-2026 18:00",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_d77188165b35a3132677baefb01a079c541cac47": {
+    "ts": "2026-06-30T19:41:22.342Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Бабичев Андрей Алексеевич 30-06-2026 18:00",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1743980": {
+    "ts": "2026-06-30T20:03:53.672Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Марина Замятина - Алексей Кирьяк 30-06-2026 15:16",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_8e874cc4d12a6a17d4f285e1dec656191f76991b": {
+    "ts": "2026-06-30T20:03:53.672Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Марина Замятина - Алексей Кирьяк 30-06-2026 15:16",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1743974": {
+    "ts": "2026-06-30T20:03:56.147Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Алексей Кирьяк - Марина Замятина 30-06-2026 15:12",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_57b435f455e9ad7196182d72e94aeab526d95c12": {
+    "ts": "2026-06-30T20:03:56.147Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Алексей Кирьяк - Марина Замятина 30-06-2026 15:12",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1743998": {
+    "ts": "2026-06-30T20:05:36.689Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Екатерина Миронова - Иванов Николай Николаевич, АБТ М4 30-06-2026 15:43",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_81885d9483d9b8bd1598f6b74dfd61b6093ac82a": {
+    "ts": "2026-06-30T20:05:36.689Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Екатерина Миронова - Иванов Николай Николаевич, АБТ М4 30-06-2026 15:43",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744022": {
+    "ts": "2026-06-30T20:06:29.342Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Екатерина Миронова - Геннадий 30-06-2026 16:17",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_c89043e5a1c2b1a8047fe699a2164579a366b9cd": {
+    "ts": "2026-06-30T20:06:29.342Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Екатерина Миронова - Геннадий 30-06-2026 16:17",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744042": {
+    "ts": "2026-06-30T20:06:47.013Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Екатерина Миронова - Игорь, Лодочная 30-06-2026 17:05",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_e3dc662fc722a1eb060f9670a1d223091971efe6": {
+    "ts": "2026-06-30T20:06:47.013Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Екатерина Миронова - Игорь, Лодочная 30-06-2026 17:05",
+    "ttlHours": 168
   }
 }
