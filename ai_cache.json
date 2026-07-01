@@ -7553,5 +7553,125 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Екатерина Миронова - Игорь, Лодочная 30-06-2026 17:05",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1744202": {
+    "ts": "2026-07-01T19:35:41.036Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Сергей Рычик - Ия Боровая 01-07-2026 12:13",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_8f1f7c493c90ce6c1eef0f26c8e5d29c237b9475": {
+    "ts": "2026-07-01T19:35:41.036Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Сергей Рычик - Ия Боровая 01-07-2026 12:13",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744342": {
+    "ts": "2026-07-01T19:35:44.319Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Светлана 01-07-2026 16:21",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_417ee119a553fd33517c242ee9475e43a7609741": {
+    "ts": "2026-07-01T19:35:44.319Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Светлана 01-07-2026 16:21",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744346": {
+    "ts": "2026-07-01T19:35:47.501Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Татьяна Сапожникова 01-07-2026 16:30",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_f57a2f5b4a248ec83c7e5895d16dbe8b5ae8b82b": {
+    "ts": "2026-07-01T19:35:47.501Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Татьяна Сапожникова 01-07-2026 16:30",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744374": {
+    "ts": "2026-07-01T19:35:54.147Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Николай СТРОЙСНАБ 01-07-2026 17:11",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_edb165d6df34166d05ef55d710ec9a1e320e05da": {
+    "ts": "2026-07-01T19:35:54.147Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Николай СТРОЙСНАБ 01-07-2026 17:11",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744388": {
+    "ts": "2026-07-01T19:35:57.413Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Жанна Буковцева 01-07-2026 17:19",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_79c6ead23fa3b0bc7c5c013802744637bb0697b4": {
+    "ts": "2026-07-01T19:35:57.413Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Жанна Буковцева 01-07-2026 17:19",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744390": {
+    "ts": "2026-07-01T19:35:59.807Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Михаил Б. Мироненко 01-07-2026 17:24",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_832542d8bee4dfa0aabc19c23fd588a39a1f3a99": {
+    "ts": "2026-07-01T19:35:59.807Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Михаил Б. Мироненко 01-07-2026 17:24",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744408": {
+    "ts": "2026-07-01T19:36:12.766Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Алексей Викторович - Ия Боровая 01-07-2026 17:43",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_7bb0ecbb8eb90f4725c5d4126de047aff74c0e0d": {
+    "ts": "2026-07-01T19:36:12.766Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Алексей Викторович - Ия Боровая 01-07-2026 17:43",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744402": {
+    "ts": "2026-07-01T19:36:14.726Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Алексей Викторович 01-07-2026 17:36",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_5b35dd80d560d7123f8bf496ce6aed4f7230d1c3": {
+    "ts": "2026-07-01T19:36:14.726Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Алексей Викторович 01-07-2026 17:36",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744406": {
+    "ts": "2026-07-01T19:36:17.537Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Горбунов Дмитрий 01-07-2026 17:41",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_04f28b0e89d99fc61071da6f94297d95655325f0": {
+    "ts": "2026-07-01T19:36:17.537Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Горбунов Дмитрий 01-07-2026 17:41",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744416": {
+    "ts": "2026-07-01T19:36:20.442Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 01-07-2026 17:51",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_b36b53c31656cc36cd8d878a3c6b9817d1d7a4ef": {
+    "ts": "2026-07-01T19:36:20.442Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 01-07-2026 17:51",
+    "ttlHours": 168
   }
 }
