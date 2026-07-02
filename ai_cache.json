@@ -7673,5 +7673,209 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 01-07-2026 17:51",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1744570": {
+    "ts": "2026-07-02T19:33:12.271Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Тендерный отдел 8 02-07-2026 13:47",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_1ceeaa55a3282225d80944627d70de2e4bf0a96b": {
+    "ts": "2026-07-02T19:33:12.271Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Тендерный отдел 8 02-07-2026 13:47",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744636": {
+    "ts": "2026-07-02T19:33:16.134Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Садртдинов Марат Радикович - Ия Боровая 02-07-2026 15:28",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_4d6ed36718c2e8eec2e5b3d9e59715990458e6f2": {
+    "ts": "2026-07-02T19:33:16.134Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Садртдинов Марат Радикович - Ия Боровая 02-07-2026 15:28",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744592": {
+    "ts": "2026-07-02T19:33:18.055Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - РГАЭ Хоз. отдел 02-07-2026 14:50",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_7b1d99462419f96b580ddde78ec77b874eeab968": {
+    "ts": "2026-07-02T19:33:18.055Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - РГАЭ Хоз. отдел 02-07-2026 14:50",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744634": {
+    "ts": "2026-07-02T19:33:28.330Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Садртдинов Марат Радикович 02-07-2026 15:27",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_8944e2d44d8cb395c7319d1d4a392b6a10e2a3bd": {
+    "ts": "2026-07-02T19:33:28.330Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Садртдинов Марат Радикович 02-07-2026 15:27",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744632": {
+    "ts": "2026-07-02T19:33:36.752Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Садртдинов Марат Радикович 02-07-2026 15:26",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_9748688943f6f465f5ebbe210e2655e4ae827c34": {
+    "ts": "2026-07-02T19:33:36.752Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Садртдинов Марат Радикович 02-07-2026 15:26",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744704": {
+    "ts": "2026-07-02T19:33:39.529Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Kalyuzhniy Vitaliy 02-07-2026 17:40",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_0144d0db9dea7f9661c8db505346295b1bae1a50": {
+    "ts": "2026-07-02T19:33:39.529Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Kalyuzhniy Vitaliy 02-07-2026 17:40",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744708": {
+    "ts": "2026-07-02T19:33:45.571Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 02-07-2026 17:43",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_15adefe0eacf0cd57c3b7c4d500e964fc82fc8a1": {
+    "ts": "2026-07-02T19:33:45.571Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 02-07-2026 17:43",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744710": {
+    "ts": "2026-07-02T19:33:47.784Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Иван Афанасьев 02-07-2026 17:44",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_dd9556f2e0041e4a7b3f4f8a4fca95cf24067ca1": {
+    "ts": "2026-07-02T19:33:47.784Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Иван Афанасьев 02-07-2026 17:44",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744706": {
+    "ts": "2026-07-02T19:33:49.669Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Калашникова Виктория Дмитриевна 02-07-2026 17:41",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_9fb0cf45695f69b5f0b26baac5705573e8d3ae04": {
+    "ts": "2026-07-02T19:33:49.669Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Калашникова Виктория Дмитриевна 02-07-2026 17:41",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744714": {
+    "ts": "2026-07-02T19:33:51.850Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Жанна Буковцева 02-07-2026 17:48",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_0a2f60e052e08940582af930fe9feecc0a064a40": {
+    "ts": "2026-07-02T19:33:51.850Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Жанна Буковцева 02-07-2026 17:48",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744724": {
+    "ts": "2026-07-02T19:33:59.491Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Никита Александрович Смирнов 02-07-2026 18:01",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_bd34da498b115b6c50ca1d1548d0747924f57eab": {
+    "ts": "2026-07-02T19:33:59.491Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Никита Александрович Смирнов 02-07-2026 18:01",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744720": {
+    "ts": "2026-07-02T19:34:08.245Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Никита Александрович Смирнов 02-07-2026 17:58",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_72f2cd4f1e6d8e171a00c82a0621f06b36dc039b": {
+    "ts": "2026-07-02T19:34:08.245Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Никита Александрович Смирнов 02-07-2026 17:58",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744726": {
+    "ts": "2026-07-02T19:34:10.045Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Danilov, Andrey 02-07-2026 18:06",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_5eba71ea6819b103140b3adbd6da03be474d1bad": {
+    "ts": "2026-07-02T19:34:10.045Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Danilov, Andrey 02-07-2026 18:06",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744736": {
+    "ts": "2026-07-02T19:34:20.785Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Вадим Георгиевич Соколин 02-07-2026 18:15",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_3b32390ae5ebd57b1ec45a6a28d225bb75686d0c": {
+    "ts": "2026-07-02T19:34:20.785Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Вадим Георгиевич Соколин 02-07-2026 18:15",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744740": {
+    "ts": "2026-07-02T19:34:22.571Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - игорь 02-07-2026 18:18",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_49639b5fd57c66b7305c58118b8cee61b62f3a4f": {
+    "ts": "2026-07-02T19:34:22.571Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - игорь 02-07-2026 18:18",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744682": {
+    "ts": "2026-07-02T19:53:02.764Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Екатерина Миронова - Качур Михаил Константинович 02-07-2026 17:03",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_aa7069347638be702414066129a931fc6171a74a": {
+    "ts": "2026-07-02T19:53:02.764Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Екатерина Миронова - Качур Михаил Константинович 02-07-2026 17:03",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1744662": {
+    "ts": "2026-07-02T19:53:21.613Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Игорь - Екатерина Миронова 02-07-2026 16:04",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_95bc815dc289f4719f458b39ade4e858f1bebd0c": {
+    "ts": "2026-07-02T19:53:21.613Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Игорь - Екатерина Миронова 02-07-2026 16:04",
+    "ttlHours": 168
   }
 }
