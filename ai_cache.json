@@ -8345,5 +8345,41 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Михаил 07-07-2026 18:44",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1745872": {
+    "ts": "2026-07-08T20:19:47.210Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Михаил 08-07-2026 17:43",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_e6c27a691aac01766ba21d26b2136b4eb97d0b6c": {
+    "ts": "2026-07-08T20:19:47.210Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Михаил 08-07-2026 17:43",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1745874": {
+    "ts": "2026-07-08T20:20:02.869Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - 79099863141 08-07-2026 17:44",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_75f8779d2bd15761f6d95a210843de74f2a8c72c": {
+    "ts": "2026-07-08T20:20:02.869Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - 79099863141 08-07-2026 17:44",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1745886": {
+    "ts": "2026-07-08T20:20:12.312Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Бурдина Юлия, Мариот Плаза 08-07-2026 18:19",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_81e27172699c00f7f8a66fa279e0c56a86242d5d": {
+    "ts": "2026-07-08T20:20:12.312Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Бурдина Юлия, Мариот Плаза 08-07-2026 18:19",
+    "ttlHours": 168
   }
 }
