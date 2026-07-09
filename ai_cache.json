@@ -8381,5 +8381,65 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Бурдина Юлия, Мариот Плаза 08-07-2026 18:19",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1745930": {
+    "ts": "2026-07-09T20:46:15.276Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Ольга 09-07-2026 10:32",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_f4349d523474b4ba53a49d3e1745203c67d4a88c": {
+    "ts": "2026-07-09T20:46:15.276Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Ольга 09-07-2026 10:32",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1746192": {
+    "ts": "2026-07-09T20:46:22.770Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Международный аэропорт «Внуково» - Вадим 09-07-2026 16:25",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_19f24489c3135f907a96100bbec7bc2637c3d7fd": {
+    "ts": "2026-07-09T20:46:22.770Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Международный аэропорт «Внуково» - Вадим 09-07-2026 16:25",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1746226": {
+    "ts": "2026-07-09T20:46:27.240Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Арман 09-07-2026 16:45",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_8265b89a69c1f58805808b77d6d256e43365b53e": {
+    "ts": "2026-07-09T20:46:27.240Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Арман 09-07-2026 16:45",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1746302": {
+    "ts": "2026-07-09T20:47:34.632Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Danilov, Andrey 09-07-2026 18:17",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_8a36af0aff7d1ea7f4e675834b6197d83b7fcd49": {
+    "ts": "2026-07-09T20:47:34.632Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Danilov, Andrey 09-07-2026 18:17",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1746092": {
+    "ts": "2026-07-09T21:08:37.955Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Екатерина Миронова - 79161507642 09-07-2026 14:55",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_db9f28d18760b73aa8c2d027f0fdc1bf168226c6": {
+    "ts": "2026-07-09T21:08:37.955Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Екатерина Миронова - 79161507642 09-07-2026 14:55",
+    "ttlHours": 168
   }
 }
