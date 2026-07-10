@@ -8441,5 +8441,137 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Екатерина Миронова - 79161507642 09-07-2026 14:55",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1746496": {
+    "ts": "2026-07-10T20:17:56.761Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Екатерина Миронова - ЗАО Интернефтегазстрой 10-07-2026 12:35",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_022c5a174efd6a13372551864e40e777a2b76c53": {
+    "ts": "2026-07-10T20:17:56.761Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Екатерина Миронова - ЗАО Интернефтегазстрой 10-07-2026 12:35",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1746468": {
+    "ts": "2026-07-10T20:17:58.763Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Лядов Владимир Александрович 10-07-2026 12:03",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_7aeb0e11a84ef9797bd3d63adaebec6c1d4c4181": {
+    "ts": "2026-07-10T20:17:58.763Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Лядов Владимир Александрович 10-07-2026 12:03",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1746834": {
+    "ts": "2026-07-10T20:18:02.783Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Александр Дмитриевич Лаврук - Сергей Терехов 10-07-2026 18:14",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_e98b3e9bfa7a753c41032adb58f414d4ef3dc204": {
+    "ts": "2026-07-10T20:18:02.783Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Александр Дмитриевич Лаврук - Сергей Терехов 10-07-2026 18:14",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1746692": {
+    "ts": "2026-07-10T20:18:04.706Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Александр Дмитриевич Лаврук - Ия Боровая 10-07-2026 16:03",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_f6bab5365e35174baa957f0cbf115a2cf7be0315": {
+    "ts": "2026-07-10T20:18:04.706Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Александр Дмитриевич Лаврук - Ия Боровая 10-07-2026 16:03",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1746690": {
+    "ts": "2026-07-10T20:18:11.403Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Александр Дмитриевич Лаврук 10-07-2026 16:03",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_a07e948deda42203be2c2f5ce84798cf1020fe56": {
+    "ts": "2026-07-10T20:18:11.403Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Александр Дмитриевич Лаврук 10-07-2026 16:03",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1746796": {
+    "ts": "2026-07-10T20:18:21.086Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Максим 10-07-2026 17:46",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_828fcfc86ea65c5ade1a789df755892cfb10bb85": {
+    "ts": "2026-07-10T20:18:21.086Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Максим 10-07-2026 17:46",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1746808": {
+    "ts": "2026-07-10T20:18:23.759Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Айдас 10-07-2026 17:52",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_be241250e76b76f94ac232801944d13955e22522": {
+    "ts": "2026-07-10T20:18:23.759Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Айдас 10-07-2026 17:52",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1746824": {
+    "ts": "2026-07-10T20:18:26.983Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Сергей 10-07-2026 18:04",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_77010ae70e7e84e0145de860ab9672b7e15952d1": {
+    "ts": "2026-07-10T20:18:26.983Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Сергей 10-07-2026 18:04",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1746840": {
+    "ts": "2026-07-10T20:18:30.241Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Захар 10-07-2026 18:20",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_cef81a8dceb37e8963ce5d5eb80c95ed45970019": {
+    "ts": "2026-07-10T20:18:30.241Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Захар 10-07-2026 18:20",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1746842": {
+    "ts": "2026-07-10T20:18:32.304Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Петр 10-07-2026 18:25",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_69c5e8a6a2b6c57c6d7361fc905d48cee839ba29": {
+    "ts": "2026-07-10T20:18:32.304Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Петр 10-07-2026 18:25",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1746558": {
+    "ts": "2026-07-10T20:36:18.154Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Екатерина Миронова - Александр 10-07-2026 13:17",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_1104ac8d87f725c9f85a4516ca9b4c42cbb2d36f": {
+    "ts": "2026-07-10T20:36:18.154Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Екатерина Миронова - Александр 10-07-2026 13:17",
+    "ttlHours": 168
   }
 }
