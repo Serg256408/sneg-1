@@ -8573,5 +8573,113 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Екатерина Миронова - Александр 10-07-2026 13:17",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1746972": {
+    "ts": "2026-07-13T20:10:16.052Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Илья 13-07-2026 09:54",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_6895c46b45931ed3e51ee4db39a80427e0340da8": {
+    "ts": "2026-07-13T20:10:16.052Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Илья 13-07-2026 09:54",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1747368": {
+    "ts": "2026-07-13T20:10:55.244Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Леонид 13-07-2026 18:08",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_1a5dc81c4ca0a570a7389ff9eea87d08340000b5": {
+    "ts": "2026-07-13T20:10:55.244Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Леонид 13-07-2026 18:08",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1747452": {
+    "ts": "2026-07-13T20:11:29.567Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - 89099078621 13-07-2026 19:47",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_263bb0bb89b981ff22c50eb3a44d54b2d7e43dcc": {
+    "ts": "2026-07-13T20:11:29.567Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - 89099078621 13-07-2026 19:47",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1747210": {
+    "ts": "2026-07-13T20:11:34.848Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игнатов Александр Николаевич 13-07-2026 15:56",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_ebab4360ae12ce09c63423a49e9abea694467686": {
+    "ts": "2026-07-13T20:11:34.848Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игнатов Александр Николаевич 13-07-2026 15:56",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1747306": {
+    "ts": "2026-07-13T20:12:43.257Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Дмитрий Приказчиков, Чехов,Крюково 13-07-2026 17:21",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_67678334064ae82d5cbf9d196f3f78eb5111de8d": {
+    "ts": "2026-07-13T20:12:43.257Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Дмитрий Приказчиков, Чехов,Крюково 13-07-2026 17:21",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1747310": {
+    "ts": "2026-07-13T20:12:46.636Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Danilov, Andrey 13-07-2026 17:25",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_7d5fa011c7f38211bf490134ee11f7105e3a358e": {
+    "ts": "2026-07-13T20:12:46.636Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Danilov, Andrey 13-07-2026 17:25",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1747356": {
+    "ts": "2026-07-13T20:13:27.331Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Максим 13-07-2026 17:51",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_27ac5d88ccd212452a63ea94c852d3d893619b96": {
+    "ts": "2026-07-13T20:13:27.331Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Максим 13-07-2026 17:51",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1747382": {
+    "ts": "2026-07-13T20:15:56.185Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Александр 13-07-2026 18:30",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_be6859a0ddfcd6d7bd4ca92f15af57d624c1f355": {
+    "ts": "2026-07-13T20:15:56.185Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Александр 13-07-2026 18:30",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1746952": {
+    "ts": "2026-07-13T20:40:00.739Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка 89618345550 - Сергей Терехов 13-07-2026 09:23",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_0c1719c65954c6299e0bc4c380d76b42b5dcedad": {
+    "ts": "2026-07-13T20:40:00.739Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка 89618345550 - Сергей Терехов 13-07-2026 09:23",
+    "ttlHours": 168
   }
 }
