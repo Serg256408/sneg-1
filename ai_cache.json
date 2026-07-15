@@ -8705,5 +8705,29 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Александр 14-07-2026 18:27",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1747990": {
+    "ts": "2026-07-15T20:07:41.106Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Сергей 15-07-2026 10:06",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_e64d485839b09b1eb3179de188606e080055836c": {
+    "ts": "2026-07-15T20:07:41.106Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Сергей 15-07-2026 10:06",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1748238": {
+    "ts": "2026-07-15T20:12:17.390Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Калашникова Виктория Дмитриевна 15-07-2026 17:00",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_df43f60026935580bf058445f5e2952895ceb5f6": {
+    "ts": "2026-07-15T20:12:17.390Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Калашникова Виктория Дмитриевна 15-07-2026 17:00",
+    "ttlHours": 168
   }
 }
