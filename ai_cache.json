@@ -8729,5 +8729,17 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Калашникова Виктория Дмитриевна 15-07-2026 17:00",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1748684": {
+    "ts": "2026-07-16T20:17:05.449Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Сергей Терехов - Евгений 16-07-2026 17:03",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_a53bb9a86a9068a88fd565035bb9305e8aa702c1": {
+    "ts": "2026-07-16T20:17:05.449Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Сергей Терехов - Евгений 16-07-2026 17:03",
+    "ttlHours": 168
   }
 }
