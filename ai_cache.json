@@ -8741,5 +8741,17 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Сергей Терехов - Евгений 16-07-2026 17:03",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1749062": {
+    "ts": "2026-07-17T20:02:58.878Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Danilov, Andrey 17-07-2026 13:59",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_958dd4a163818fe1942be25cb9bf695a3e0fb9dd": {
+    "ts": "2026-07-17T20:02:58.878Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Danilov, Andrey 17-07-2026 13:59",
+    "ttlHours": 168
   }
 }
