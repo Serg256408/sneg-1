@@ -1,9 +1,9 @@
 {
   "managerAlias": "borovaya",
   "managerName": "Ия Боровая",
-  "reportDate": "18-07-2026",
-  "generated": "2026-07-18T20:07:18.921Z",
-  "checkedAt": "2026-07-18T20:09:16.850Z",
+  "reportDate": "19-07-2026",
+  "generated": "2026-07-19T20:11:48.466Z",
+  "checkedAt": "2026-07-19T20:13:53.890Z",
   "overallStatus": "pass",
   "controlStatus": "pass",
   "rows": [
@@ -11,8 +11,8 @@
       "key": "dataFreshness",
       "item": "Дата данных",
       "status": "pass",
-      "value": "18-07-2026 / 18-07-2026",
-      "detail": "generated 2026-07-18T20:07:18.921Z"
+      "value": "19-07-2026 / 19-07-2026",
+      "detail": "generated 2026-07-19T20:11:48.466Z"
     },
     {
       "key": "dealCompleteness",
@@ -153,9 +153,9 @@
     {
       "name": "dataFreshness",
       "status": "pass",
-      "expectedDate": "18-07-2026",
-      "actualDate": "18-07-2026",
-      "generated": "2026-07-18T20:07:18.921Z"
+      "expectedDate": "19-07-2026",
+      "actualDate": "19-07-2026",
+      "generated": "2026-07-19T20:11:48.466Z"
     },
     {
       "name": "dealCompleteness",
@@ -214,21 +214,21 @@
           "path": "reports/borovaya.html",
           "label": "Отчёт",
           "exists": true,
-          "sizeKb": 50174,
+          "sizeKb": 47438,
           "valid": true
         },
         {
           "path": "deploy/borovaya/index.html",
           "label": "Deploy",
           "exists": true,
-          "sizeKb": 50174,
+          "sizeKb": 47438,
           "valid": true
         },
         {
           "path": "data/borovaya_latest.json",
           "label": "Данные",
           "exists": true,
-          "sizeKb": 65185,
+          "sizeKb": 61669,
           "valid": true
         }
       ]
