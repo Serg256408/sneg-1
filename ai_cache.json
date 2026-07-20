@@ -8753,5 +8753,17 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Danilov, Andrey 17-07-2026 13:59",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1749588": {
+    "ts": "2026-07-20T20:24:15.733Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 20-07-2026 18:24",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_e47b98723fb583e2c10c9864b298bb4a0815e1cd": {
+    "ts": "2026-07-20T20:24:15.733Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 20-07-2026 18:24",
+    "ttlHours": 168
   }
 }
