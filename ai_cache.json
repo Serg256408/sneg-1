@@ -8765,5 +8765,17 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 20-07-2026 18:24",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1749832": {
+    "ts": "2026-07-21T20:20:26.649Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 21-07-2026 18:25",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_6016a1e99c1bf780fef6048d48af2d2a1fed8d7a": {
+    "ts": "2026-07-21T20:20:26.649Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 21-07-2026 18:25",
+    "ttlHours": 168
   }
 }
