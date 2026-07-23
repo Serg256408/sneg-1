@@ -8789,5 +8789,41 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Михаил - Ия Боровая 22-07-2026 11:19",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1750238": {
+    "ts": "2026-07-23T20:11:38.718Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Жуков Павел 23-07-2026 10:57",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_2b7d3080ad35390591113b4f9301aed11316d000": {
+    "ts": "2026-07-23T20:11:38.718Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Жуков Павел 23-07-2026 10:57",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1750402": {
+    "ts": "2026-07-23T20:11:55.075Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - B24U 23-07-2026 13:53",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_8eec1b8c3f1f780d7bd369bfe3e889eebe19c972": {
+    "ts": "2026-07-23T20:11:55.075Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - B24U 23-07-2026 13:53",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1750550": {
+    "ts": "2026-07-23T20:13:23.195Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Калашникова Виктория Дмитриевна 23-07-2026 17:29",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_3e9758b6078a9b9d2b2875ca2fa5f71c00b28a78": {
+    "ts": "2026-07-23T20:13:23.195Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Калашникова Виктория Дмитриевна 23-07-2026 17:29",
+    "ttlHours": 168
   }
 }
