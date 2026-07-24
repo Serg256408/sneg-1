@@ -8825,5 +8825,65 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Калашникова Виктория Дмитриевна 23-07-2026 17:29",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1750680": {
+    "ts": "2026-07-24T20:15:37.631Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Максим 24-07-2026 11:40",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_8f3d29f9342f404a5e0588479cb1e1c0a7c67059": {
+    "ts": "2026-07-24T20:15:37.631Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Максим 24-07-2026 11:40",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1750980": {
+    "ts": "2026-07-24T20:15:40.974Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Илья 24-07-2026 18:34",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_19b76e59d0b93a68ddacc62f79620965dd771270": {
+    "ts": "2026-07-24T20:15:40.974Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Илья 24-07-2026 18:34",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1750728": {
+    "ts": "2026-07-24T20:17:21.212Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Елена 24-07-2026 12:52",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_ff7a1723950eda6b098c32712320f4734a05e6ca": {
+    "ts": "2026-07-24T20:17:21.212Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Елена 24-07-2026 12:52",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1750906": {
+    "ts": "2026-07-24T20:20:31.073Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Аркадий 24-07-2026 16:28",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_1dee3441d0dd36e923aa656ec107afb4e63faec1": {
+    "ts": "2026-07-24T20:20:31.073Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Аркадий 24-07-2026 16:28",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1750930": {
+    "ts": "2026-07-24T20:21:01.760Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Александр Рябинин 24-07-2026 16:37",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_ce33cc188bb034225409a8d449d6f2cda803461a": {
+    "ts": "2026-07-24T20:21:01.760Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Александр Рябинин 24-07-2026 16:37",
+    "ttlHours": 168
   }
 }
