@@ -8885,5 +8885,53 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Александр Рябинин 24-07-2026 16:37",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1751338": {
+    "ts": "2026-07-27T20:19:32.173Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Сергей 27-07-2026 15:39",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_52a85be0058f95732d85fa96491fa6246df4af5a": {
+    "ts": "2026-07-27T20:19:32.173Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Сергей 27-07-2026 15:39",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1751436": {
+    "ts": "2026-07-27T20:20:22.423Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Илья 27-07-2026 16:37",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_8baeee720bbfecdbfdce1d5f997d9247f1f4d443": {
+    "ts": "2026-07-27T20:20:22.423Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Илья 27-07-2026 16:37",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1751456": {
+    "ts": "2026-07-27T20:20:43.130Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Мария НЭК 27-07-2026 16:51",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_e90cefe8bb82b2558ff043c71e5dd650b8b921fd": {
+    "ts": "2026-07-27T20:20:43.130Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Мария НЭК 27-07-2026 16:51",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1751206": {
+    "ts": "2026-07-27T20:40:31.210Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - 89035491009 27-07-2026 12:51",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_e38e215208bcb016db70677e301b1afc55992805": {
+    "ts": "2026-07-27T20:40:31.210Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - 89035491009 27-07-2026 12:51",
+    "ttlHours": 168
   }
 }
