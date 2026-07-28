@@ -8933,5 +8933,41 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - 89035491009 27-07-2026 12:51",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1751954": {
+    "ts": "2026-07-28T20:15:47.360Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Жаркова Светлана Борисовна 28-07-2026 14:56",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_9cf8694e0ee41e7f868882457f3c1e4d9f4cdd96": {
+    "ts": "2026-07-28T20:15:47.360Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Жаркова Светлана Борисовна 28-07-2026 14:56",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1752128": {
+    "ts": "2026-07-28T20:17:10.733Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игнатов Александр Николаевич 28-07-2026 18:05",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_a1f2dc84295e2743acae8a88ed821d4e5908b5ea": {
+    "ts": "2026-07-28T20:17:10.733Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Игнатов Александр Николаевич 28-07-2026 18:05",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1752114": {
+    "ts": "2026-07-28T20:17:33.251Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 28-07-2026 17:59",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_07e77cfed0345bce20743c1bf1b36c2eff66c09e": {
+    "ts": "2026-07-28T20:17:33.251Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 28-07-2026 17:59",
+    "ttlHours": 168
   }
 }
