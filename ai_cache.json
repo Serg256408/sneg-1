@@ -8969,5 +8969,101 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Роман Романов (Сезон Ко) 28-07-2026 17:59",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1752224": {
+    "ts": "2026-07-29T20:12:44.981Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Григорян Тигран Гагикович 29-07-2026 10:41",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_a166a9b955282c3473ff52bc716d56c93ebf26c5": {
+    "ts": "2026-07-29T20:12:44.981Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Григорян Тигран Гагикович 29-07-2026 10:41",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1752568": {
+    "ts": "2026-07-29T20:16:30.800Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - РОман 29-07-2026 18:21",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_540a8894a72608dfdb40032755af2c426dc89319": {
+    "ts": "2026-07-29T20:16:30.800Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - РОман 29-07-2026 18:21",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1752438": {
+    "ts": "2026-07-29T20:16:33.243Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - РОман 29-07-2026 15:47",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_d3bc93b30a3cafdb920e73fb144434a1b7bc30ac": {
+    "ts": "2026-07-29T20:16:33.243Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - РОман 29-07-2026 15:47",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1752378": {
+    "ts": "2026-07-29T20:16:35.737Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - РОман 29-07-2026 14:56",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_ee113959505febd55864cd65d874d638dd5a3274": {
+    "ts": "2026-07-29T20:16:35.737Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - РОман 29-07-2026 14:56",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1752376": {
+    "ts": "2026-07-29T20:16:37.909Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - РОман 29-07-2026 14:55",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_b86c41877d4bd3ff8c1a98d9b27ffaff63af02eb": {
+    "ts": "2026-07-29T20:16:37.909Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - РОман 29-07-2026 14:55",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1752468": {
+    "ts": "2026-07-29T20:18:03.156Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Илья 29-07-2026 16:54",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_cf150b9d788340a052edbba03e5e2c53519648a7": {
+    "ts": "2026-07-29T20:18:03.156Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Илья 29-07-2026 16:54",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1752470": {
+    "ts": "2026-07-29T20:18:15.681Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Danilov, Andrey 29-07-2026 16:57",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_f104895b1b8cd3828410132872f1c618009746f3": {
+    "ts": "2026-07-29T20:18:15.681Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Danilov, Andrey 29-07-2026 16:57",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1752566": {
+    "ts": "2026-07-29T20:18:44.982Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Андриянов Виктор Владимирович 29-07-2026 18:14",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_4670efe613ce80caf6847dfd4a3bec31b3649983": {
+    "ts": "2026-07-29T20:18:44.982Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Андриянов Виктор Владимирович 29-07-2026 18:14",
+    "ttlHours": 168
   }
 }
