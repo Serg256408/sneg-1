@@ -9065,5 +9065,65 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Андриянов Виктор Владимирович 29-07-2026 18:14",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1752932": {
+    "ts": "2026-07-30T20:15:07.209Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Евгений 30-07-2026 16:25",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_79ed0d7b208dd157e78c911e78fc21a22627456a": {
+    "ts": "2026-07-30T20:15:07.209Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Евгений 30-07-2026 16:25",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1752934": {
+    "ts": "2026-07-30T20:15:19.060Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - игорь 30-07-2026 16:27",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_30a6aa7462f0528d69e4109ff5e7fbcde1415e4a": {
+    "ts": "2026-07-30T20:15:19.060Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - игорь 30-07-2026 16:27",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1752660": {
+    "ts": "2026-07-30T20:15:31.816Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Сугакова Наталья 30-07-2026 11:15",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_6e154fdcb268ee1d96f828315e600513331255db": {
+    "ts": "2026-07-30T20:15:31.816Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Сугакова Наталья 30-07-2026 11:15",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1752954": {
+    "ts": "2026-07-30T20:17:02.901Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - РОман 30-07-2026 16:44",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_70375d97359c6edea85c32d6cbc5582ba45ae8c9": {
+    "ts": "2026-07-30T20:17:02.901Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - РОман 30-07-2026 16:44",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1753000": {
+    "ts": "2026-07-30T20:18:11.884Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Михаил 30-07-2026 18:07",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_d9b8c6eb8f2f640778e1fdd2362df4337cc95725": {
+    "ts": "2026-07-30T20:18:11.884Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Михаил 30-07-2026 18:07",
+    "ttlHours": 168
   }
 }
