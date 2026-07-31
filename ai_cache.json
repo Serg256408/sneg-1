@@ -9125,5 +9125,29 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Михаил 30-07-2026 18:07",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1753122": {
+    "ts": "2026-07-31T20:19:25.826Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - РОман 31-07-2026 12:15",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_866028b7fd6bd35c7946fcfbe24c6ec4588f22fa": {
+    "ts": "2026-07-31T20:19:25.826Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - РОман 31-07-2026 12:15",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1753398": {
+    "ts": "2026-07-31T20:23:17.141Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Евгений 31-07-2026 16:56",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_bebe33a2e067eafe9a00039ef702fb7fd0ca1601": {
+    "ts": "2026-07-31T20:23:17.141Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Евгений 31-07-2026 16:56",
+    "ttlHours": 168
   }
 }
