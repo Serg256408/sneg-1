@@ -9149,5 +9149,41 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Евгений 31-07-2026 16:56",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1753588": {
+    "ts": "2026-08-03T20:24:20.220Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Калькулятор: быстрый расчет 03-08-2026 10:30",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_b5ea570b216c52dfdcc3ca5e4bc9abf555f263bc": {
+    "ts": "2026-08-03T20:24:20.220Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Калькулятор: быстрый расчет 03-08-2026 10:30",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1753784": {
+    "ts": "2026-08-03T20:24:26.603Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Бурдина Юлия, Мариот Плаза 03-08-2026 17:09",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_4f51b45ec567216f10861e1eaa0960c1c76b3391": {
+    "ts": "2026-08-03T20:24:26.603Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Бурдина Юлия, Мариот Плаза 03-08-2026 17:09",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1753786": {
+    "ts": "2026-08-03T20:24:29.362Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Danilov, Andrey 03-08-2026 17:10",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_b44dc318402bfa8ba26f9b68370956ecbe3cf8f9": {
+    "ts": "2026-08-03T20:24:29.362Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Danilov, Andrey 03-08-2026 17:10",
+    "ttlHours": 168
   }
 }
