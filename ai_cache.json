@@ -9185,5 +9185,41 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Danilov, Andrey 03-08-2026 17:10",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1754146": {
+    "ts": "2026-08-04T20:23:21.070Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Витольд Эглескалн 04-08-2026 16:25",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_a7b74b809120c1220f5b69c8c4d97a4aeb8948a3": {
+    "ts": "2026-08-04T20:23:21.070Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Витольд Эглескалн 04-08-2026 16:25",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1754136": {
+    "ts": "2026-08-04T20:24:02.659Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Витольд Эглескалн - Ия Боровая 04-08-2026 16:23",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_8b27cc07d11e9a3f258ef05427ba9fe09099b87d": {
+    "ts": "2026-08-04T20:24:02.659Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Витольд Эглескалн - Ия Боровая 04-08-2026 16:23",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1754190": {
+    "ts": "2026-08-04T20:24:06.217Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Евгений 04-08-2026 17:56",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_87c8c55098dbbb6db4f8d55108d56e6052fd8db8": {
+    "ts": "2026-08-04T20:24:06.217Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Евгений 04-08-2026 17:56",
+    "ttlHours": 168
   }
 }
