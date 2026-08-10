@@ -9401,5 +9401,101 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Danilov, Andrey 07-08-2026 18:47",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1755316": {
+    "ts": "2026-08-10T19:52:27.297Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир Владимирович 10-08-2026 17:12",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_b874cd0dd9fb7dea11fc371b27cb48c35898d7fd": {
+    "ts": "2026-08-10T19:52:27.297Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир Владимирович 10-08-2026 17:12",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1755318": {
+    "ts": "2026-08-10T19:52:30.920Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Курашин Сергей Владимирович 10-08-2026 17:13",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_0f5977b7d67c148b7f7c4c9cec435d7ef6af581d": {
+    "ts": "2026-08-10T19:52:30.920Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Курашин Сергей Владимирович 10-08-2026 17:13",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1755322": {
+    "ts": "2026-08-10T19:52:35.231Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Качур Михаил Константинович 10-08-2026 17:15",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_03706cede18685359ebc0f34b069d8fbbd084dae": {
+    "ts": "2026-08-10T19:52:35.231Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Качур Михаил Константинович 10-08-2026 17:15",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1755336": {
+    "ts": "2026-08-10T19:53:07.785Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир 10-08-2026 17:42",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_07b9bc563bd37828c9f123c5ad932fba1fb2e0ea": {
+    "ts": "2026-08-10T19:53:07.785Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир 10-08-2026 17:42",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1755346": {
+    "ts": "2026-08-10T19:53:14.029Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Александр 10-08-2026 18:35",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_0d94f49f038140f0ac48e7d5a99c0c1563e76f18": {
+    "ts": "2026-08-10T19:53:14.029Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Александр 10-08-2026 18:35",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1755352": {
+    "ts": "2026-08-10T19:53:17.359Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Вячеслав 10-08-2026 18:40",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_a8f9f128b738eb87dc57b64096936b11f959f01f": {
+    "ts": "2026-08-10T19:53:17.359Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Вячеслав 10-08-2026 18:40",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1755350": {
+    "ts": "2026-08-10T19:53:20.584Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Izmailova Olga 10-08-2026 18:37",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_f0aac553f011f2c7f7c513b4d0c55d1ede05b40e": {
+    "ts": "2026-08-10T19:53:20.584Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Izmailova Olga 10-08-2026 18:37",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1755364": {
+    "ts": "2026-08-10T19:53:24.518Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Эдуард Оксузян 10-08-2026 18:50",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_dde654e630c4c9176a2c036f184acf026cd05314": {
+    "ts": "2026-08-10T19:53:24.518Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Эдуард Оксузян 10-08-2026 18:50",
+    "ttlHours": 168
   }
 }
