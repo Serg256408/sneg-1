@@ -9497,5 +9497,65 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Эдуард Оксузян 10-08-2026 18:50",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1755530": {
+    "ts": "2026-08-11T19:59:14.678Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - 89919232555 11-08-2026 16:34",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_10eb0cb691ab3155197edbac83071c82f8c64c7d": {
+    "ts": "2026-08-11T19:59:14.678Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - 89919232555 11-08-2026 16:34",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1755512": {
+    "ts": "2026-08-11T19:59:19.699Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир 11-08-2026 15:53",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_5ad37a06eba5cdf42032cc1695465ac7568ac9e2": {
+    "ts": "2026-08-11T19:59:19.699Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир 11-08-2026 15:53",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1755584": {
+    "ts": "2026-08-11T19:59:49.877Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Айдас 11-08-2026 18:12",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_e7319b5e07a08d80656e034e3bc5859ab4900a23": {
+    "ts": "2026-08-11T19:59:49.877Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Айдас 11-08-2026 18:12",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1755586": {
+    "ts": "2026-08-11T19:59:52.989Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Евгений 11-08-2026 18:13",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_361c956136ff6be3aaf10c41c3bcbc688c29bdd9": {
+    "ts": "2026-08-11T19:59:52.989Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Евгений 11-08-2026 18:13",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1755606": {
+    "ts": "2026-08-11T19:59:58.677Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Сорокин Алексей Александрович 11-08-2026 18:29",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_c2648980ec5c2de8e335bbdd128fe2b5dd8c3824": {
+    "ts": "2026-08-11T19:59:58.677Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Сорокин Алексей Александрович 11-08-2026 18:29",
+    "ttlHours": 168
   }
 }
