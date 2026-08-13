@@ -9725,5 +9725,113 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Владимир 12-08-2026 18:14",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1756450": {
+    "ts": "2026-08-13T19:55:34.886Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Виктор 13-08-2026 18:28",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_9ecfa55d7795dcb791b532fcafa9cf5975f704d3": {
+    "ts": "2026-08-13T19:55:34.886Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Виктор 13-08-2026 18:28",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1756208": {
+    "ts": "2026-08-13T19:55:51.292Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Виктор 13-08-2026 13:35",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_c280c2ec255645495eb496a2fcd4d58997a4a2a4": {
+    "ts": "2026-08-13T19:55:51.292Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Виктор 13-08-2026 13:35",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1756428": {
+    "ts": "2026-08-13T19:56:31.486Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Кузнецова Татьяна Николаевна 13-08-2026 17:52",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_dd3e19c1b078ffbdabc4e24f62c2beee9a3376a2": {
+    "ts": "2026-08-13T19:56:31.486Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Кузнецова Татьяна Николаевна 13-08-2026 17:52",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1756212": {
+    "ts": "2026-08-13T19:56:33.677Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Кузнецова Татьяна Николаевна 13-08-2026 13:56",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_34a122e815c5f45698116c4d84b755dd723d3c2e": {
+    "ts": "2026-08-13T19:56:33.677Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Кузнецова Татьяна Николаевна 13-08-2026 13:56",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1756426": {
+    "ts": "2026-08-13T19:56:40.180Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - 89919232555 13-08-2026 17:51",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_000459e7e48c6c3881d49c09303d729710a4c7fb": {
+    "ts": "2026-08-13T19:56:40.180Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - 89919232555 13-08-2026 17:51",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1756396": {
+    "ts": "2026-08-13T19:57:09.551Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Сергей 13-08-2026 17:16",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_3c445836f17b539e77ad15d0f819913c118db3a1": {
+    "ts": "2026-08-13T19:57:09.551Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Сергей 13-08-2026 17:16",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1756400": {
+    "ts": "2026-08-13T19:58:10.705Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Евгений 13-08-2026 17:20",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_03cda712e790c553e93de90274b515ba121f75a1": {
+    "ts": "2026-08-13T19:58:10.705Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Евгений 13-08-2026 17:20",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1756442": {
+    "ts": "2026-08-13T19:59:48.699Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир 13-08-2026 18:09",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_d394631570a9576bee5a404e7098f15d4f444f55": {
+    "ts": "2026-08-13T19:59:48.699Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир 13-08-2026 18:09",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1756448": {
+    "ts": "2026-08-13T20:00:09.666Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Андриянов Виктор Владимирович 13-08-2026 18:19",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_83d7fc0d7669deb421c089def3a5f2074361cc0f": {
+    "ts": "2026-08-13T20:00:09.666Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Андриянов Виктор Владимирович 13-08-2026 18:19",
+    "ttlHours": 168
   }
 }
