@@ -10025,5 +10025,89 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Izmailova Olga 14-08-2026 16:47",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1756990": {
+    "ts": "2026-08-17T19:27:03.612Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Юров Александр Иванович - Ия Боровая 17-08-2026 13:23",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_06343370ba51c32b45fa785f5e604fd756f2f156": {
+    "ts": "2026-08-17T19:27:03.612Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Юров Александр Иванович - Ия Боровая 17-08-2026 13:23",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1757186": {
+    "ts": "2026-08-17T19:27:58.526Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Олег 17-08-2026 17:13",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_471319267d8e99ac1bffc6b3bf5abe9c789e071d": {
+    "ts": "2026-08-17T19:27:58.526Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Олег 17-08-2026 17:13",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1757192": {
+    "ts": "2026-08-17T19:28:07.604Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Izmailova Olga 17-08-2026 17:19",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_d6a57882ef1a57c2f07f14213709a70459be2640": {
+    "ts": "2026-08-17T19:28:07.604Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Izmailova Olga 17-08-2026 17:19",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1757200": {
+    "ts": "2026-08-17T19:28:12.672Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир 17-08-2026 17:23",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_93f665c80795d6d7fcd16d750a79ddd23e6a9a43": {
+    "ts": "2026-08-17T19:28:12.672Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир 17-08-2026 17:23",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1757212": {
+    "ts": "2026-08-17T19:28:36.809Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Алексей 17-08-2026 17:37",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_a9f06e70f41b1c3bfa27af690a61f38e0eb19ded": {
+    "ts": "2026-08-17T19:28:36.809Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Алексей 17-08-2026 17:37",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1757214": {
+    "ts": "2026-08-17T19:28:43.465Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир 17-08-2026 17:40",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_01edf5280733c4e55a5fcf0c56a0e2fe3e83b915": {
+    "ts": "2026-08-17T19:28:43.465Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир 17-08-2026 17:40",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1757034": {
+    "ts": "2026-08-17T19:29:51.348Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка 89161136764 - Сергей Терехов 17-08-2026 13:55",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_01f6ef3c9227c4e487b6b33406ad500df5181bad": {
+    "ts": "2026-08-17T19:29:51.348Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка 89161136764 - Сергей Терехов 17-08-2026 13:55",
+    "ttlHours": 168
   }
 }
