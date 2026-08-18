@@ -10109,5 +10109,89 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка 89161136764 - Сергей Терехов 17-08-2026 13:55",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1757620": {
+    "ts": "2026-08-18T19:25:25.003Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Александр 18-08-2026 18:29",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_572bbbac39e58a822523d7e4d8fd476c013f2b3a": {
+    "ts": "2026-08-18T19:25:25.003Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Александр 18-08-2026 18:29",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1757512": {
+    "ts": "2026-08-18T19:26:27.308Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Izmailova Olga 18-08-2026 16:02",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_671e3a1afc80cfb2d6c071a1292eacb3f3adc1f4": {
+    "ts": "2026-08-18T19:26:27.308Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Izmailova Olga 18-08-2026 16:02",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1757490": {
+    "ts": "2026-08-18T19:26:29.726Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Бородина Екатерина Олеговна 18-08-2026 15:44",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_3be31e3e6e95158adf1bc1df308ba7e3f417b7a0": {
+    "ts": "2026-08-18T19:26:29.726Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Бородина Екатерина Олеговна 18-08-2026 15:44",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1757550": {
+    "ts": "2026-08-18T19:27:41.210Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Андриянов Виктор Владимирович 18-08-2026 17:11",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_e1b126b93eddbb84ed32a828d659b47b3ce114e4": {
+    "ts": "2026-08-18T19:27:41.210Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Андриянов Виктор Владимирович 18-08-2026 17:11",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1757586": {
+    "ts": "2026-08-18T19:28:27.318Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Олег 18-08-2026 17:49",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_f54024267262c453a1ec8f580869e089b570d605": {
+    "ts": "2026-08-18T19:28:27.318Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Олег 18-08-2026 17:49",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1757590": {
+    "ts": "2026-08-18T19:28:30.428Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир 18-08-2026 17:52",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_760ed4d774711cc2da1508a1cd9eea88508e60e2": {
+    "ts": "2026-08-18T19:28:30.428Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир 18-08-2026 17:52",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1757606": {
+    "ts": "2026-08-18T19:28:33.627Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир 18-08-2026 18:02",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_88bb433801de722afdcb8686e46765daccb180f0": {
+    "ts": "2026-08-18T19:28:33.627Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир 18-08-2026 18:02",
+    "ttlHours": 168
   }
 }
