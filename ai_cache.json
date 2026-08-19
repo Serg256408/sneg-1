@@ -10193,5 +10193,41 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Владимир 18-08-2026 18:02",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1757892": {
+    "ts": "2026-08-19T19:25:22.653Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Михаил 19-08-2026 18:16",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_d22bb38652b286aeb7a0e0838389619c0ff903c5": {
+    "ts": "2026-08-19T19:25:22.653Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Михаил 19-08-2026 18:16",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1757874": {
+    "ts": "2026-08-19T19:28:40.961Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Олег 19-08-2026 17:53",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_f800871e20e16f44c53aca8bca870eacee44c016": {
+    "ts": "2026-08-19T19:28:40.961Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Олег 19-08-2026 17:53",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_1757884": {
+    "ts": "2026-08-19T19:28:44.543Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Юров Александр Иванович 19-08-2026 18:06",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_c162a88270675d97aa28286c40435b619559171a": {
+    "ts": "2026-08-19T19:28:44.543Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Юров Александр Иванович 19-08-2026 18:06",
+    "ttlHours": 168
   }
 }
