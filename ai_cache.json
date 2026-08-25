@@ -10361,5 +10361,17 @@
     "reason": "Planfix file download failed",
     "name": "Запись звонка Ия Боровая - Алексей 21-08-2026 18:02",
     "ttlHours": 168
+  },
+  "pf_file_download_fail_1758782": {
+    "ts": "2026-08-25T19:28:29.464Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир 25-08-2026 15:22",
+    "ttlHours": 168
+  },
+  "pf_file_download_fail_sig_b08f8ea9dec1f1a1290b2f194b2fbf20bc91dfd7": {
+    "ts": "2026-08-25T19:28:29.464Z",
+    "reason": "Planfix file download failed",
+    "name": "Запись звонка Ия Боровая - Владимир 25-08-2026 15:22",
+    "ttlHours": 168
   }
 }
