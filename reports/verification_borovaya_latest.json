@@ -1,9 +1,9 @@
 {
   "managerAlias": "borovaya",
   "managerName": "Ия Боровая",
-  "reportDate": "28-08-2026",
-  "generated": "2026-08-28T02:32:52.681Z",
-  "checkedAt": "2026-08-28T02:35:37.055Z",
+  "reportDate": "29-08-2026",
+  "generated": "2026-08-29T02:07:19.128Z",
+  "checkedAt": "2026-08-29T02:10:02.670Z",
   "overallStatus": "pass",
   "controlStatus": "pass",
   "rows": [
@@ -11,8 +11,8 @@
       "key": "dataFreshness",
       "item": "Дата данных",
       "status": "pass",
-      "value": "28-08-2026 / 28-08-2026",
-      "detail": "generated 2026-08-28T02:32:52.681Z"
+      "value": "29-08-2026 / 29-08-2026",
+      "detail": "generated 2026-08-29T02:07:19.128Z"
     },
     {
       "key": "dealCompleteness",
@@ -124,10 +124,10 @@
       "newDeals": 0,
       "oldDeals": 0,
       "movement": {
-        "total": 12,
-        "forward": 2,
-        "backward": 1,
-        "unknown": 9
+        "total": 7,
+        "forward": 1,
+        "backward": 0,
+        "unknown": 6
       }
     },
     "telegram": {
@@ -153,9 +153,9 @@
     {
       "name": "dataFreshness",
       "status": "pass",
-      "expectedDate": "28-08-2026",
-      "actualDate": "28-08-2026",
-      "generated": "2026-08-28T02:32:52.681Z"
+      "expectedDate": "29-08-2026",
+      "actualDate": "29-08-2026",
+      "generated": "2026-08-29T02:07:19.128Z"
     },
     {
       "name": "dealCompleteness",
@@ -214,21 +214,21 @@
           "path": "reports/borovaya.html",
           "label": "Отчёт",
           "exists": true,
-          "sizeKb": 36999,
+          "sizeKb": 36122,
           "valid": true
         },
         {
           "path": "deploy/borovaya/index.html",
           "label": "Deploy",
           "exists": true,
-          "sizeKb": 36999,
+          "sizeKb": 36122,
           "valid": true
         },
         {
           "path": "data/borovaya_latest.json",
           "label": "Данные",
           "exists": true,
-          "sizeKb": 48655,
+          "sizeKb": 47494,
           "valid": true
         }
       ]
