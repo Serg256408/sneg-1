@@ -1,60 +1,60 @@
 {
   "managerAlias": "borovaya",
   "managerName": "Ия Боровая",
-  "reportDate": "05-09-2026",
-  "generated": "2026-09-04T21:20:56.455Z",
-  "checkedAt": "2026-09-04T21:23:40.907Z",
-  "overallStatus": "pass",
-  "controlStatus": "pass",
+  "reportDate": "06-09-2026",
+  "generated": "2026-09-05T21:00:13.208Z",
+  "checkedAt": "2026-09-05T21:00:16.140Z",
+  "overallStatus": "fail",
+  "controlStatus": "fail",
   "rows": [
     {
       "key": "dataFreshness",
       "item": "Дата данных",
-      "status": "pass",
-      "value": "05-09-2026 / 05-09-2026",
-      "detail": "generated 2026-09-04T21:20:56.455Z"
+      "status": "fail",
+      "value": "05-09-2026 / 06-09-2026",
+      "detail": "generated 2026-09-05T21:00:13.208Z"
     },
     {
       "key": "dealCompleteness",
       "item": "Сделки",
-      "status": "pass",
-      "value": "0/0",
-      "detail": "нет 0, лишн 0, недост 0"
+      "status": "pending",
+      "value": "-",
+      "detail": ""
     },
     {
       "key": "callCompleteness",
       "item": "Звонки",
-      "status": "pass",
-      "value": "0/0",
-      "detail": "пропущено 0"
+      "status": "pending",
+      "value": "-",
+      "detail": ""
     },
     {
       "key": "transcriptions",
       "item": "Расшифровки",
-      "status": "pass",
-      "value": "0/0",
-      "detail": "НДЗ 0, покрыто 0, нереш 0"
+      "status": "pending",
+      "value": "-",
+      "detail": ""
     },
     {
       "key": "aiAssessments",
       "item": "ИИ-оценки",
-      "status": "pass",
-      "value": "0/0",
-      "detail": "нет 0, битых 0"
+      "status": "pending",
+      "value": "-",
+      "detail": ""
     },
     {
       "key": "autoSend",
       "item": "Рекомендации",
-      "status": "pass",
-      "value": "0/0",
-      "detail": "не ушло 0, сводка ок"
+      "status": "pending",
+      "value": "-",
+      "detail": ""
     },
     {
       "key": "htmlFiles",
       "item": "HTML/данные",
-      "status": "pass",
-      "value": "3/3",
-      "detail": "ошибок 0"
+      "status": "fail",
+      "value": "2/3",
+      "detail": "ошибок 1"
     },
     {
       "key": "telegram",
@@ -66,70 +66,23 @@
     {
       "key": "unresolved",
       "item": "Нерешено",
-      "status": "pass",
-      "value": "0",
-      "detail": "data 0, deals 0, calls 0, tr 0, ai 0, send 0, html 0"
+      "status": "fail",
+      "value": "2",
+      "detail": "data 1, deals 0, calls 0, tr 0, ai 0, send 0, html 1"
     }
   ],
   "metrics": {
-    "deals": {
-      "report": 0,
-      "planfix": 0,
-      "missing": 0,
-      "extra": 0,
-      "unloadable": 0
-    },
-    "calls": {
-      "report": 0,
-      "planfix": 0,
-      "missing": 0
-    },
-    "transcriptions": {
-      "total": 0,
-      "transcribed": 0,
-      "ndz": 0,
-      "coveredByTranscription": 0,
-      "untranscribed": 0,
-      "reasons": {}
-    },
-    "ai": {
-      "total": 0,
-      "assessed": 0,
-      "missing": 0,
-      "invalid": 0
-    },
-    "autoSend": {
-      "sent": 0,
-      "shouldSend": 0,
-      "notSent": 0,
-      "managerSummarySent": false,
-      "managerSummaryRequired": false,
-      "managerSummarySkippedNoTask": false
-    },
+    "deals": null,
+    "calls": null,
+    "transcriptions": null,
+    "ai": null,
+    "autoSend": null,
     "html": {
-      "ok": 3,
+      "ok": 2,
       "total": 3,
-      "broken": 0
+      "broken": 1
     },
-    "productivity": {
-      "calls": {
-        "outCount": 0,
-        "inCount": 0,
-        "otherCount": 0,
-        "outSeconds": 0,
-        "inSeconds": 0,
-        "totalSeconds": 0
-      },
-      "workedDeals": 0,
-      "newDeals": 0,
-      "oldDeals": 0,
-      "movement": {
-        "total": 6,
-        "forward": 2,
-        "backward": 0,
-        "unknown": 4
-      }
-    },
+    "productivity": null,
     "telegram": {
       "disabled": false,
       "configured": true,
@@ -138,98 +91,49 @@
       "status": "pass"
     },
     "unresolved": {
-      "data": 0,
+      "data": 1,
       "deals": 0,
       "calls": 0,
       "transcriptions": 0,
       "ai": 0,
       "autoSend": 0,
-      "html": 0,
+      "html": 1,
       "telegram": 0,
-      "total": 0
+      "total": 2
     }
   },
   "checks": [
     {
       "name": "dataFreshness",
-      "status": "pass",
-      "expectedDate": "05-09-2026",
+      "status": "fail",
+      "expectedDate": "06-09-2026",
       "actualDate": "05-09-2026",
-      "generated": "2026-09-04T21:20:56.455Z"
-    },
-    {
-      "name": "dealCompleteness",
-      "status": "pass",
-      "planfixCount": 0,
-      "rawPlanfixCount": 0,
-      "reportCount": 0,
-      "missingFromReport": [],
-      "unloadableFromPlanfix": [],
-      "nonReportableFromPlanfix": [],
-      "extraInReport": [],
-      "reason": ""
-    },
-    {
-      "name": "callCompleteness",
-      "status": "pass",
-      "dealResults": [],
-      "totalMissing": 0
-    },
-    {
-      "name": "transcriptions",
-      "status": "pass",
-      "totalCalls": 0,
-      "transcribed": 0,
-      "ndz": 0,
-      "coveredByTranscription": 0,
-      "untranscribed": 0,
-      "untranscribedReasons": {},
-      "untranscribedReasonText": "",
-      "untranscribedList": [],
-      "coveredList": []
-    },
-    {
-      "name": "aiAssessments",
-      "status": "pass",
-      "total": 0,
-      "assessed": 0,
-      "missing": [],
-      "invalid": []
-    },
-    {
-      "name": "autoSend",
-      "status": "pass",
-      "shouldSend": 0,
-      "sent": 0,
-      "notSent": [],
-      "shouldSendManager": false,
-      "managerSummarySent": false,
-      "managerSummarySkippedNoTask": false
+      "generated": "2026-09-05T21:00:13.208Z"
     },
     {
       "name": "htmlFiles",
-      "status": "pass",
+      "status": "fail",
       "files": [
         {
           "path": "reports/borovaya.html",
           "label": "Отчёт",
           "exists": true,
-          "sizeKb": 31494,
+          "sizeKb": 32513,
           "valid": true
         },
         {
           "path": "deploy/borovaya/index.html",
           "label": "Deploy",
           "exists": true,
-          "sizeKb": 31494,
+          "sizeKb": 32513,
           "valid": true
         },
         {
           "path": "data/borovaya_latest.json",
           "label": "Данные",
           "exists": true,
-          "sizeKb": 41410,
-          "valid": true
+          "sizeKb": 42759,
+          "valid": false
         }
       ]
     }
